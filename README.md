@@ -10,11 +10,12 @@ Console Fantasia feito para funcionar em hardware real.
 
 1. Baixe o projeto
 
-        cd pongboy
+        git clone https://github.com/pongboy/pongboy
 
 2. Entre no diretório e crie um outro diretório chamado build
 
-        git clone https://github.com/pongboy/pongboy
+        cd pongboy
+        git submodule update --init --recursive
         mkdir build
 
 3. Entre no build e rode o cmake e make
@@ -25,7 +26,8 @@ Console Fantasia feito para funcionar em hardware real.
 
 ## Windows (Geral)
 
-Baixe o código utilizando seu método preferido (GUI git, git bash, zip etc).
+Baixe o código utilizando seu método preferido (GUI git, git bash etc). Lembre de inicializar
+os submódulos com `git submodule update --init --recursive` ou o equivalente na sua plataforma.
 
 Instale o cmake se não tiver.
 
