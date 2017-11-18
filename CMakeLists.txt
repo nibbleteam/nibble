@@ -18,20 +18,32 @@ link_directories("${PROJECT_BUILD_DIR}/lib")
 
 # SFML
 include(ExternalProject)
+
+if (WIN32)
+    add_definitions(-DSFML_STATIC)
+endif (WIN32)
+
 ExternalProject_Add(SFML
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/sfml/"
-                    CMAKE_ARGS
-                        "-DBUILD_SHARED_LIBS=false"
-                        "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
-                    )
+                SOURCE_DIR "${PROJECT_EXTERN_DIR}/sfml/"
+                CMAKE_ARGS
+                    "-DBUILD_SHARED_LIBS=false"
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
+                )
 
 # Exe
 add_executable(pongboy ${PROJECT_SOURCE_DIR}/main.cpp)
 
 # Linking
-target_link_libraries(pongboy sfml-window-s sfml-graphics-s sfml-audio-s sfml-network-s sfml-system-s)
+target_link_libraries(pongboy debug sfml-window-s-d optimized sfml-window-s)
+target_link_libraries(pongboy debug sfml-graphics-s-d optimized sfml-graphics-s)
+target_link_libraries(pongboy debug sfml-audio-s-d optimized sfml-audio-s)
+target_link_libraries(pongboy debug sfml-network-s-d optimized sfml-network-s)
+target_link_libraries(pongboy debug sfml-system-s-d optimized sfml-system-s)
 
 if (UNIX)
     target_link_libraries(pongboy pthread udev X11 Xrandr GL openal FLAC vorbis)
 endif (UNIX)
 
+if (WIN32)
+    target_link_libraries(pongboy opengl32 winmm FLAC vorbis)
+endif (WIN32)
