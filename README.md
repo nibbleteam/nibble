@@ -10,18 +10,18 @@ Console Fantasia feito para funcionar em hardware real.
 
 1. Baixe o projeto
 
-    cd pongboy
+        cd pongboy
 
 2. Entre no diretório e crie um outro diretório chamado build
 
-    git clone https://github.com/pongboy/pongboy
-    mkdir build
+        git clone https://github.com/pongboy/pongboy
+        mkdir build
 
 3. Entre no build e rode o cmake e make
 
-    cd build
-    cmake ..
-    make
+        cd build
+        cmake ..
+        make
 
 ## Windows (Geral)
 
