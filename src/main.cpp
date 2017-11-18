@@ -1,17 +1,5 @@
 #include <SFML/Graphics.hpp>
 
-extern "C" {
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-}
-
-void test_lua() {
-    lua_State *st = luaL_newstate();
-
-    lua_close(st);
-}
-
 int main() {
     sf::RenderWindow window(sf::VideoMode(320, 240), "PongBoy");
 
