@@ -12,11 +12,7 @@ set(PROJECT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 set(PROJECT_EXTERN_DIR ${CMAKE_SOURCE_DIR}/extern)
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 
-include_directories("${PROJECT_HEADER_DIR}")
-include_directories("${PROJECT_BUILD_DIR}/include")
-link_directories("${PROJECT_BUILD_DIR}/lib")
-
-# SFML
+# SFML and Lua
 include(ExternalProject)
 
 if (WIN32)
@@ -27,11 +23,20 @@ ExternalProject_Add(SFML
                 SOURCE_DIR "${PROJECT_EXTERN_DIR}/sfml/"
                 CMAKE_ARGS
                     "-DBUILD_SHARED_LIBS=false"
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
-                )
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+
+ExternalProject_Add(LUA
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/lua/"
+                    CMAKE_ARGS
+                        "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+
+include_directories("${PROJECT_HEADER_DIR}")
+include_directories("${PROJECT_BUILD_DIR}/include")
+link_directories("${PROJECT_BUILD_DIR}/lib")
 
 # Exe
 add_executable(pongboy ${PROJECT_SOURCE_DIR}/main.cpp)
+add_dependencies(pongboy SFML LUA)
 
 # Linking
 target_link_libraries(pongboy debug sfml-window-s-d optimized sfml-window-s)
@@ -41,9 +46,9 @@ target_link_libraries(pongboy debug sfml-network-s-d optimized sfml-network-s)
 target_link_libraries(pongboy debug sfml-system-s-d optimized sfml-system-s)
 
 if (UNIX)
-    target_link_libraries(pongboy pthread udev X11 Xrandr GL openal FLAC vorbis)
+    target_link_libraries(pongboy lualib pthread udev X11 Xrandr GL openal FLAC vorbis)
 endif (UNIX)
 
 if (WIN32)
-    target_link_libraries(pongboy opengl32 winmm FLAC vorbis)
+    target_link_libraries(pongboy lualib opengl32 winmm FLAC vorbis)
 endif (WIN32)
