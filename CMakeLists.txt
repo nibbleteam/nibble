@@ -35,7 +35,14 @@ include_directories("${PROJECT_BUILD_DIR}/include")
 link_directories("${PROJECT_BUILD_DIR}/lib")
 
 # Exe
-add_executable(pongboy ${PROJECT_SOURCE_DIR}/main.cpp)
+add_executable(pongboy
+                ${PROJECT_SOURCE_DIR}/main.cpp
+                ${PROJECT_SOURCE_DIR}/kernel/Kernel.cpp
+                ${PROJECT_HEADER_DIR}/kernel/Kernel.hpp
+                ${PROJECT_HEADER_DIR}/kernel/Process.hpp
+                ${PROJECT_HEADER_DIR}/kernel/Memory.hpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/CartridgeMemory.hpp
+              )
 add_dependencies(pongboy SFML LUA)
 
 # Linking

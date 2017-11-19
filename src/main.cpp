@@ -1,19 +1,9 @@
-#include <SFML/Graphics.hpp>
+#include <kernel/Kernel.hpp>
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(320, 240), "PongBoy");
+	Kernel kernel;
 
-    while (window.isOpen()) {
-        sf::Event event;
-
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
-                window.close();
-            }
-        }
-
-        window.display();
-    }
+	kernel.loop();
 
     return 0;
 }

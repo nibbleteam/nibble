@@ -6,6 +6,7 @@
 #include <string>
 #include <kernel/Process.hpp>
 #include <kernel/Memory.hpp>
+#include <SFML/Graphics.hpp>
 
 using namespace std;
 
@@ -13,7 +14,8 @@ using namespace std;
 // seis chamadas de sistema. Três para gerenciar
 // a memória e três para gerenciar processos.
 class Kernel {
-    // Memória para acesso direto aos dispositivos
+	sf::RenderWindow window;
+	// Memória para acesso direto aos dispositivos
     // Cada seção específica (joysticks, video, cart)
     // é implementada como uma extensão
     // da classe Memory
@@ -36,12 +38,12 @@ public:
     // Estas funções operam no vetor de ram, dividindo suas
     // chamadas em blocos unitários que podem ser executados
     // por um dos elementos de ram (dispositivos)
-    uint64_t write(uint64_t, uint8_t*, uint64_t);
-    uint64_t read(uint64_t, uint8_t*, uint64_t);
-    uint64_t copy(uint64_t, uint64_t, uint64_t);
+    uint64_t write(const uint64_t, const uint8_t*, const uint64_t);
+    uint64_t read(const uint64_t, uint8_t*, const uint64_t);
+    uint64_t copy(const uint64_t, const uint64_t, const uint64_t);
     // Gerenciamento de processos
-    uint64_t exec(string&, vector<string>&);
-    bool yield(uint64_t);
+    uint64_t exec(const string&, vector<string>);
+    bool yield(const uint64_t);
     void exit();
 private:
     // Mapeia dispositivos para a memória, essencialmente
