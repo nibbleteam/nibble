@@ -1,9 +1,11 @@
 #include <kernel/Kernel.hpp>
 
 int main() {
-	Kernel kernel;
+	KernelSingleton = new Kernel();
 
-	kernel.loop();
+	KernelSingleton->loop();
+
+	delete KernelSingleton;
 
     return 0;
 }

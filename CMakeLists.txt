@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 2.8)
 
 project(pongboy)
 
+# Use C++14
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CXX_EXTENSIONS OFF)
+if(MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
+endif(MSVC)
+
 # Output
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
@@ -34,16 +42,36 @@ include_directories("${PROJECT_HEADER_DIR}")
 include_directories("${PROJECT_BUILD_DIR}/include")
 link_directories("${PROJECT_BUILD_DIR}/lib")
 
+# Copy lua carts
+add_custom_target(LuaCartsBin
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/apps ${CMAKE_BINARY_DIR}/apps/
+)
+add_custom_target(LuaCartsBuild
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/apps ${PROJECT_BUILD_DIR}/apps/
+)
+
 # Exe
 add_executable(pongboy
                 ${PROJECT_SOURCE_DIR}/main.cpp
                 ${PROJECT_SOURCE_DIR}/kernel/Kernel.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Kernel.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/Process.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Process.hpp
                 ${PROJECT_HEADER_DIR}/kernel/Memory.hpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/CartridgeMemory.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/CartridgeMemory.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/RAM.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/RAM.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/VideoMemory.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/VideoMemory.cpp
               )
-add_dependencies(pongboy SFML LUA)
+add_dependencies(pongboy SFML LUA LuaCartsBin LuaCartsBuild)
+
+if ( MSVC )
+    set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+    set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR} )
+    set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR} )
+endif ( MSVC )
 
 # Linking
 target_link_libraries(pongboy debug sfml-window-s-d optimized sfml-window-s)
