@@ -34,3 +34,6 @@
 # Build directories
 build/
 bin/
+
+# Visual Studio Directories
+.vs/
