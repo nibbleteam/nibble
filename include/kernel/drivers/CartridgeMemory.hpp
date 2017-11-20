@@ -3,15 +3,16 @@
 
 #include <cstdint>
 #include <string>
-#include <filesystem>
 #include <kernel/Memory.hpp>
+#include <cppfs/FilePath.h>
 
 using namespace std;
+using namespace cppfs;
 
 class CartridgeMemory: public Memory {
 	const uint64_t address;
 public:
-    CartridgeMemory(const experimental::filesystem::path&, const uint64_t);
+    CartridgeMemory(const FilePath&, const uint64_t);
     ~CartridgeMemory();
 
     uint64_t write(const uint64_t, const uint8_t*, const uint64_t);

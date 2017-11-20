@@ -1,8 +1,10 @@
 #include <kernel/Kernel.hpp>
 #include <kernel/drivers/RAM.hpp>
 #include <kernel/drivers/VideoMemory.hpp>
-#include <filesystem>
+#include <cppfs/FileHandle.h>
+#include <cppfs/fs.h>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -99,7 +101,7 @@ void Kernel::loop() {
 //	- assets/
 //  - main.lua
 uint64_t Kernel::exec(const string& executable, vector<string> environment) {
-	const experimental::filesystem::path executablePath(executable);
+	const FilePath executablePath(executable);
 
 	// Verifica a existência e estrutura de do cart "executable"
 	if (!checkCartStructure(executablePath)) {
@@ -137,7 +139,6 @@ void Kernel::exit(const uint64_t pid) {
 }
 
 // API de acesso à memória
-
 uint64_t Kernel::write(uint64_t start, const uint8_t* data, uint64_t size) {
 	uint64_t end = start + size;
 	// Quantos bytes foram escritos
@@ -184,7 +185,7 @@ uint64_t Kernel::write(uint64_t start, const uint8_t* data, uint64_t size) {
 			}
 
 			// Executa um write apenas nesse bloco
-			written += memBlock->write(writeStart-blkStart, data+(blkStart-start), writeEnd - writeStart);
+			written += memBlock->write(writeStart-blkStart, data+(writeStart-start), writeEnd - writeStart);
 		}
 	}
 
@@ -218,7 +219,7 @@ string Kernel::read(uint64_t start, uint64_t size) {
 	// Segmenta o read para cada bloco de ram em que ele afetar
 	for (auto memBlock : ram) {
 		uint64_t blkStart = memBlock->addr(), blkSize = memBlock->size();
-		uint64_t blkEnd = blkStart + blkSize;
+		uint64_t blkEnd = blkStart + blkSize - 1;
 
 		// Verifica se o read afeta esse bloco de memória
 		if (blkEnd >= start && blkStart <= end) {
@@ -240,23 +241,25 @@ string Kernel::read(uint64_t start, uint64_t size) {
 			}
 
 			// Executa um read apenas nesse bloco
-			numRead += memBlock->read(readStart - blkStart, buffer + (blkStart - start), readEnd - readStart);
+			numRead += memBlock->read(readStart - blkStart, buffer + (readStart - start), readEnd - readStart);
 		}
 	}
 
 	return stringBuffer;
 }
 
-bool Kernel::checkCartStructure(const experimental::filesystem::path& root) {
-	experimental::filesystem::path lua(root);
-	lua += Process::LuaEntryPoint;
+bool Kernel::checkCartStructure(const FilePath& root) {
+	cout << "kernel " << "checking cart " << root.toNative() << endl;
 
-	experimental::filesystem::path assets(root);
-	assets += Process::AssetsEntryPoint;
+	FilePath lua = root.resolve(Process::LuaEntryPoint);
+	FilePath assets = root.resolve(Process::AssetsEntryPoint);
 
-	return experimental::filesystem::is_directory(root) &&
-		   experimental::filesystem::is_directory(assets) &&
-		   experimental::filesystem::is_regular_file(lua);
+	cout << "	" << " checking if dir " << assets.toNative() << endl;
+	cout << "	" << " checking if file " << lua.toNative() << endl;
+
+	return fs::open(root.toNative()).isDirectory() &&
+		   fs::open(assets.toNative()).isDirectory() &&
+		   fs::open(lua.toNative()).isFile();
 }
 
 // Wrapper estático para a API

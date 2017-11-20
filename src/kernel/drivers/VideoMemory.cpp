@@ -48,7 +48,7 @@ uint64_t VideoMemory::write(const uint64_t p, const uint8_t* data, const uint64_
 	y = (unsigned int)p / w;
 	
 	for (int i=0;i<size;i++) {
-		auto color = data[i + p]/16;
+		auto color = data[i]/16;
 
 		img.setPixel(x, h-y-1, pallete[color]);
 		x++;

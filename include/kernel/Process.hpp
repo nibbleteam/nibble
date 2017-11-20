@@ -9,11 +9,13 @@ extern "C" {
 
 #include <cstdint>
 #include <string>
-#include <filesystem>
+#include <vector>
+#include <cppfs/FilePath.h>
 #include <kernel/Memory.hpp>
 #include <kernel/drivers/CartridgeMemory.hpp>
 
 using namespace std;
+using namespace cppfs;
 
 class Process {
     // RAM e estado da vm Lua
@@ -30,7 +32,7 @@ public:
 	const static string LuaEntryPoint;
 	const static string AssetsEntryPoint;
 
-    Process(const experimental::filesystem::path&, vector<string>, const uint64_t, const uint64_t);
+    Process(const FilePath&, vector<string>, const uint64_t, const uint64_t);
 	~Process();
 
 	// Roda o processo

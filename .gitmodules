@@ -1,3 +1,6 @@
 [submodule "extern/sfml"]
 	path = extern/sfml
 	url = https://github.com/SFML/SFML/
+[submodule "extern/cppfs"]
+	path = extern/cppfs
+	url = https://github.com/cginternals/cppfs

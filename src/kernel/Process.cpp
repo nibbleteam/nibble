@@ -1,14 +1,16 @@
 #include <kernel/Process.hpp>
 #include <kernel/Kernel.hpp>
 #include <LuaBridge/LuaBridge.h>
+#include <cppfs/FileHandle.h>
+#include <cppfs/fs.h>
 #include <iostream>
 
 using namespace luabridge;
 
-const string Process::LuaEntryPoint = "/main.lua";
-const string Process::AssetsEntryPoint = "/assets";
+const string Process::LuaEntryPoint = "main.lua";
+const string Process::AssetsEntryPoint = "assets";
 
-Process::Process(const experimental::filesystem::path& executable,
+Process::Process(const FilePath& executable,
 				 vector<string> environment,
 				 const uint64_t pid,
 				 const uint64_t cartStart):
@@ -17,10 +19,10 @@ Process::Process(const experimental::filesystem::path& executable,
 	mapped(false) {
 	// Pontos de entrada no sistema de arquivos para código
 	// e dados do cart
-	experimental::filesystem::path lua(executable);
-	lua += LuaEntryPoint;
-	experimental::filesystem::path assets(executable);
-	assets += AssetsEntryPoint;
+	FilePath lua(executable);
+	lua = lua.resolve(LuaEntryPoint);
+	FilePath assets(executable);
+	assets = assets.resolve(AssetsEntryPoint);
 	
 	// Carrega os assets para o cartridge (que será copiado para RAM
 	// na localização cartStart)
@@ -29,7 +31,9 @@ Process::Process(const experimental::filesystem::path& executable,
 	// Carrega o código
 	st = luaL_newstate();
 	luaL_openlibs(st);
-	luaL_dofile(st, (const char*)lua.u8string().c_str());
+	luaL_dofile(st, (const char*)lua.toNative().c_str());
+
+	cout << "pid " << pid << " loading cart " << lua.toNative() << endl;
 }
 
 Process::~Process() {

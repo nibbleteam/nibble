@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CXX_EXTENSIONS OFF)
 if(MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14 /W0")
 endif(MSVC)
 
 # Output
@@ -29,6 +29,12 @@ endif (WIN32)
 
 ExternalProject_Add(SFML
                 SOURCE_DIR "${PROJECT_EXTERN_DIR}/sfml/"
+                CMAKE_ARGS
+                    "-DBUILD_SHARED_LIBS=false"
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+
+ExternalProject_Add(CPPFS
+                SOURCE_DIR "${PROJECT_EXTERN_DIR}/cppfs/"
                 CMAKE_ARGS
                     "-DBUILD_SHARED_LIBS=false"
                     "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
@@ -65,7 +71,7 @@ add_executable(pongboy
                 ${PROJECT_HEADER_DIR}/kernel/drivers/VideoMemory.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/VideoMemory.cpp
               )
-add_dependencies(pongboy SFML LUA LuaCartsBin LuaCartsBuild)
+add_dependencies(pongboy SFML LUA CPPFS LuaCartsBin LuaCartsBuild)
 
 if ( MSVC )
     set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
@@ -79,11 +85,12 @@ target_link_libraries(pongboy debug sfml-graphics-s-d optimized sfml-graphics-s)
 target_link_libraries(pongboy debug sfml-audio-s-d optimized sfml-audio-s)
 target_link_libraries(pongboy debug sfml-network-s-d optimized sfml-network-s)
 target_link_libraries(pongboy debug sfml-system-s-d optimized sfml-system-s)
+target_link_libraries(pongboy lualib debug cppfsd optimized cppfs)
 
 if (UNIX)
-    target_link_libraries(pongboy lualib pthread udev X11 Xrandr GL openal FLAC vorbis)
+    target_link_libraries(pongboy pthread udev X11 Xrandr GL openal FLAC vorbis)
 endif (UNIX)
 
 if (WIN32)
-    target_link_libraries(pongboy lualib opengl32 winmm FLAC vorbis)
+    target_link_libraries(pongboy opengl32 winmm FLAC vorbis)
 endif (WIN32)

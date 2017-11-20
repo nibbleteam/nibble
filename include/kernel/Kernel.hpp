@@ -5,13 +5,14 @@
 #include <vector>
 #include <list>
 #include <string>
-#include <filesystem>
+#include <cppfs/FilePath.h>
 #include <kernel/Process.hpp>
 #include <kernel/Memory.hpp>
 #include <kernel/drivers/VideoMemory.hpp>
 #include <SFML/Graphics.hpp>
 
 using namespace std;
+using namespace cppfs;
 
 // Simula o hardware do console e um kernel com
 // seis chamadas de sistema. Três para gerenciar
@@ -60,7 +61,7 @@ private:
     void destroyMemoryMap();
 	void addMemoryDevice(Memory*);
 	// Verifica estrutura de um cartridge
-	bool checkCartStructure(const experimental::filesystem::path&);
+	bool checkCartStructure(const FilePath&);
 };
 
 extern Kernel *KernelSingleton;

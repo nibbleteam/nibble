@@ -24,7 +24,7 @@ class VideoMemory : public Memory {
 	// para essa image quando alguma operação de read precisa ser feita.
 	sf::Image img;
 	bool dirty;
-
+	// Referência para a janela para que possamos desenhar para ela
 	sf::RenderWindow &window;
 public:
 	VideoMemory(sf::RenderWindow&, unsigned int, const unsigned int, const uint64_t);
