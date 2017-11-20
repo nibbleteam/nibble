@@ -1,5 +1,6 @@
 #include <kernel/drivers/RAM.hpp>
 #include <iostream>
+#include <cstring>
 
 RAM::RAM(const uint64_t addr, const uint64_t len) :
 	address(addr), length(len) {
