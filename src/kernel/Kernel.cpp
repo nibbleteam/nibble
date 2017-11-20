@@ -1,8 +1,6 @@
 #include <kernel/Kernel.hpp>
 #include <kernel/drivers/RAM.hpp>
 #include <kernel/drivers/VideoMemory.hpp>
-#include <cppfs/FileHandle.h>
-#include <cppfs/fs.h>
 #include <algorithm>
 #include <iostream>
 
@@ -101,7 +99,7 @@ void Kernel::loop() {
 //	- assets/
 //  - main.lua
 uint64_t Kernel::exec(const string& executable, vector<string> environment) {
-	const FilePath executablePath(executable);
+	Path executablePath(executable);
 
 	// Verifica a existência e estrutura de do cart "executable"
 	if (!checkCartStructure(executablePath)) {
@@ -248,18 +246,18 @@ string Kernel::read(uint64_t start, uint64_t size) {
 	return stringBuffer;
 }
 
-bool Kernel::checkCartStructure(const FilePath& root) {
-	cout << "kernel " << "checking cart " << root.toNative() << endl;
+bool Kernel::checkCartStructure(Path& root) {
+	cout << "kernel " << "checking cart " << root.getPath() << endl;
 
-	FilePath lua = root.resolve(Process::LuaEntryPoint);
-	FilePath assets = root.resolve(Process::AssetsEntryPoint);
+	Path lua = root.resolve(Process::LuaEntryPoint);
+	Path assets = root.resolve(Process::AssetsEntryPoint);
 
-	cout << "	" << " checking if dir " << assets.toNative() << endl;
-	cout << "	" << " checking if file " << lua.toNative() << endl;
+	cout << "	" << " checking if dir " << assets.getPath() << endl;
+	cout << "	" << " checking if file " << lua.getPath() << endl;
 
-	return fs::open(root.toNative()).isDirectory() &&
-		   fs::open(assets.toNative()).isDirectory() &&
-		   fs::open(lua.toNative()).isFile();
+	return fs::isDir(root) &&
+		   fs::isDir(assets) &&
+		   !fs::isDir(lua);
 }
 
 // Wrapper estático para a API

@@ -1,6 +1,6 @@
 #include <kernel/drivers/CartridgeMemory.hpp>
 
-CartridgeMemory::CartridgeMemory(const FilePath& assets, const uint64_t addr) :
+CartridgeMemory::CartridgeMemory(Path& assets, const uint64_t addr) :
 	address(addr) {
 
 }
