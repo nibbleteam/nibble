@@ -10,15 +10,17 @@ Console Fantasia feito para funcionar em hardware real.
 * **[include](include/)**: cabeçalhos
 * **[assets](assets/)**: ícones, imagens e áudio gerais para o projeto; assets de um cart específico tem sua própria pasta.
 * **[extern](extern/)**: bibliotecas externas que são compiladas junto ao projeto
-* **[src/drivers/](src/drivers/)**: implementação de dispositivos
+* **[src/kernel/drivers/](src/kernel/drivers/)**: implemenctação de dispositivos
+* **[src/apps/](src/apps/)**: carts de aplicativos de sistema
+* **[src/stdlib/](src/stdlib/)**: uma biblioteca acessível para todos os processos (em lua) que facilita o acesso ao kernel e adiciona uma API simples de usar
 
 ## Arquivos
 
 * **[src/main.cpp](src/main.cpp)**: ponto de entrada
-* **[src/Kernel.cpp](src/Kernel.cpp)**: controle de processos e memória; API para Lua
-* **[src/Memory.cpp](src/Memory.cpp)**: dispositivos mapeados em memória implementam essa interface
-* **[src/Process.cpp](src/Process.cpp)**: carrega e executa carts
-* **[src/drivers/VideoMemory.cpp](src/drivers/VideoMemory.cpp)**: acesso direto a texturas que representam a memória e vídeo
+* **[src/kernel/Kernel.cpp](src/Kernel.cpp)**: controle de processos e memória; API para Lua
+* **[include/kernel/Memory.hpp](src/Memory.cpp)**: dispositivos mapeados em memória implementam essa interface
+* **[src/kernel/Process.cpp](src/Process.cpp)**: carrega e executa carts
+* **[src/kernel/drivers/VideoMemory.cpp](src/drivers/VideoMemory.cpp)**: acesso direto a texturas que representam a memória e vídeo
 
 # Compilando
 
