@@ -4,8 +4,8 @@ Console Fantasia feito para funcionar em hardware real.
 
 # Hierarquia do código
 
-* **[src][src/]**: código fonte
-* **[include][include/]**: cabeçalhos
+* **[src](src/)**: código fonte
+* **[include](include/)**: cabeçalhos
 
 # Compilando
 
