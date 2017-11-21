@@ -5,20 +5,41 @@ color = {0, 0, 0}
 
 directions = {
 	{0, 1},
-	{1, 0},
 	{1, 1},
-	{-1, 1},
-	{-1, -1},
+	{1, 0},
 	{1, -1},
-	{-1, 0},
 	{0, -1},
+	{-1, -1},
+	{-1, 0},
+	{-1, 1},
 }
 
+direction = 1
+counter = 0
+
+math.randomseed(os.time())
+
 function update()
+    counter = counter -1
 	-- Muda de direção
-	if math.random() > 0.95 then
+	if counter < 0 then
+        counter = 50
         if x > 0 and x < w and y > 0 and y < h then
-            local d = directions[1+math.floor(math.random()*8)]
+            if math.random() > 0.5 then
+                direction = direction-1
+            else
+                direction = direction+1
+            end
+            
+            if direction > #directions then
+                direction = 1
+            end
+
+            if direction < 1 then
+                direction = #directions
+            end
+
+            local d = directions[direction]
             vx, vy = d[1], d[2]
         end
 	end
@@ -27,9 +48,9 @@ function update()
 	if math.random() > 0.95 then
 		-- Tudo menos preto
 		color = {
-            math.floor(math.random()*255),
-            math.floor(math.random()*255),
-            math.floor(math.random()*255),
+            math.floor(math.random()*14)+1,
+            math.floor(math.random()*14)+1,
+            math.floor(math.random()*14)+1,
         }
 	end
 
@@ -38,21 +59,45 @@ function update()
 	y = y+vy
 
 	-- "Bate" nas bordas
-	if x <= 0 or x >= w then
-		vx = vx*-1
+	if x <= 0 then
+        x = w-1
+    end
+    if x >= w then
+        x = 1
 	end
-	if y <= 0 or y >= h then
-		vy = vy*-1
+
+	if y <= 0 then
+        y = h-1
+    end
+    if y >= h then
+        y = 1
 	end
 end
 
 function draw()
 	-- Desenha
-    local brga = string.char(color[1])..string.char(color[2])..string.char(color[3])..string.char(255)
-	kernel.write(math.floor(x+y*w), brga)
+    putpix(x, y, color[1])
 
     -- Apaga aleatoriamente
-    for i=1,320 do
-        kernel.write(math.floor(320*240*math.random()), '\0\0\0'..string.char(255))
+    for i=1,32 do
+        kernel.write(math.floor(320/2*240*math.random()), '\0')
     end
+end
+
+function putpix(x, y, color)
+    color = color%16
+    local position = y*320+x
+    local pixel = kernel.read(math.floor(position/2), 1):byte()
+
+    if not pixel then
+        pixel = 0
+    end
+
+    if position%2 == 0 then
+        pixel = pixel-math.floor(pixel/16)*16 + math.floor(color)*16
+    else
+        pixel = math.floor(pixel/16)*16+color
+    end
+
+    kernel.write(math.floor(position/2), string.char(pixel))
 end

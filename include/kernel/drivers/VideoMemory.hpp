@@ -16,22 +16,31 @@ class VideoMemory : public Memory {
 	sf::RenderTexture renderTex;
 	// Apenas para facilitar o desenho (sprite) e o acesso (tex)
 	// a rendertexture
-	const sf::Texture *tex;
-	sf::Texture rwTex;
 	sf::Sprite gpuSpr, cpuSpr;
+	const sf::Texture *tex;
+    // Textura que permite a leitura e escrita.
+    // Memória de vídeo para operações não aceleradas em hardware
+	sf::Texture rwTex;
 	// Versão do framebuffer na RAM da CPU. O booleano dirty indica
 	// quando a versão da GPU precisa ser carregada, mas ela só é carregada
 	// para essa image quando alguma operação de read precisa ser feita.
 	sf::Image img;
 	bool dirty;
+    uint8_t *buffer;
 	// Referência para a janela para que possamos desenhar para ela
 	sf::RenderWindow &window;
     // Código e o shader utilizado para desenhar em write()s
     const static string writeShaderVertex;
     const static string writeShaderFragment;
     sf::Shader writeShader;
+    //
+    const static uint64_t nibblesPerPixel;
+    const static uint64_t bytesPerPixel;
 public:
-	VideoMemory(sf::RenderWindow&, unsigned int, const unsigned int, const uint64_t);
+	VideoMemory(sf::RenderWindow&,
+                const unsigned int,
+                const unsigned int,
+                const uint64_t);
 	~VideoMemory();
 
 	void draw();
@@ -41,6 +50,12 @@ public:
 
 	uint64_t size();
 	uint64_t addr();
+private:
+    uint64_t nextTransferAmount(uint64_t, uint64_t, uint64_t);
+    uint64_t bytesToTransferPixels(uint64_t);
+    uint64_t bytesToPixels(uint64_t);
+    uint64_t transferWidth(uint64_t);
+    uint64_t transferHeight(uint64_t);
 };
 
 #endif /* VIDEO_MEMORY_H */
