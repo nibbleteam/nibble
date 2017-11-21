@@ -1,7 +1,7 @@
 w, h = 320, 240
 x, y = w/2, h/2
-vx, vy = 1, 1
-color = 1
+vx, vy = 0, 0 
+color = {0, 0, 0}
 
 directions = {
 	{0, 1},
@@ -16,15 +16,21 @@ directions = {
 
 function update()
 	-- Muda de direção
-	if math.random() > 0.9 then
-		local d = directions[1+math.floor(math.random()*8)]
-		vx, vy = d[1], d[2]
+	if math.random() > 0.95 then
+        if x > 0 and x < w and y > 0 and y < h then
+            local d = directions[1+math.floor(math.random()*8)]
+            vx, vy = d[1], d[2]
+        end
 	end
 
 	-- Muda de cor
-	if math.random() > 0.9 then
+	if math.random() > 0.95 then
 		-- Tudo menos preto
-		color = math.floor(math.random()*16) % 15 + 1
+		color = {
+            math.floor(math.random()*255),
+            math.floor(math.random()*255),
+            math.floor(math.random()*255),
+        }
 	end
 
 	-- Move
@@ -42,5 +48,11 @@ end
 
 function draw()
 	-- Desenha
-	kernel.write(x+y*w, string.char(color))
+    local brga = string.char(color[1])..string.char(color[2])..string.char(color[3])..string.char(255)
+	kernel.write(math.floor(x+y*w), brga)
+
+    -- Apaga aleatoriamente
+    for i=1,320 do
+        kernel.write(math.floor(320*240*math.random()), '\0\0\0'..string.char(255))
+    end
 end

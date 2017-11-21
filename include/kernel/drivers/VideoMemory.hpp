@@ -26,6 +26,10 @@ class VideoMemory : public Memory {
 	bool dirty;
 	// Referência para a janela para que possamos desenhar para ela
 	sf::RenderWindow &window;
+    // Código e o shader utilizado para desenhar em write()s
+    const static string writeShaderVertex;
+    const static string writeShaderFragment;
+    sf::Shader writeShader;
 public:
 	VideoMemory(sf::RenderWindow&, unsigned int, const unsigned int, const uint64_t);
 	~VideoMemory();

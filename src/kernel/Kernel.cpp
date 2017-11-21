@@ -40,7 +40,7 @@ void Kernel::addMemoryDevice(Memory* device) {
 void Kernel::createMemoryMap() {
 	video = new VideoMemory(window, 320, 240, lastUsedMemByte);
 	addMemoryDevice(video);
-	addMemoryDevice(new RAM(lastUsedMemByte, 32*1024));
+	//addMemoryDevice(new RAM(lastUsedMemByte, 32*1024));
 }
 
 void Kernel::destroyMemoryMap() {
