@@ -3,7 +3,6 @@
 #include <kernel/drivers/VideoMemory.hpp>
 #include <algorithm>
 #include <iostream>
-#include <Windows.h>
 
 using namespace std;
 
@@ -92,14 +91,6 @@ void Kernel::loop() {
 	}
 }
 
-// API de gerenciamento de processos
-void GetExePath()
-{
-	char buffer[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, buffer);
-	cout << "Imprimindo alguma coisa: " << buffer << endl;
-}
-
 // Executa "executable" passando "environment"
 // executable é um diretório que deve seguir a seguinte organização:
 // <cart-name>/
@@ -107,8 +98,6 @@ void GetExePath()
 //  - main.lua
 uint64_t Kernel::exec(const string& executable, vector<string> environment) {
 	Path executablePath(executable);
-
-	GetExePath();
 
 	// Verifica a existência e estrutura de do cart "executable"
 	if (!checkCartStructure(executablePath)) {
