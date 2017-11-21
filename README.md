@@ -17,10 +17,10 @@ Console Fantasia feito para funcionar em hardware real.
 ## Arquivos
 
 * **[src/main.cpp](src/main.cpp)**: ponto de entrada
-* **[src/kernel/Kernel.cpp](src/Kernel.cpp)**: controle de processos e memória; API para Lua
-* **[include/kernel/Memory.hpp](src/Memory.cpp)**: dispositivos mapeados em memória implementam essa interface
-* **[src/kernel/Process.cpp](src/Process.cpp)**: carrega e executa carts
-* **[src/kernel/drivers/VideoMemory.cpp](src/drivers/VideoMemory.cpp)**: acesso direto a texturas que representam a memória e vídeo
+* **[src/kernel/Kernel.cpp](src/kernel/Kernel.cpp)**: controle de processos e memória; API para Lua
+* **[include/kernel/Memory.hpp](src/kernel/Memory.cpp)**: dispositivos mapeados em memória implementam essa interface
+* **[src/kernel/Process.cpp](src/kernel/Process.cpp)**: carrega e executa carts
+* **[src/kernel/drivers/VideoMemory.cpp](src/kernel/drivers/VideoMemory.cpp)**: acesso direto a texturas que representam a memória e vídeo
 
 # Compilando
 
