@@ -4,8 +4,21 @@ Console Fantasia feito para funcionar em hardware real.
 
 # Hierarquia do código
 
+## Diretórios 
+
 * **[src](src/)**: código fonte
 * **[include](include/)**: cabeçalhos
+* **[assets](assets/)**: ícones, imagens e áudio gerais para o projeto; assets de um cart específico tem sua própria pasta.
+* **[extern](extern/)**: bibliotecas externas que são compiladas junto ao projeto
+* **[src/drivers/](src/drivers/)**: implementação de dispositivos
+
+## Arquivos
+
+* **[src/main.cpp](src/main.cpp)**: ponto de entrada
+* **[src/Kernel.cpp](src/Kernel.cpp)**: controle de processos e memória; API para Lua
+* **[src/Memory.cpp](src/Memory.cpp)**: dispositivos mapeados em memória implementam essa interface
+* **[src/Process.cpp](src/Process.cpp)**: carrega e executa carts
+* **[src/drivers/VideoMemory.cpp](src/drivers/VideoMemory.cpp)**: acesso direto a texturas que representam a memória e vídeo
 
 # Compilando
 
