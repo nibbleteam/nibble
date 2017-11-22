@@ -113,17 +113,63 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // deixar sincronizado com as texturas que estão limpas
     buffer = new uint8_t[videoRamSize];
     for (unsigned int i=0;i<videoRamSize;i++) {
-        buffer[i] = 0;
+            buffer[i] = 0;
     }
+
+    // Inicializa com bytes não inicializados
+    rwTex.update(buffer, rwTex.getSize().x, rwTex.getSize().y, 0, 0);
+    
+    // Abre um GIF pra salvar a tela
+    int error;
+    gif = EGifOpenFileName("screencast.gif", false, &error);
+    EGifSetGifVersion(gif, true);
+    GifColorType colors[256];
+    colors[0] = GifColorType{0, 0, 0};
+    for (int i=1;i<256;i++) {
+        colors[i] = GifColorType{rand(), rand(), rand()};
+    }
+    colormap = GifMakeMapObject(256, colors);
+    if (error != GIF_OK)
+        cout << GifErrorString(error) << endl;
+    error = EGifPutScreenDesc(gif, 320/2, 240,
+                      3*256, 0,
+                      colormap);
+    GifFreeMapObject(colormap);
+    if (error != GIF_OK)
+        cout << GifErrorString(error) << endl;
 }
 
 VideoMemory::~VideoMemory() {
+    int error;
+    EGifCloseFile(gif, &error);
+    if (error != GIF_OK)
+        cout << GifErrorString(error) << endl;
     delete buffer;
 }
 
 void VideoMemory::draw() {
+    int error;
 	renderTex.draw(cpuSpr, &writeShader);
 	window.draw(gpuSpr);
+
+    char graphics[] {
+        0, 2&0xFF, 2>>8, 0
+    };
+    error = EGifPutExtension(
+        gif,
+        GRAPHICS_EXT_FUNC_CODE,
+        sizeof(graphics),
+        &graphics);
+    if (error != GIF_OK)
+        cout << GifErrorString(error) << endl;
+
+    error = EGifPutImageDesc(gif, 0, 0, 320/2, 240,
+                     false, NULL);
+    if (error != GIF_OK)
+        cout << GifErrorString(error) << endl;
+    error = EGifPutLine(gif, buffer, 320*240/2);
+    if (error != GIF_OK)
+        cout << GifErrorString(error) << endl;
 }
 
 void VideoMemory::updatePalette(const uint8_t* palette) {

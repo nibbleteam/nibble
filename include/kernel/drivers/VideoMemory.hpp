@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <kernel/Memory.hpp>
 #include <SFML/Graphics.hpp>
+#include <gif_lib.h>
 
 using namespace std;
 
@@ -35,6 +36,10 @@ class VideoMemory : public Memory {
     sf::Shader writeShader;
     // Textura utilizada como paleta pelo shader
     sf::Texture paletteTex;
+    // Arquivo para salvar gifs
+    GifFileType *gif;
+    // Paleta do gif
+    ColorMapObject *colormap;
 public:
     const static uint64_t nibblesPerPixel;
     const static uint64_t bytesPerPixel;
@@ -44,6 +49,9 @@ public:
                 const unsigned int,
                 const uint64_t);
 	~VideoMemory();
+
+    // Fecha arquivos abertos
+    void close();
 
 	void draw();
 
