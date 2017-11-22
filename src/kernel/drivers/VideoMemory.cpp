@@ -28,22 +28,9 @@ void main()
 // Para fazer isso considera cada canal como
 // dois números de 4 bits
 const string VideoMemory::writeShaderFragment = R"(
-// Converte um float [0-1] para o byte menos
-// significativo de um inteiro
-#define BYTE(x) int(x*255.0)
-// Acessa o low nibble do byte menos significativo
-// de um inteiro
-#define LOW(x) (x-x/16*16)
-// Acessa o high nibble
-#define HIGH(x) (x/16)
-// Nibble para float
-#define NIB2F(x) (float(x)/16.0)
-
 const float screen_w = 320.0;
 // 4 canais na textura (RGBA)
 const float bytes_per_pixel = 4.0;
-// 2 nibbles por byte
-const float nibbles_per_pixel = 2.0*bytes_per_pixel;
 
 // Textura "esticada"
 uniform sampler2D texture;
@@ -55,50 +42,31 @@ void main()
     // Coordenadas no espaço da textura
     vec2 coord = gl_TexCoord[0].xy;
     // Em qual nibble do pixel estamos
-    int nibble = int(mod(coord.x*screen_w, nibbles_per_pixel));
-    // Em qual byte do pixel estamos
-    int byte = nibble/2; 
-    // Em qual nibble deste byte (high são os pares)
-    bool high_nibble = mod(float(nibble), 2.0) == 0.0;
+    int byte = int(mod(coord.x*screen_w, bytes_per_pixel));
 
     // Cor do pixel na textura
     vec4 pixel = texture2D(texture, coord);
 
     // Qual canal do pixel da textura vamos
     // usar para o pixel na tela
-    int source;
+    float source;
     // Primeiro byte, segundo byte etc
     if (byte == 0)
-        source = BYTE(pixel.r);
+        source = pixel.r;
     else if (byte == 1)
-        source = BYTE(pixel.g); 
+        source = pixel.g; 
     else if (byte == 2)
-        source = BYTE(pixel.b);
+        source = pixel.b;
     else if (byte == 3)
-        source = BYTE(pixel.a);
+        source = pixel.a;
 
-    // Usamos o high_nibble de source
-    if (high_nibble) {
-        float palette_index = NIB2F(HIGH(source));
-        vec4 color = texture2D(palette, vec2(palette_index, 0));
- 
-        // Não desenha pixels transparentes
-        if (color.a != 1.0)
-            discard;
+    vec4 color = texture2D(palette, vec2(source, 0.5));
 
-        gl_FragColor = vec4(color.rgb, 1.0);
-    }
-    // Usamos o low_nibble de source
-    else {
-        float palette_index = NIB2F(LOW(source));
-        vec4 color = texture2D(palette, vec2(palette_index, 0));
-    
-        // Não desenha pixels transparentes
-        if (color.a != 1.0)
-            discard;
+    // Não desenha pixels transparentes
+    if (color.a == 0.0)
+        discard;
 
-        gl_FragColor = vec4(color.rgb, 1.0);
-    }
+    gl_FragColor = vec4(color.rgb, 1.0);
 }
 )";
 
@@ -106,22 +74,22 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
                          const unsigned int w,
                          const unsigned int h,
                          const uint64_t addr):
-	w(w), h(h), address(addr), length(w*h/2), window(window), dirty(false) {
+	w(w), h(h), address(addr), length(w*h), window(window), dirty(false) {
 	renderTex.create(w, h);
 	tex = &renderTex.getTexture();
 	gpuSpr = sf::Sprite(*tex);
 	img = tex->copyToImage();
 	rwTex = sf::Texture();
-    // Tamanho da textura é 1/8 do tamanho da tela
-    // uma vez que cada pixel no oort é um nibble
-    // e no sfml são quatro bytes
-	rwTex.create(w/nibblesPerPixel, h);
+    // Tamanho da textura é 1/4 do tamanho da tela
+    // uma vez que um pixel no sfml são quatro bytes
+    // e no console é apenas um
+	rwTex.create(w/bytesPerPixel, h);
     rwTex.setRepeated(false);
 
 	cpuSpr = sf::Sprite(rwTex);
     // Faz preencher toda a tela
     // e inverte o y
-    cpuSpr.setScale(nibblesPerPixel, -1);
+    cpuSpr.setScale(bytesPerPixel, -1);
     cpuSpr.setPosition(0, h);
 
     // Cria a textura da palleta
@@ -139,7 +107,7 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
         writeShader.setUniform("palette", paletteTex);
     }
 
-    const uint64_t videoRamSize = w*h/2;
+    const uint64_t videoRamSize = w*h;
 
     // Limpa a memória de vídeo em RAM para 
     // deixar sincronizado com as texturas que estão limpas
@@ -170,11 +138,11 @@ uint64_t VideoMemory::nextTransferAmount(uint64_t current, uint64_t initial, uin
     }
 
     // Se estamos no início de uma linha
-    if (!(current%(w/2))) {
+    if (!(current%w)) {
         // e temos uma ou mais linhas para transferir, podemos transferi-las de uma vez
-        uint64_t pixels = (size-(current-initial))*2;
+        uint64_t pixels = (size-(current-initial));
         if (pixels >= w) {
-            return ((pixels/w)*w)/2;
+            return ((pixels/w)*w);
         }
         // se não, podemos transferir até o final dos dados
         else {
@@ -183,16 +151,11 @@ uint64_t VideoMemory::nextTransferAmount(uint64_t current, uint64_t initial, uin
     }
     // senão só podemos transferir até o final desta linha ou dos dados
     else {
-        if (size > 4) {
-            uint64_t pixels = (size-(current-initial))*2;
-            if (pixels >= w) {
-                return w/2-(current%(w/2));
-            } else {
-                return (size-(current-initial));
-            }
-        }
-        else {
-            return size;
+        uint64_t pixels = (size-(current-initial));
+        if (pixels >= w) {
+            return w-(current%w);
+        } else {
+            return size-(current-initial);
         }
     }
 }
@@ -207,16 +170,16 @@ uint64_t VideoMemory::bytesToPixels(uint64_t bytes) {
 }
 
 uint64_t VideoMemory::transferWidth(uint64_t pixels) {
-    if (pixels > w/nibblesPerPixel) {
-        return w/nibblesPerPixel;
+    if (pixels > w/bytesPerPixel) {
+        return w/bytesPerPixel;
     } else {
         return pixels;
     }
 }
 
 uint64_t VideoMemory::transferHeight(uint64_t pixels) {
-    if (pixels/(w/nibblesPerPixel) > 0) {
-        return pixels/(w/nibblesPerPixel);
+    if (pixels/(w/bytesPerPixel) > 0) {
+        return pixels/(w/bytesPerPixel);
     } else {
         return 1;
     }
@@ -236,8 +199,8 @@ uint64_t VideoMemory::write(const uint64_t p, const uint8_t* data, const uint64_
         unsigned int x, y, offset;
 
         // Onde colocar
-        x = bytesToPixels(p+transfered) % (w/nibblesPerPixel);
-        y = bytesToPixels(p+transfered) / (w/nibblesPerPixel);
+        x = bytesToPixels(p+transfered) % (w/bytesPerPixel);
+        y = bytesToPixels(p+transfered) / (w/bytesPerPixel);
         // Inicia em qual byte dentro do pixel?
         offset = (p+transfered)%bytesPerPixel;
 

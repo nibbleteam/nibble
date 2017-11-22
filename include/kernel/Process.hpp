@@ -36,6 +36,7 @@ public:
 
 	// Roda o processo
 	// TODO: delta tempo
+    void init();
 	void update();
 	void draw();
 

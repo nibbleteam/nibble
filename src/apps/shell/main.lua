@@ -1,8 +1,9 @@
 w, h = 320, 240
 x, y = w/2, h/2
 vx, vy = 0, 0 
-color = {0, 0, 0}
-vidstart = 16*4
+color = 1 
+vidstart = 16*16*4
+pal = 0
 
 directions = {
 	{0, 1},
@@ -20,6 +21,10 @@ counter = 0
 
 math.randomseed(os.time())
 
+function init()
+    newpalette()
+end
+
 function set_new_direction()
     for d=1,#directions do
         if directions[d][1] == vx and directions[d][2] == vy then
@@ -29,7 +34,7 @@ function set_new_direction()
     end
 end
 
-function update()
+function _update()
     counter = counter -1
 	-- Muda de direção
 	if counter < 0 then
@@ -57,11 +62,7 @@ function update()
 	-- Muda de cor
 	if math.random() > 0.95 then
 		-- Tudo menos preto
-		color = {
-            math.floor(math.random()*14)+1,
-            math.floor(math.random()*14)+1,
-            math.floor(math.random()*14)+1,
-        }
+		color = math.floor(math.random()*14)+1
 	end
 
 	-- Move
@@ -88,13 +89,13 @@ function update()
         vx = vx*-1
 
         set_new_direction()
-        newpalette()
+        pal = math.floor(math.random()*16)
     end
     if y <= 0 or y >= h then
         vy = vy*-1
 
         set_new_direction()
-        newpalette()
+        pal = math.floor(math.random()*16)
     end
 end
 
@@ -102,40 +103,36 @@ function randbyte()
     return math.floor(math.random()*255)
 end
 
+function update()
+end
+
 function newpalette()
-    -- Cria uma nova paleta aleatória mas com preto no início
-    kernel.write(0, string.char(0x00, 0x00, 0x00, 0xFF))
-    for i=1,15 do
-        kernel.write(i*4, string.char(randbyte(), randbyte(), randbyte(), 0xFF))
+    -- Cria 16 novas paleta aleatória mas com preto no início de todas
+    for j=0,15 do
+        kernel.write(j*4*16, string.char(0x00, 0x00, 0x00, 0xFF))
+        for i=1,15 do
+            kernel.write(i*4+j*4*16, string.char(math.floor(randbyte()/2+128), randbyte(), randbyte(), 0xFF))
+        end
     end
 end
 
 function draw()
-    for i=1,10 do
-        update()
+    for i=1,16 do
+        _update()
 
         -- Desenha
         if x > 0 and x < w and y > 0 and y < h then
-            putpix(x, y, color[1])
+            putpix(x, y, color)
         end
 
         -- Apaga aleatoriamente
         for i=1,32 do
-            kernel.write(vidstart+math.floor(320/2*240*math.random()), '\0')
+            kernel.write(vidstart+math.floor(320*240*math.random()), '\0')
         end
     end
 end
 
 function putpix(x, y, color)
-    color = color%16
-    local position = y*320+x
-    local pixel = kernel.read(vidstart+math.floor(position/2), 1):byte()
-
-    if position%2 == 0 then
-        pixel = pixel-math.floor(pixel/16)*16 + math.floor(color)*16
-    else
-        pixel = math.floor(pixel/16)*16+color
-    end
-
-    kernel.write(vidstart+math.floor(position/2), string.char(pixel))
+    local position = y*w+x
+    kernel.write(vidstart+math.floor(position), string.char(color))
 end

@@ -84,6 +84,8 @@ void Kernel::loop() {
 				// TODO: unmap o processo que estava mapeado
 				// anteriormente se existir
 				ram.push_back(p->getMemory());
+
+                p->init();
 			}
 
 			// Chama as callbacks do processo
