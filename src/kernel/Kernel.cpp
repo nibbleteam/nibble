@@ -28,6 +28,7 @@ Kernel::~Kernel() {
 	for (auto process : processes) {
 		delete process;
 	}
+    delete gpu;
 }
 
 void Kernel::addMemoryDevice(Memory* device) {

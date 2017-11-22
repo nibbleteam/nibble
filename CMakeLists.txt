@@ -38,6 +38,11 @@ ExternalProject_Add(LUA
                     CMAKE_ARGS
                         "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 
+ExternalProject_Add(GIF
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/giflib/"
+                    CMAKE_ARGS
+                        "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+
 include_directories("${PROJECT_HEADER_DIR}")
 include_directories("${PROJECT_BUILD_DIR}/include")
 link_directories("${PROJECT_BUILD_DIR}/lib")
@@ -71,7 +76,7 @@ add_executable(pongboy
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/filesystem.cpp
               )
-add_dependencies(pongboy SFML LUA LuaCartsBin LuaCartsBuild)
+add_dependencies(pongboy SFML LUA GIF LuaCartsBin LuaCartsBuild)
 
 if ( MSVC )
     set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
@@ -86,6 +91,7 @@ target_link_libraries(pongboy debug sfml-audio-s-d optimized sfml-audio-s)
 target_link_libraries(pongboy debug sfml-network-s-d optimized sfml-network-s)
 target_link_libraries(pongboy debug sfml-system-s-d optimized sfml-system-s)
 target_link_libraries(pongboy lualib)
+target_link_libraries(pongboy giflib)
 
 if (UNIX)
     target_link_libraries(pongboy pthread udev X11 Xrandr GL openal FLAC vorbis)

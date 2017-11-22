@@ -5,6 +5,8 @@
 
 class Memory {
 public:
+    virtual ~Memory() {};
+
     virtual uint64_t write(const uint64_t, const uint8_t*, const uint64_t) = 0;
     virtual uint64_t read(const uint64_t, uint8_t*, const uint64_t) = 0;
 

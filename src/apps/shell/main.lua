@@ -18,6 +18,13 @@ directions = {
 direction = 1
 counter = 0
 
+blank = ''
+for i=1,320*240/2 do
+    blank = blank..string.char(0)
+end
+
+start = true 
+
 math.randomseed(os.time())
 
 function set_new_direction()
@@ -29,7 +36,12 @@ function set_new_direction()
     end
 end
 
-function update()
+function _update()
+    if start then
+        start = false
+        kernel.write(16*4, blank);
+    end
+
     counter = counter -1
 	-- Muda de direção
 	if counter < 0 then
@@ -98,6 +110,9 @@ function update()
     end
 end
 
+function update()
+end
+
 function randbyte()
     return math.floor(math.random()*255)
 end
@@ -110,19 +125,26 @@ function newpalette()
     end
 end
 
-function draw()
-    for i=1,10 do
-        update()
+pix = {}
 
+function draw()
+    for i=1,20 do
         -- Desenha
         if x > 0 and x < w and y > 0 and y < h then
             putpix(x, y, color[1])
+            table.insert(pix, {x, y})
         end
 
-        -- Apaga aleatoriamente
-        for i=1,32 do
-            kernel.write(vidstart+math.floor(320/2*240*math.random()), '\0')
+        if #pix > 500 then
+            local where = table.remove(pix, 1)
+            putpix(where[1], where[2], 0)
+
+            for i=1,10 do
+                putpix(math.floor(320*math.random()), math.floor(240*math.random()), 0)
+            end
         end
+
+        _update()
     end
 end
 
