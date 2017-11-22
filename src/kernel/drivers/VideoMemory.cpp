@@ -1,5 +1,6 @@
 #include <SFML/OpenGL.hpp>
 #include <kernel/drivers/VideoMemory.hpp>
+#include <kernel/drivers/GPU.hpp>
 #include <iostream>
 #include <cstring>
 
@@ -30,6 +31,13 @@ const string VideoMemory::writeShaderFragment = R"(
 // Converte um float [0-1] para o byte menos
 // significativo de um inteiro
 #define BYTE(x) int(x*255.0)
+// Acessa o low nibble do byte menos significativo
+// de um inteiro
+#define LOW(x) (x-x/16*16)
+// Acessa o high nibble
+#define HIGH(x) (x/16)
+// Nibble para float
+#define NIB2F(x) (float(x)/16.0)
 
 const float screen_w = 320.0;
 // 4 canais na textura (RGBA)
@@ -39,6 +47,8 @@ const float nibbles_per_pixel = 2.0*bytes_per_pixel;
 
 // Textura "esticada"
 uniform sampler2D texture;
+// Textura 1xN da paleta
+uniform sampler2D palette;
 
 void main()
 {
@@ -69,17 +79,25 @@ void main()
 
     // Usamos o high_nibble de source
     if (high_nibble) {
-        // bitshift a direita por 4, deixando o nibble high e apagando o low
-        float color = float(source/16)/16.0;
+        float palette_index = NIB2F(HIGH(source));
+        vec4 color = texture2D(palette, vec2(palette_index, 0));
+ 
+        // Não desenha pixels transparentes
+        if (color.a != 1.0)
+            discard;
 
-        gl_FragColor = vec4(color,color,color,1);
+        gl_FragColor = vec4(color.rgb, 1.0);
     }
     // Usamos o low_nibble de source
     else {
-        // Subtrai o nibble high do byte, deixando o nibble low
-        // /16*16 remove o low, deixando o high
-        float color = float(source-(source/16*16))/16.0;
-        gl_FragColor = vec4(color,color,color,1);
+        float palette_index = NIB2F(LOW(source));
+        vec4 color = texture2D(palette, vec2(palette_index, 0));
+    
+        // Não desenha pixels transparentes
+        if (color.a != 1.0)
+            discard;
+
+        gl_FragColor = vec4(color.rgb, 1.0);
     }
 }
 )";
@@ -106,11 +124,19 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     cpuSpr.setScale(nibblesPerPixel, -1);
     cpuSpr.setPosition(0, h);
 
+    // Cria a textura da palleta
+    paletteTex.create(GPU::paletteLength*GPU::paletteAmount, 1);
+
     // Tenta carregar o shader, em caso de erro termina
     // uma vez que não será possível mostrar nada
     if (!writeShader.loadFromMemory(writeShaderVertex, writeShaderFragment)) {
         cout << "video " << "error loading write shader" << endl;
         exit(1);
+    }
+    // Adiciona paleta e textura ao shader
+    else {
+        writeShader.setUniform("texture", rwTex);
+        writeShader.setUniform("palette", paletteTex);
     }
 
     const uint64_t videoRamSize = w*h/2;
@@ -130,6 +156,10 @@ VideoMemory::~VideoMemory() {
 void VideoMemory::draw() {
 	renderTex.draw(cpuSpr, &writeShader);
 	window.draw(gpuSpr);
+}
+
+void VideoMemory::updatePalette(const uint8_t* palette) {
+    paletteTex.update(palette, paletteTex.getSize().x, paletteTex.getSize().y, 0, 0);
 }
 
 // Quantos bytes podemos transferir a partir do byte atual

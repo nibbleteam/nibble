@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CXX_EXTENSIONS OFF)
 if(MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14 /W0")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
 endif(MSVC)
 
 # Output
@@ -64,6 +64,10 @@ add_executable(pongboy
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/RAM.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/VideoMemory.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/VideoMemory.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/GPU.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/GPU.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/PaletteMemory.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/PaletteMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/filesystem.cpp
               )

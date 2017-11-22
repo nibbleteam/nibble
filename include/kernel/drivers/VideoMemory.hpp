@@ -33,7 +33,9 @@ class VideoMemory : public Memory {
     const static string writeShaderVertex;
     const static string writeShaderFragment;
     sf::Shader writeShader;
-    //
+    // Textura utilizada como paleta pelo shader
+    sf::Texture paletteTex;
+public:
     const static uint64_t nibblesPerPixel;
     const static uint64_t bytesPerPixel;
 public:
@@ -50,6 +52,9 @@ public:
 
 	uint64_t size();
 	uint64_t addr();
+
+    // Chamado por paletteMemory quando o usuário troca a paleta
+    void updatePalette(const uint8_t*);
 private:
     uint64_t nextTransferAmount(uint64_t, uint64_t, uint64_t);
     uint64_t bytesToTransferPixels(uint64_t);

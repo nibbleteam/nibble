@@ -12,6 +12,7 @@ Kernel::Kernel():
 	window(sf::VideoMode(320, 240), "PongBoy"),
 	lastPid(1),
 	lastUsedMemByte(0) {
+    window.setFramerateLimit(60);
 
 	createMemoryMap();
 
@@ -37,8 +38,9 @@ void Kernel::addMemoryDevice(Memory* device) {
 // Mapeia os dispositivos (placa de vídeo, placa de áudio, controles, leds etc)
 // para a RAM
 void Kernel::createMemoryMap() {
-	video = new VideoMemory(window, 320, 240, lastUsedMemByte);
-	addMemoryDevice(video);
+    gpu = new GPU(window, 320, 240, lastUsedMemByte);
+	addMemoryDevice((Memory*)gpu->getPaletteMemory());
+	addMemoryDevice((Memory*)gpu->getVideoMemory());
 	//addMemoryDevice(new RAM(lastUsedMemByte, 32*1024));
 }
 
@@ -67,7 +69,10 @@ void Kernel::loop() {
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed) {
 				window.close();
-			}
+			} else
+            if (event.type == sf::Event::Resized) {
+                window.setSize(sf::Vector2u(event.size.width, event.size.height));
+            }
 		}
 
 		// Roda o processo no topo da lista de processos
@@ -86,7 +91,7 @@ void Kernel::loop() {
 			p->draw();
 		}
 
-		video->draw();
+		gpu->draw();
 		window.display();
 	}
 }
