@@ -2,6 +2,8 @@
 
 Console Fantasia feito para funcionar em hardware real.
 
+![Oort](https://github.com/pongboy/oort/blob/gpu/assets/screencaps/01.gif)
+
 # Hierarquia do código
 
 ## Diretórios 
