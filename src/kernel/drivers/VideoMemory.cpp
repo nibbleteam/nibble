@@ -74,7 +74,8 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
                          const unsigned int w,
                          const unsigned int h,
                          const uint64_t addr):
-	w(w), h(h), address(addr), length(w*h), window(window), dirty(false) {
+	w(w), h(h), address(addr), length(w*h), window(window), dirty(false),
+    colormap(NULL) {
 	renderTex.create(w, h);
 	tex = &renderTex.getTexture();
 	gpuSpr = sf::Sprite(*tex);
@@ -118,25 +119,6 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
 
     // Inicializa com bytes não inicializados
     rwTex.update(buffer, rwTex.getSize().x, rwTex.getSize().y, 0, 0);
-    
-    // Abre um GIF pra salvar a tela
-    int error;
-    gif = EGifOpenFileName("screencast.gif", false, &error);
-    EGifSetGifVersion(gif, true);
-    GifColorType colors[256];
-    colors[0] = GifColorType{0, 0, 0};
-    for (int i=1;i<256;i++) {
-        colors[i] = GifColorType{rand(), rand(), rand()};
-    }
-    colormap = GifMakeMapObject(256, colors);
-    if (error != GIF_OK)
-        cout << GifErrorString(error) << endl;
-    error = EGifPutScreenDesc(gif, 320/2, 240,
-                      3*256, 0,
-                      colormap);
-    GifFreeMapObject(colormap);
-    if (error != GIF_OK)
-        cout << GifErrorString(error) << endl;
 }
 
 VideoMemory::~VideoMemory() {
@@ -147,11 +129,52 @@ VideoMemory::~VideoMemory() {
     delete buffer;
 }
 
+ColorMapObject* VideoMemory::getColorMap() {
+    // Tamanho da paleta do console
+    uint64_t paletteSize = GPU::paletteLength*GPU::paletteAmount;
+    // "Paleta" do GIF
+    GifColorType colors[paletteSize];
+    auto image = paletteTex.copyToImage();
+
+    // Preenche o color map no formato do GIF
+    // a partir do formato de paleta do console
+    for (uint64_t i=0;i<paletteSize;i++) {
+        sf::Color color = image.getPixel(i, 0);
+
+        //cerr << i << ": " << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << endl;
+        // Remove o alpha
+        colors[i] = GifColorType {
+            color.r, color.g, color.b
+        };
+    }
+
+    colormap = GifMakeMapObject(paletteSize, colors);
+
+    return colormap;
+}
+
 void VideoMemory::draw() {
-    int error;
+    if (colormap == NULL) {
+        colormap = getColorMap();
+
+        // Abre um GIF pra salvar a tela
+        int error;
+        gif = EGifOpenFileName("screencast.gif", false, &error);
+        EGifSetGifVersion(gif, true);
+        error = EGifPutScreenDesc(gif, 320, 240,
+                          256, 0,
+                          colormap);
+
+        GifFreeMapObject(colormap);
+
+        if (error != GIF_OK)
+        cout << GifErrorString(error) << endl;
+    }
+
 	renderTex.draw(cpuSpr, &writeShader);
 	window.draw(gpuSpr);
 
+    int error;
     char graphics[] {
         0, 2&0xFF, 2>>8, 0
     };
@@ -163,17 +186,18 @@ void VideoMemory::draw() {
     if (error != GIF_OK)
         cout << GifErrorString(error) << endl;
 
-    error = EGifPutImageDesc(gif, 0, 0, 320/2, 240,
+    error = EGifPutImageDesc(gif, 0, 0, 320, 240,
                      false, NULL);
     if (error != GIF_OK)
         cout << GifErrorString(error) << endl;
-    error = EGifPutLine(gif, buffer, 320*240/2);
+    error = EGifPutLine(gif, buffer, 320*240);
     if (error != GIF_OK)
         cout << GifErrorString(error) << endl;
 }
 
 void VideoMemory::updatePalette(const uint8_t* palette) {
     paletteTex.update(palette, paletteTex.getSize().x, paletteTex.getSize().y, 0, 0);
+    
 }
 
 // Quantos bytes podemos transferir a partir do byte atual

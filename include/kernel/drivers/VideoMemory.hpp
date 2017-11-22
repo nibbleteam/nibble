@@ -69,6 +69,11 @@ private:
     uint64_t bytesToPixels(uint64_t);
     uint64_t transferWidth(uint64_t);
     uint64_t transferHeight(uint64_t);
+    // GIFs
+    bool startCapturing(const string&);
+    bool captureFrame();
+    bool stopCapturing();
+    ColorMapObject* getColorMap();
 };
 
 #endif /* VIDEO_MEMORY_H */
