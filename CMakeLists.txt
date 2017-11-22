@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(pongboy)
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
 # Use C++14
 set(CMAKE_CXX_STANDARD 14)
@@ -73,6 +74,7 @@ if ( MSVC )
     set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
     set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR} )
     set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR} )
+	set_target_properties(pongboy PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endif ( MSVC )
 
 # Linking

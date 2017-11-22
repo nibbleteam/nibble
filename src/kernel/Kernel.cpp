@@ -91,8 +91,6 @@ void Kernel::loop() {
 	}
 }
 
-// API de gerenciamento de processos
-
 // Executa "executable" passando "environment"
 // executable é um diretório que deve seguir a seguinte organização:
 // <cart-name>/

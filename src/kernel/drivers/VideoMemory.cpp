@@ -69,7 +69,7 @@ uint64_t VideoMemory::write(const uint64_t p, const uint8_t* data, const uint64_
     }
 	
     sf::Texture::bind(&rwTex);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	return size;
 }
