@@ -2,7 +2,7 @@
 
 Console Fantasia feito para funcionar em hardware real.
 
-![Oort](https://github.com/pongboy/oort/raw/gpu/assets/screencaps/boot-demo.gif)
+<div style="text-align:center"><img style="image-rendering: pixelated;" src ="https://github.com/pongboy/oort/raw/gpu/assets/screencaps/boot-demo.gif" width="640" height="480"/></div>
 
 # Hierarquia do código
 
