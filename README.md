@@ -32,11 +32,11 @@ Console Fantasia feito para funcionar em hardware real.
 
 1. Baixe o projeto
 
-        git clone https://github.com/pongboy/oort
+        git clone https://github.com/pongboy/nibble
 
 2. Entre no diretório e crie um outro diretório chamado build
 
-        cd oort
+        cd nibble
         git submodule update --init --recursive
         mkdir build
 
