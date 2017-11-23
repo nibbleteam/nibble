@@ -127,7 +127,10 @@ function draw()
 
         -- Apaga aleatoriamente
         for i=1,32 do
-            kernel.write(vidstart+math.floor(320*240*math.random()), '\0')
+            local position = math.floor(320*240*math.random());
+            kernel.write(vidstart+position, '\0\0\0')
+            kernel.write(vidstart+position+320, '\0\0\0')
+            kernel.write(vidstart+position+640, '\0\0\0')
         end
     end
 end

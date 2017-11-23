@@ -18,7 +18,6 @@ class VideoMemory : public Memory {
 	// Apenas para facilitar o desenho (sprite) e o acesso (tex)
 	// a rendertexture
 	sf::Sprite gpuSpr, cpuSpr;
-	const sf::Texture *tex;
     // Textura que permite a leitura e escrita.
     // Memória de vídeo para operações não aceleradas em hardware
 	sf::Texture rwTex;

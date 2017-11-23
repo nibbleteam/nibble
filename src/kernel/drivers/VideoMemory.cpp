@@ -76,22 +76,20 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
                          const uint64_t addr):
 	w(w), h(h), address(addr), length(w*h), window(window), dirty(false),
     colormap(NULL) {
-	renderTex.create(w, h);
-	tex = &renderTex.getTexture();
-	gpuSpr = sf::Sprite(*tex);
-	img = tex->copyToImage();
-	rwTex = sf::Texture();
     // Tamanho da textura é 1/4 do tamanho da tela
     // uma vez que um pixel no sfml são quatro bytes
     // e no console é apenas um
 	rwTex.create(w/bytesPerPixel, h);
-    rwTex.setRepeated(false);
+	renderTex.create(w/bytesPerPixel, h);
 
+	auto &tex = renderTex.getTexture();
+
+	gpuSpr = sf::Sprite(tex);
 	cpuSpr = sf::Sprite(rwTex);
     // Faz preencher toda a tela
     // e inverte o y
-    cpuSpr.setScale(bytesPerPixel, -1);
-    cpuSpr.setPosition(0, h);
+    gpuSpr.setScale(bytesPerPixel, -1);
+    gpuSpr.setPosition(0, h);
 
     // Cria a textura da palleta
     paletteTex.create(GPU::paletteLength*GPU::paletteAmount, 1);
@@ -104,7 +102,7 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     }
     // Adiciona paleta e textura ao shader
     else {
-        writeShader.setUniform("texture", rwTex);
+        writeShader.setUniform("texture", tex);
         writeShader.setUniform("palette", paletteTex);
     }
 
@@ -114,14 +112,18 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // deixar sincronizado com as texturas que estão limpas
     buffer = new uint8_t[videoRamSize];
     for (unsigned int i=0;i<videoRamSize;i++) {
-            buffer[i] = 0;
+            buffer[i] = (i>>8)%4;
     }
 
     // Inicializa com bytes não inicializados
-    rwTex.update(buffer, rwTex.getSize().x, rwTex.getSize().y, 0, 0);
+    rwTex.update(buffer);
 }
 
 VideoMemory::~VideoMemory() {
+    if (colormap != NULL) {
+        stopCapturing();
+    }
+
     delete buffer;
 }
 
@@ -141,6 +143,20 @@ bool VideoMemory::startCapturing(const string& path) {
                       colormap);
     // Limpa a paleta que foi escrita
     GifFreeMapObject(colormap);
+
+    if (error != GIF_OK) {
+        cerr << GifErrorString(error) << endl;
+        return false;
+    }
+
+    char loop[] {
+        0x01, 0x00, 0x00
+    };
+    error = 0;
+    error |= EGifPutExtensionLeader(gif, APPLICATION_EXT_FUNC_CODE);
+    error |= EGifPutExtensionBlock(gif, 0x0b, "NETSCAPE2.0");
+    error |= EGifPutExtensionBlock(gif, 0x03, loop);
+    error |= EGifPutExtensionTrailer(gif);
 
     if (error != GIF_OK) {
         cerr << GifErrorString(error) << endl;
@@ -216,8 +232,18 @@ ColorMapObject* VideoMemory::getColorMap() {
 }
 
 void VideoMemory::draw() {
-	renderTex.draw(cpuSpr, &writeShader);
-	window.draw(gpuSpr);
+    if (colormap == NULL) {
+        startCapturing("screencap.gif");
+    } else {
+        captureFrame();
+    }
+
+    // Copia da nossa textura rw para a textura read-only do framebuffer
+    // Utiliza BlendNone para copiar o alpha também
+	renderTex.draw(cpuSpr, sf::BlendNone);
+	// Desenha o framebuffer na tela, usando o shader para converter do
+    // formato 1byte por pixel para cores RGBA nos pixels
+    window.draw(gpuSpr, &writeShader);
 }
 
 void VideoMemory::updatePalette(const uint8_t* palette) {
