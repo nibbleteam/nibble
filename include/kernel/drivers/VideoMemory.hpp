@@ -9,18 +9,33 @@
 using namespace std;
 
 class VideoMemory : public Memory {
+    // Permite o acesso as funçõe protected para a classe
+    // GPUMemory
+    friend class GPUMemory;
+    // Detalhes da memória
 	const uint64_t length;
 	const uint64_t address;
 	const unsigned int w, h;
 	// Textura contendo a imagem que é visível na tela,
 	// funciona como memória de vídeo
-	sf::RenderTexture renderTex;
-	// Apenas para facilitar o desenho (sprite) e o acesso (tex)
-	// a rendertexture
+	sf::RenderTexture gpuRenderTexture;
+	// Áreas para desenho da gpuRenderTexture e cpuTexture
 	sf::Sprite gpuSpr, cpuSpr;
+    // Texturas para guardar os timings dos desenhos feitos pela cpu
+    // e pela gpu, de forma que eles possam ser combinados na ordem
+    // correta, facilitando para o desenvolvedor
+    sf::RenderTexture gpuRenderTiming;
+    sf::Texture cpuTiming;
+    uint8_t *timingBuffer;
+    // Vertex arrays utilizadas para desenhar informação de timing
+    vector<sf::VertexArray> gpuTimingArrays;
+    uint64_t gpuTimingCount;
+    uint64_t cpuTimingCount;
+    // Contador de draws
+    uint64_t currentDraw;
     // Textura que permite a leitura e escrita.
     // Memória de vídeo para operações não aceleradas em hardware
-	sf::Texture rwTex;
+	sf::Texture cpuTexture;
 	// Versão do framebuffer na RAM da CPU. O booleano dirty indica
 	// quando a versão da GPU precisa ser carregada, mas ela só é carregada
 	// para essa image quando alguma operação de read precisa ser feita.
@@ -42,6 +57,7 @@ class VideoMemory : public Memory {
 public:
     const static uint64_t nibblesPerPixel;
     const static uint64_t bytesPerPixel;
+    const static uint32_t vertexArrayLength;
 public:
 	VideoMemory(sf::RenderWindow&,
                 const unsigned int,
@@ -62,12 +78,16 @@ public:
 
     // Chamado por paletteMemory quando o usuário troca a paleta
     void updatePalette(const uint8_t*);
+protected:
+    // Operações nas VertexArrays utilizadas para
+    // desenho na GPU
+    void drawGpuTiming(uint64_t,
+                       uint32_t, uint32_t,
+                       uint32_t, uint32_t);
+    void execGpuCommand(uint8_t*);
 private:
-    uint64_t nextTransferAmount(uint64_t, uint64_t, uint64_t);
-    uint64_t bytesToTransferPixels(uint64_t);
-    uint64_t bytesToPixels(uint64_t);
-    uint64_t transferWidth(uint64_t);
-    uint64_t transferHeight(uint64_t);
+    void drawCpuTiming(uint32_t, uint64_t, uint64_t);
+    void clearCpuTiming();
     // GIFs
     bool startCapturing(const string&);
     bool captureFrame();

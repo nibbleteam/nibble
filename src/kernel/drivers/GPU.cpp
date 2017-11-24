@@ -3,7 +3,7 @@
 #include <kernel/drivers/PaletteMemory.hpp>
 
 const uint64_t GPU::paletteLength = 16;
-const uint64_t GPU::paletteAmount = 16;
+const uint64_t GPU::paletteAmount = 8;
 
 GPU::GPU(sf::RenderWindow& window,
          const unsigned int w, const unsigned int h,

@@ -63,7 +63,15 @@ void Kernel::destroyMemoryMap() {
 }
 
 void Kernel::loop() {
+    sf::Clock clock;
+    float lastTime = 0;
+    
 	while (window.isOpen()) {
+        float currentTime = clock.getElapsedTime().asSeconds();
+        float fps = 1.f / (currentTime - lastTime);
+        lastTime = currentTime;
+        cerr << fps << "\r";
+
 		sf::Event event;
 
 		// Event handling

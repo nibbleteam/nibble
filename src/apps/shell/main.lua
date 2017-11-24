@@ -2,7 +2,7 @@ w, h = 320, 240
 x, y = w/2, h/2
 vx, vy = 0, 0 
 color = 1 
-vidstart = 16*16*4
+vidstart = 8*16*4
 pal = 0
 
 directions = {
@@ -107,8 +107,8 @@ function update()
 end
 
 function newpalette()
-    -- Cria 16 novas paleta aleatória mas com preto no início de todas
-    for j=0,15 do
+    -- Cria 8 novas paleta aleatória mas com preto no início de todas
+    for j=0,7 do
         kernel.write(j*4*16, string.char(0x00, 0x00, 0x00, 0xFF))
         for i=1,15 do
             kernel.write(i*4+j*4*16, string.char(math.floor(randbyte()/2+128), randbyte(), randbyte(), 0xFF))
@@ -116,6 +116,7 @@ function newpalette()
     end
 end
 
+local p = 0
 function draw()
     for i=1,16 do
         _update()
@@ -128,9 +129,10 @@ function draw()
         -- Apaga aleatoriamente
         for i=1,32 do
             local position = math.floor(320*240*math.random());
+            -- Um write evitando muitas drawcalls
             kernel.write(vidstart+position, '\0\0\0')
-            kernel.write(vidstart+position+320, '\0\0\0')
-            kernel.write(vidstart+position+640, '\0\0\0')
+            kernel.write(vidstart+position+240, '\0\0\0')
+            kernel.write(vidstart+position+240, '\0\0\0')
         end
     end
 end
