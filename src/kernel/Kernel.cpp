@@ -40,8 +40,9 @@ void Kernel::addMemoryDevice(Memory* device) {
 // para a RAM
 void Kernel::createMemoryMap() {
     gpu = new GPU(window, 320, 240, lastUsedMemByte);
-	addMemoryDevice((Memory*)gpu->getPaletteMemory());
-	addMemoryDevice((Memory*)gpu->getVideoMemory());
+    addMemoryDevice(gpu->getCommandMemory());
+	addMemoryDevice(gpu->getPaletteMemory());
+	addMemoryDevice(gpu->getVideoMemory());
 	//addMemoryDevice(new RAM(lastUsedMemByte, 32*1024));
 }
 

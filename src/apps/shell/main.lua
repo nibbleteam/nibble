@@ -2,7 +2,7 @@ w, h = 320, 240
 x, y = w/2, h/2
 vx, vy = 0, 0 
 color = 1 
-vidstart = 8*16*4
+vidstart = 8*16*4+16
 pal = 0
 
 directions = {
@@ -109,16 +109,25 @@ end
 function newpalette()
     -- Cria 8 novas paleta aleatória mas com preto no início de todas
     for j=0,7 do
-        kernel.write(j*4*16, string.char(0x00, 0x00, 0x00, 0xFF))
+        kernel.write(16+j*4*16, string.char(0x00, 0x00, 0x00, 0xFF))
         for i=1,15 do
-            kernel.write(i*4+j*4*16, string.char(math.floor(randbyte()/2+128), randbyte(), randbyte(), 0xFF))
+            kernel.write(16+i*4+j*4*16, string.char(math.floor(randbyte()/2+128), randbyte(), randbyte(), 0xFF))
         end
     end
 end
 
 local p = 0
 function draw()
-    for i=1,16 do
+    -- Rect na gpu
+    -- 01 - Rect
+    -- 00 - color
+    -- 00 00 - x
+    -- 00 00 - y
+    -- 00 0A - w
+    -- 00 0A - h
+    kernel.write(0, string.char(0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x00, 0x30));
+
+    for i=1,3 do
         _update()
 
         -- Desenha
@@ -129,12 +138,15 @@ function draw()
         -- Apaga aleatoriamente
         for i=1,32 do
             local position = math.floor(320*240*math.random());
-            -- Um write evitando muitas drawcalls
             kernel.write(vidstart+position, '\0\0\0')
-            kernel.write(vidstart+position+240, '\0\0\0')
-            kernel.write(vidstart+position+240, '\0\0\0')
+            kernel.write(vidstart+position+320, '\0\0\0')
+            kernel.write(vidstart+position+640, '\0\0\0')
         end
     end
+
+    kernel.write(vidstart, '\00\01\02\03\04\05\06\07\08\09\10\11\12\13\16\15');
+
+    kernel.write(0, string.char(0x01, 0x01, 0x01, 320%256-0x30, 0x00, 240-0x30, 0x00, 0x30, 0x00, 0x30));
 end
 
 function putpix(x, y, color)

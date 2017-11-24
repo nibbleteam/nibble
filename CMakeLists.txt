@@ -62,6 +62,8 @@ add_executable(pongboy
                 ${PROJECT_HEADER_DIR}/kernel/Kernel.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Process.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Process.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/RenderBuffer.cpp
+                ${PROJECT_HEADER_DIR}/kernel/RenderBuffer.hpp
                 ${PROJECT_HEADER_DIR}/kernel/Memory.hpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/CartridgeMemory.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/CartridgeMemory.cpp
@@ -71,6 +73,8 @@ add_executable(pongboy
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/VideoMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/GPU.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/GPU.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/GPUCommandMemory.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/GPUCommandMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/PaletteMemory.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/PaletteMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp

@@ -3,24 +3,27 @@
 
 #include <cstdint>
 #include <kernel/Memory.hpp>
+#include <kernel/RenderBuffer.hpp>
 #include <SFML/Graphics.hpp>
 #include <gif_lib.h>
 
 using namespace std;
 
 class VideoMemory : public Memory {
-    // Permite o acesso as funçõe protected para a classe
-    // GPUMemory
-    friend class GPUMemory;
+    // Permite o acesso as funçõe protected
+    friend class GPUCommandMemory;
     // Detalhes da memória
 	const uint64_t length;
 	const uint64_t address;
 	const unsigned int w, h;
+    // Framebuffer da imagem final
+    sf::RenderTexture framebuffer;
 	// Textura contendo a imagem que é visível na tela,
 	// funciona como memória de vídeo
 	sf::RenderTexture gpuRenderTexture;
-	// Áreas para desenho da gpuRenderTexture e cpuTexture
-	sf::Sprite gpuSpr, cpuSpr;
+	// Áreas para desenho do framebuffer e combinar os renders
+    // em CPU e GPU
+	sf::Sprite framebufferSpr, combineSpr;
     // Texturas para guardar os timings dos desenhos feitos pela cpu
     // e pela gpu, de forma que eles possam ser combinados na ordem
     // correta, facilitando para o desenvolvedor
@@ -28,26 +31,21 @@ class VideoMemory : public Memory {
     sf::Texture cpuTiming;
     uint8_t *timingBuffer;
     // Vertex arrays utilizadas para desenhar informação de timing
-    vector<sf::VertexArray> gpuTimingArrays;
-    uint64_t gpuTimingCount;
-    uint64_t cpuTimingCount;
+    RenderBuffer gpuTimingBuffer, gpuQuadsBuffer;
     // Contador de draws
-    uint64_t currentDraw;
+    uint32_t currentDraw;
     // Textura que permite a leitura e escrita.
     // Memória de vídeo para operações não aceleradas em hardware
 	sf::Texture cpuTexture;
-	// Versão do framebuffer na RAM da CPU. O booleano dirty indica
-	// quando a versão da GPU precisa ser carregada, mas ela só é carregada
-	// para essa image quando alguma operação de read precisa ser feita.
-	sf::Image img;
-	bool dirty;
     uint8_t *buffer;
 	// Referência para a janela para que possamos desenhar para ela
 	sf::RenderWindow &window;
-    // Código e o shader utilizado para desenhar em write()s
-    const static string writeShaderVertex;
-    const static string writeShaderFragment;
-    sf::Shader writeShader;
+    // Código e o shader utilizado para desenhar mixar texturas
+    // e expandir para a tela
+    const static string shaderVertex;
+    const static string toRGBAShaderFragment;
+    const static string combineShaderFragment;
+    sf::Shader toRGBAShader, combineShader;
     // Textura utilizada como paleta pelo shader
     sf::Texture paletteTex;
     // Arquivo para salvar gifs
@@ -81,9 +79,12 @@ public:
 protected:
     // Operações nas VertexArrays utilizadas para
     // desenho na GPU
-    void drawGpuTiming(uint64_t,
+    void drawGpuTiming(uint32_t,
                        uint32_t, uint32_t,
                        uint32_t, uint32_t);
+    void drawGpuQuad(uint8_t,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t);
     void execGpuCommand(uint8_t*);
 private:
     void drawCpuTiming(uint32_t, uint64_t, uint64_t);

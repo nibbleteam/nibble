@@ -2,15 +2,18 @@
 #define GPU_H
 
 #include <SFML/Graphics.hpp>
+#include <kernel/Memory.hpp>
 #include <cstdint>
 
 // Define classe para evitar 
 // dependência circular
 class VideoMemory;
 class PaletteMemory;
+class GPUCommandMemory;
 
 class GPU {
     // Memórias
+    GPUCommandMemory *commandMemory;
     VideoMemory* videoMemory;
     PaletteMemory* paletteMemory;
 public:
@@ -26,8 +29,9 @@ public:
 
     void draw();
 
-    VideoMemory* getVideoMemory();
-    PaletteMemory* getPaletteMemory();
+    Memory* getVideoMemory();
+    Memory* getPaletteMemory();
+    Memory* getCommandMemory();
 };
 
 #endif /* GPU_H */

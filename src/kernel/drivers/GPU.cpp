@@ -1,6 +1,7 @@
 #include <kernel/drivers/GPU.hpp>
 #include <kernel/drivers/VideoMemory.hpp>
 #include <kernel/drivers/PaletteMemory.hpp>
+#include <kernel/drivers/GPUCommandMemory.hpp>
 
 const uint64_t GPU::paletteLength = 16;
 const uint64_t GPU::paletteAmount = 8;
@@ -11,8 +12,9 @@ GPU::GPU(sf::RenderWindow& window,
     const uint64_t paletteSize = paletteLength*
                                  paletteAmount*
                                  VideoMemory::bytesPerPixel;
-    videoMemory = new VideoMemory(window, w, h, addr+paletteSize);
-    paletteMemory = new PaletteMemory(videoMemory, addr);
+    videoMemory = new VideoMemory(window, w, h, addr+paletteSize+GPUCommandMemory::length);
+    paletteMemory = new PaletteMemory(videoMemory, addr+GPUCommandMemory::length);
+    commandMemory = new GPUCommandMemory(videoMemory, addr);
 }
 
 GPU::~GPU() {
@@ -22,10 +24,14 @@ void GPU::draw() {
     videoMemory->draw();
 }
 
-VideoMemory* GPU::getVideoMemory() {
-    return videoMemory;
+Memory* GPU::getVideoMemory() {
+    return (Memory*)videoMemory;
 }
 
-PaletteMemory* GPU::getPaletteMemory() {
-    return paletteMemory;
+Memory* GPU::getPaletteMemory() {
+    return (Memory*)paletteMemory;
+}
+
+Memory* GPU::getCommandMemory() {
+    return (Memory*)commandMemory;
 }

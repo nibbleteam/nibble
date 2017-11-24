@@ -9,7 +9,7 @@ const uint64_t VideoMemory::bytesPerPixel = 4;
 const uint32_t VideoMemory::vertexArrayLength = 4096;
 
 // Vertex shader padrão do SFML sem alterações
-const string VideoMemory::writeShaderVertex = R"(
+const string VideoMemory::shaderVertex = R"(
 void main()
 {
     // transform the vertex position
@@ -23,16 +23,11 @@ void main()
 }
 )";
 
-// Recebe duas texturas com 1/4 do comprimento da tela
-// esticada para o tamanho da tela e endereça cada 
-// pixel na imagem como 4 pixels na tela.
-// Para fazer isso considera cada canal como
-// um pixel
-// Além disso, utiliza duas texturas adicionais com as
+// Utiliza duas texturas adicionais com as
 // informações de timing das duas texturas utilizadas para desenhar
 // de forma que pode escolher apenas desenhar cada pixel
 // daquela atualizada mais recentemente
-const string VideoMemory::writeShaderFragment = R"(
+const string VideoMemory::combineShaderFragment = R"(
 // Converte um vetor de float pra um int de 4bytes
 #define INT4BYTES(x) int(x.r*255.0)*256*256*256+int(x.g*255.0)*256*256+int(x.b*255.0)*256+int(x.a*255.0)
 
@@ -47,6 +42,49 @@ uniform sampler2D gpuTexture;
 // Timing
 uniform sampler2D cpuTiming;
 uniform sampler2D gpuTiming;
+
+void main()
+{
+    // Coordenadas no espaço da textura
+    vec2 coord = vec2(gl_TexCoord[0].x, gl_TexCoord[0].y);
+    // Alinha as coordenadas a 4 bytes
+    float x = float(int(coord.x*screen_w)/int(bytes_per_pixel))*bytes_per_pixel/screen_w + 0.5/screen_w;
+
+    // Constroi a saída 4 pixels por vez
+    vec4 pixelCpu = texture2D(cpuTexture, vec2(coord.x, 1.0-coord.y));
+    for (int i=0;i<int(bytes_per_pixel);i++) {
+        vec4 pixelGpu = texture2D(gpuTexture, coord);
+        vec4 cpuTimeV = texture2D(cpuTiming, vec2(x, 1.0-coord.y));
+        vec4 gpuTimeV = texture2D(gpuTiming, coord);
+
+        int cpuTime = INT4BYTES(cpuTimeV);
+        int gpuTime = INT4BYTES(gpuTimeV);
+
+        // Utiliza o buffer mais atualizado
+        if (cpuTime >= gpuTime) {
+            gl_FragColor[i] = pixelCpu[i];
+        } else {
+            gl_FragColor[i] = pixelGpu[i];
+        }
+
+        // Próximo pixel
+        x += 1.0/screen_w;
+    }
+}
+)";
+
+// Recebe duas texturas com 1/4 do comprimento da tela
+// esticada para o tamanho da tela e endereça cada 
+// pixel na imagem como 4 pixels na tela.
+// Para fazer isso considera cada canal como
+// um pixel
+const string VideoMemory::toRGBAShaderFragment = R"(
+const float screen_w = 320.0;
+// 4 canais na textura (RGBA)
+const float bytes_per_pixel = 4.0;
+
+// Textura "comprimida" onde 1 pixel real são 4 pixels virtuais
+uniform sampler2D source;
 // Textura 1xN da paleta
 uniform sampler2D palette;
 
@@ -57,28 +95,8 @@ void main()
     // Em qual byte do pixel estamos
     int byte = int(mod(coord.x*screen_w, bytes_per_pixel));
 
-    vec4 cpuTimeV = texture2D(cpuTiming, coord);
-    vec4 gpuTimeV = texture2D(gpuTiming, coord);
-
-    int cpuTime = INT4BYTES(cpuTimeV);
-    int gpuTime = INT4BYTES(gpuTimeV);
-
-    // Não altera o buffer se nem a CPU nem a GPU
-    // desenharam esse pixel
-    // Se esse shader for utiliazado para desenhar
-    // diretamente no framebuffer pode causar problemas
-    //if (cpuTime == 0 && gpuTime == 0)
-    //    discard;
-
     // Cor do pixel na textura
-    vec4 pixel;
-    
-    // Utiliza o buffer mais atualizado
-    if (cpuTime >= gpuTime) {
-        pixel = texture2D(cpuTexture, coord);
-    } else {
-        pixel = texture2D(gpuTexture, coord);
-    }
+    vec4 pixel = texture2D(source, coord);
 
     // Qual canal do pixel da textura vamos
     // usar para o pixel na tela
@@ -86,19 +104,19 @@ void main()
     // Primeiro byte, segundo byte etc
     // Os módulos limitam a 8 paletas
     if (byte == 0)
-        source = mod(pixel.r, 0.5);
+        source = pixel.r;
     else if (byte == 1)
-        source = mod(pixel.g, 0.5); 
+        source = pixel.g; 
     else if (byte == 2)
-        source = mod(pixel.b, 0.5);
+        source = pixel.b;
     else if (byte == 3)
-        source = mod(pixel.a, 0.5);
+        source = pixel.a;
 
-    vec4 color = texture2D(palette, vec2(source, 0));
+    vec4 color = texture2D(palette, vec2(mod(source*2.0, 1.0), 0.5));
 
     // Não desenha pixels transparentes
-    if (color.a == 0.0)
-        discard;
+    //if (color.a == 0.0)
+    //    discard;
 
     gl_FragColor = vec4(color.rgb, 1.0);
 }
@@ -108,13 +126,15 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
                          const unsigned int w,
                          const unsigned int h,
                          const uint64_t addr):
-	w(w), h(h), address(addr), length(w*h), window(window), dirty(false),
-    colormap(NULL), cpuTimingCount(0), gpuTimingCount(0), currentDraw(0) {
+	w(w), h(h), address(addr), length(w*h), window(window),
+    colormap(NULL), currentDraw(0),
+    gpuTimingBuffer(sf::Quads, 4), gpuQuadsBuffer(sf::Quads, 4) {
     // Tamanho da textura é 1/4 do tamanho da tela
     // uma vez que um pixel no sfml são quatro bytes
     // e no console é apenas um
 	cpuTexture.create(w/bytesPerPixel, h);
-	gpuRenderTexture.create(w/bytesPerPixel, h);
+	gpuRenderTexture.create(w, h);
+    framebuffer.create(w/bytesPerPixel, h);
     // Timings das operações de desenho
     cpuTiming.create(w, h);
     gpuRenderTiming.create(w, h);
@@ -122,34 +142,43 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // Texturas para ler as RenderTextures
 	auto &gpuTexture = gpuRenderTexture.getTexture();
     auto &gpuTiming = gpuRenderTiming.getTexture();
+    auto &framebufferTexture = framebuffer.getTexture();
 
     // Sprites para desenhar as RenderTextures
-	gpuSpr = sf::Sprite(gpuTexture);
-	cpuSpr = sf::Sprite(cpuTexture);
-
-    // Faz preencher toda a tela (uma vez que ela tem 1/4 do tamanho)
-    gpuSpr.setScale(bytesPerPixel, 1);
+    // Framebuffer na tela inteira
+	framebufferSpr = sf::Sprite(framebufferTexture);
+    framebufferSpr.setScale(bytesPerPixel, 1);
+    // combineSpr na área de cpuTexture, gpuTexture e framebuffer
+	combineSpr = sf::Sprite(cpuTexture);
+    combineSpr.setScale(1, 1);
 
     // Cria a textura da palleta
-    paletteTex.create(GPU::paletteLength*GPU::paletteAmount, 1);
+    paletteTex.create(128, 1);
 
     // Tenta carregar o shader, em caso de erro termina
     // uma vez que não será possível mostrar nada
-    if (!writeShader.loadFromMemory(writeShaderVertex, writeShaderFragment)) {
-        cout << "video " << "error loading write shader" << endl;
+    if (!combineShader.loadFromMemory(shaderVertex, combineShaderFragment)) {
+        cout << "video " << "error loading combine shader" << endl;
         exit(1);
     }
     else {
         // Passa texuras de entrada
-        writeShader.setUniform("cpuTexture", cpuTexture);
-        writeShader.setUniform("gpuTexture", gpuTexture);
+        combineShader.setUniform("cpuTexture", cpuTexture);
+        combineShader.setUniform("gpuTexture", gpuTexture);
 
         // Passa texturas de timing
-        writeShader.setUniform("cpuTiming", cpuTiming);
-        writeShader.setUniform("gpuTiming", gpuTiming);
-
-        // Passa paleta para o shader
-        writeShader.setUniform("palette", paletteTex);
+        combineShader.setUniform("cpuTiming", cpuTiming);
+        combineShader.setUniform("gpuTiming", gpuTiming);
+    }
+    // Shader de final de pipeline
+    if (!toRGBAShader.loadFromMemory(shaderVertex, toRGBAShaderFragment)) {
+        cout << "video " << "error loading toRGBA shader" << endl;
+        exit(1);
+    }
+    else {
+        // Passa textura do framebuffer e paleta
+        toRGBAShader.setUniform("source", framebufferTexture);
+        toRGBAShader.setUniform("palette", paletteTex);
     }
 
     const uint64_t videoRamSize = w*h;
@@ -157,8 +186,8 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // Inicializa a memória
     buffer = new uint8_t[videoRamSize];
     for (unsigned int i=0;i<videoRamSize;i++) {
-        //buffer[i] = (i>>8)%3;
-        buffer[i] = 0;
+        buffer[i] = (i%8)+rand();
+        //buffer[i] = 0;
     }
     timingBuffer = new uint8_t[bytesPerPixel*videoRamSize];
 
@@ -285,10 +314,18 @@ void VideoMemory::clearCpuTiming() {
 }
 
 void VideoMemory::drawCpuTiming(uint32_t time, uint64_t p, uint64_t size) {
+    uint8_t *otime = (uint8_t*)&time;
+    uint8_t ntime[4];
+
+    ntime[0] = otime[3];
+    ntime[1] = otime[2];
+    ntime[2] = otime[1];
+    ntime[3] = otime[0];
+
     // A textura de timing tem 4 bytes por pixel
     p = p*sizeof(time);
     // Escreve os primeiros 4 bytes
-    memmove(timingBuffer+p, (uint8_t*)&time, sizeof(time));
+    memmove(timingBuffer+p, ntime, sizeof(time));
 
     uint64_t end = p+size*sizeof(time);
 
@@ -298,91 +335,102 @@ void VideoMemory::drawCpuTiming(uint32_t time, uint64_t p, uint64_t size) {
 
         p += sizeof(time);
     }
-
-    cpuTimingCount++;
 }
 
-void VideoMemory::drawGpuTiming(uint64_t time,
+void VideoMemory::drawGpuTiming(uint32_t time,
                                 const uint32_t x, const uint32_t y,
                                 const uint32_t w, const uint32_t h) {
-    // Dividido por quatro porque usamos quads
-    uint32_t array = gpuTimingCount / (vertexArrayLength/4);
-    uint32_t position = gpuTimingCount % (vertexArrayLength/4);
+    // Converte o timing para uma cor
+    sf::Color color = sf::Color {
+        (uint8_t)(time>>24),
+        (uint8_t)(time>>16),
+        (uint8_t)(time>>8),
+        (uint8_t)time
+    };
 
-    if (gpuTimingArrays.size() <= array) {
-        gpuTimingArrays.push_back(
-            sf::VertexArray(sf::Quads, vertexArrayLength)
-        );
+    gpuTimingBuffer.add({
+        sf::Vertex(sf::Vector2f(x, y), color),
+        sf::Vertex(sf::Vector2f(x+w, y), color),
+        sf::Vertex(sf::Vector2f(x+w, y+h), color),
+        sf::Vertex(sf::Vector2f(x, y+h), color)
+    });
+}
+
+void VideoMemory::drawGpuQuad(uint8_t color,
+                              const uint16_t x, const uint16_t y,
+                              const uint16_t w, const uint16_t h) {
+    // Gera cor
+    sf::Color sfcolor {color, color, color, color};
+
+    gpuQuadsBuffer.add({
+        sf::Vertex(sf::Vector2f(x, y), sfcolor),
+        sf::Vertex(sf::Vector2f(x+w, y), sfcolor),
+        sf::Vertex(sf::Vector2f(x+w, y+h), sfcolor),
+        sf::Vertex(sf::Vector2f(x, y+h), sfcolor)
+    });
+}
+
+void VideoMemory::execGpuCommand(uint8_t *cmd) {
+    enum Commands {
+        Clear = 0x00,
+        FillRect
+    };
+
+    switch (*cmd) {
+        case Clear:
+            //cout << "gpu clear" << endl;
+            break;
+        case FillRect:
+            // TODO: Inverter Y
+            uint8_t color = cmd[1];
+            uint16_t x = (uint16_t)cmd[2]<<8 | cmd[3];
+            uint16_t y = (uint16_t)cmd[4]<<8 | cmd[5];
+            uint16_t w = (uint16_t)cmd[6]<<8 | cmd[7];
+            uint16_t h = (uint16_t)cmd[8]<<8 | cmd[9];
+
+            drawGpuQuad(color, x, y, w, h);
+            drawGpuTiming(currentDraw, x, y, w, h);
+
+            break;
     }
 
-    // Time não pode ser zero (zero = não desenhado)
-    time ++;
-
-    // Converte o timing para uma cor
-    sf::Color color = *(sf::Color*)&time;
-    //sf::Color color {time>>8, time, 255, 255};
-
-    // Índiced dos vertices
-    auto a = position*4,
-         b = position*4+1,
-         c = position*4+2,
-         d = position*4+3;
-
-    gpuTimingArrays[array][a].position = sf::Vector2f(x, y);
-    gpuTimingArrays[array][b].position = sf::Vector2f(x+w, y);
-    gpuTimingArrays[array][c].position = sf::Vector2f(x+w, y+h);
-    gpuTimingArrays[array][d].position = sf::Vector2f(x, y+h);
-
-    gpuTimingArrays[array][a].color = color;
-    gpuTimingArrays[array][b].color = color;
-    gpuTimingArrays[array][c].color = color;
-    gpuTimingArrays[array][d].color = color;
-
-    gpuTimingCount++;
+    currentDraw++;
 }
 
 void VideoMemory::draw() {
+    gpuTimingBuffer.draw(gpuRenderTiming);
+    gpuQuadsBuffer.draw(gpuRenderTexture);
+
+    // Atualiza textura de timing da CPU
+    cpuTiming.update(timingBuffer, w, h, 0, 0);
+    // Atualiza resultado do render da CPU
+    cpuTexture.update(buffer, w/4, h, 0, 0);
+
+    // Desenha as texturas combinadas da CPU e GPU
+    framebuffer.draw(combineSpr,
+                     sf::RenderStates(sf::BlendNone,
+                                      sf::Transform::Identity,
+                                      NULL,
+                                      &combineShader));
+
+    // Copia o resultado de volta para a RAM
+    auto img = framebufferSpr.getTexture()->copyToImage();
+    memcpy(buffer, img.getPixelsPtr(), w*h);
+
     if (colormap == NULL) {
         startCapturing("screencap.gif");
     } else {
         captureFrame();
     }
 
-    if (gpuTimingArrays.size() > 0) {
-        // Corta parte que nãp foi redesenhada fora do buffer
-        uint32_t cutStart = gpuTimingCount/(vertexArrayLength/4);
-        gpuTimingArrays[cutStart].resize(
-            (gpuTimingCount % (vertexArrayLength/4))*4
-        );
-        for (cutStart++;cutStart<gpuTimingArrays.size();cutStart++) {
-            gpuTimingArrays[cutStart].resize(0);
-        }
-    }
-
-    // Calcula o timing que cada pixel foi escrito
-    // pela GPU
-    for (auto &array : gpuTimingArrays) {
-        gpuRenderTiming.draw(array, sf::BlendNone);
-    }
-
-    cpuTiming.update(timingBuffer, w, h, 0, 0);
-    cpuTexture.update(buffer, w/4, h, 0, 0);
-
-    // Copia da nossa textura rw da cpu 
-    // para a textura read-only da gpu
-    // Utiliza BlendNone para copiar o alpha também
-	//gpuRenderTexture.draw(cpuSpr, sf::BlendNone);
 	// Desenha o framebuffer na tela, usando o shader para converter do
     // formato 1byte por pixel para cores RGBA nos pixels
-    window.draw(gpuSpr, &writeShader);
-
-    // Atualiza a RAM
-    auto img = gpuSpr.getTexture()->copyToImage();
+    window.draw(framebufferSpr, &toRGBAShader);
 
     // Zera o timing dos draws
-    currentDraw = 0;
-    cpuTimingCount = 0;
-    gpuTimingCount = 0;
+    currentDraw = 1;
+    gpuTimingBuffer.clear();
+    gpuQuadsBuffer.clear();
     gpuRenderTiming.clear(sf::Color::Transparent);
     clearCpuTiming();
 }
