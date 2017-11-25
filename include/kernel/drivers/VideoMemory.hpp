@@ -20,18 +20,20 @@ class VideoMemory : public Memory {
     sf::RenderTexture framebuffer;
 	// Textura contendo a imagem que é visível na tela,
 	// funciona como memória de vídeo
-	sf::RenderTexture gpuRenderTexture;
+	sf::RenderTexture gpuRenderTextureQuads, gpuRenderTextureTris, gpuRenderTextureLines;
 	// Áreas para desenho do framebuffer e combinar os renders
     // em CPU e GPU
 	sf::Sprite framebufferSpr, combineSpr;
     // Texturas para guardar os timings dos desenhos feitos pela cpu
     // e pela gpu, de forma que eles possam ser combinados na ordem
     // correta, facilitando para o desenvolvedor
-    sf::RenderTexture gpuRenderTiming;
+    sf::RenderTexture gpuRenderTimingQuads, gpuRenderTimingTris;
+    sf::RenderTexture gpuRenderTimingLines;
     sf::Texture cpuTiming;
     uint8_t *timingBuffer;
     // Vertex arrays utilizadas para desenhar informação de timing
-    RenderBuffer gpuTimingBuffer, gpuQuadsBuffer;
+    RenderBuffer gpuTQuadsBuffer, gpuTLinesBuffer, gpuTTrisBuffer;
+    RenderBuffer gpuQuadsBuffer, gpuLinesBuffer, gpuTrisBuffer;
     // Contador de draws
     uint32_t currentDraw;
     // Textura que permite a leitura e escrita.
@@ -79,14 +81,47 @@ public:
 protected:
     // Operações nas VertexArrays utilizadas para
     // desenho na GPU
-    void drawGpuTiming(uint32_t,
-                       uint32_t, uint32_t,
-                       uint32_t, uint32_t);
-    void drawGpuQuad(uint8_t,
+    void gpuLine(RenderBuffer &, sf::Color,
+                 uint16_t, uint16_t,
+                 uint16_t, uint16_t);
+    void gpuRect(RenderBuffer &, sf::Color,
+                 uint16_t, uint16_t,
+                 uint16_t, uint16_t);
+    void gpuTri(RenderBuffer &, sf::Color,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t);
+    void gpuQuad(RenderBuffer &, sf::Color,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t);
+    void gpuCircle(RenderBuffer &, sf::Color,
+                   uint16_t, uint16_t, uint16_t);
+    void gpuFillCircle(RenderBuffer &, sf::Color,
+                       uint16_t, uint16_t, uint16_t);
+    void gpuFillRect(RenderBuffer &, sf::Color,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t);
+    void gpuFillTri(RenderBuffer &, sf::Color,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t);
+    void gpuFillQuad(RenderBuffer &, sf::Color,
+                     uint16_t, uint16_t,
+                     uint16_t, uint16_t,
                      uint16_t, uint16_t,
                      uint16_t, uint16_t);
     void execGpuCommand(uint8_t*);
 private:
+    // Helpers para extrair argumentos de um comando
+    // da GPU
+    uint16_t next16Arg(uint8_t*&);
+    uint8_t next8Arg(uint8_t*&);
+    // Gera cores a partir de indices ou tempo
+    sf::Color time2Color(uint32_t);
+    sf::Color index2Color(uint8_t);
+    // Desenho do timing da CPU
     void drawCpuTiming(uint32_t, uint64_t, uint64_t);
     void clearCpuTiming();
     // GIFs

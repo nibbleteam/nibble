@@ -2,7 +2,7 @@
 #include <kernel/drivers/VideoMemory.hpp>
 #include <cstring>
 
-const uint64_t GPUCommandMemory::length = 16;
+const uint64_t GPUCommandMemory::length = 32;
 
 GPUCommandMemory::GPUCommandMemory(VideoMemory* video, const uint64_t addr) :
 	address(addr),

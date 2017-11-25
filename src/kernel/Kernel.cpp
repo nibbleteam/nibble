@@ -9,10 +9,11 @@ using namespace std;
 Kernel *KernelSingleton;
 
 Kernel::Kernel():
-	window(sf::VideoMode(320, 240), "PongBoy"),
+	window(sf::VideoMode(640, 480), "Nibble"),
 	lastPid(1),
 	lastUsedMemByte(0) {
     window.setFramerateLimit(60);
+    window.setView(sf::View(sf::FloatRect(0, 0, 320, 240)));
 
 	createMemoryMap();
 

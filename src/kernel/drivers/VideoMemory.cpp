@@ -3,6 +3,7 @@
 #include <kernel/drivers/GPU.hpp>
 #include <iostream>
 #include <cstring>
+#include <cmath>
 
 const uint64_t VideoMemory::nibblesPerPixel = 8;
 const uint64_t VideoMemory::bytesPerPixel = 4;
@@ -38,10 +39,14 @@ const float bytes_per_pixel = 4.0;
 // Primeira textura "esticada", desenhos da CPU
 uniform sampler2D cpuTexture;
 // Segunda textura, desenhos da GPU 
-uniform sampler2D gpuTexture;
+uniform sampler2D gpuTextureLines;
+uniform sampler2D gpuTextureTris;
+uniform sampler2D gpuTextureQuads;
 // Timing
 uniform sampler2D cpuTiming;
-uniform sampler2D gpuTiming;
+uniform sampler2D gpuTimingLines;
+uniform sampler2D gpuTimingTris;
+uniform sampler2D gpuTimingQuads;
 
 void main()
 {
@@ -53,18 +58,31 @@ void main()
     // Constroi a saída 4 pixels por vez
     vec4 pixelCpu = texture2D(cpuTexture, vec2(coord.x, 1.0-coord.y));
     for (int i=0;i<int(bytes_per_pixel);i++) {
-        vec4 pixelGpu = texture2D(gpuTexture, coord);
         vec4 cpuTimeV = texture2D(cpuTiming, vec2(x, 1.0-coord.y));
-        vec4 gpuTimeV = texture2D(gpuTiming, coord);
+        vec4 gpuTimeQuadsV = texture2D(gpuTimingQuads, vec2(x, coord.y));
+        vec4 pixelGpuQuads = texture2D(gpuTextureQuads, vec2(x, coord.y));
+        vec4 gpuTimeTrisV= texture2D(gpuTimingTris, vec2(x, coord.y));
+        vec4 pixelGpuTris = texture2D(gpuTextureTris, vec2(x, coord.y));
+        vec4 gpuTimeLinesV = texture2D(gpuTimingLines, vec2(x, coord.y));
+        vec4 pixelGpuLines = texture2D(gpuTextureLines, vec2(x, coord.y));
 
         int cpuTime = INT4BYTES(cpuTimeV);
-        int gpuTime = INT4BYTES(gpuTimeV);
+        int gpuTimeQuads = INT4BYTES(gpuTimeQuadsV);
+        int gpuTimeTris = INT4BYTES(gpuTimeTrisV);
+        int gpuTimeLines = INT4BYTES(gpuTimeLinesV);
 
         // Utiliza o buffer mais atualizado
-        if (cpuTime >= gpuTime) {
+        if (cpuTime >= gpuTimeQuads &&
+            cpuTime >= gpuTimeLines &&
+            cpuTime >= gpuTimeTris) {
             gl_FragColor[i] = pixelCpu[i];
+        } else if (gpuTimeQuads > gpuTimeTris &&
+                   gpuTimeQuads > gpuTimeLines) {
+            gl_FragColor[i] = pixelGpuQuads[i];
+        } else if (gpuTimeTris > gpuTimeLines) {
+            gl_FragColor[i] = pixelGpuTris[i];
         } else {
-            gl_FragColor[i] = pixelGpu[i];
+            gl_FragColor[i] = pixelGpuLines[i];
         }
 
         // Próximo pixel
@@ -128,20 +146,30 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
                          const uint64_t addr):
 	w(w), h(h), address(addr), length(w*h), window(window),
     colormap(NULL), currentDraw(0),
-    gpuTimingBuffer(sf::Quads, 4), gpuQuadsBuffer(sf::Quads, 4) {
+    gpuTQuadsBuffer(sf::Quads, 4), gpuQuadsBuffer(sf::Quads, 4),
+    gpuTLinesBuffer(sf::Lines, 2), gpuLinesBuffer(sf::Lines, 2),
+    gpuTTrisBuffer(sf::Triangles, 3), gpuTrisBuffer(sf::Triangles, 3) {
     // Tamanho da textura é 1/4 do tamanho da tela
     // uma vez que um pixel no sfml são quatro bytes
     // e no console é apenas um
 	cpuTexture.create(w/bytesPerPixel, h);
-	gpuRenderTexture.create(w, h);
+	gpuRenderTextureQuads.create(w, h);
+	gpuRenderTextureTris.create(w, h);
+	gpuRenderTextureLines.create(w, h);
     framebuffer.create(w/bytesPerPixel, h);
     // Timings das operações de desenho
     cpuTiming.create(w, h);
-    gpuRenderTiming.create(w, h);
+    gpuRenderTimingQuads.create(w, h);
+    gpuRenderTimingTris.create(w, h);
+    gpuRenderTimingLines.create(w, h);
 
     // Texturas para ler as RenderTextures
-	auto &gpuTexture = gpuRenderTexture.getTexture();
-    auto &gpuTiming = gpuRenderTiming.getTexture();
+	auto &gpuTextureLines = gpuRenderTextureLines.getTexture();
+	auto &gpuTextureTris = gpuRenderTextureTris.getTexture();
+	auto &gpuTextureQuads = gpuRenderTextureQuads.getTexture();
+    auto &gpuTimingQuads = gpuRenderTimingQuads.getTexture();
+    auto &gpuTimingTris = gpuRenderTimingTris.getTexture();
+    auto &gpuTimingLines = gpuRenderTimingLines.getTexture();
     auto &framebufferTexture = framebuffer.getTexture();
 
     // Sprites para desenhar as RenderTextures
@@ -164,11 +192,15 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     else {
         // Passa texuras de entrada
         combineShader.setUniform("cpuTexture", cpuTexture);
-        combineShader.setUniform("gpuTexture", gpuTexture);
+        combineShader.setUniform("gpuTextureLines", gpuTextureLines);
+        combineShader.setUniform("gpuTextureTris", gpuTextureTris);
+        combineShader.setUniform("gpuTextureQuads", gpuTextureQuads);
 
         // Passa texturas de timing
         combineShader.setUniform("cpuTiming", cpuTiming);
-        combineShader.setUniform("gpuTiming", gpuTiming);
+        combineShader.setUniform("gpuTimingLines", gpuTimingLines);
+        combineShader.setUniform("gpuTimingTris", gpuTimingTris);
+        combineShader.setUniform("gpuTimingQuads", gpuTimingQuads);
     }
     // Shader de final de pipeline
     if (!toRGBAShader.loadFromMemory(shaderVertex, toRGBAShaderFragment)) {
@@ -186,7 +218,7 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // Inicializa a memória
     buffer = new uint8_t[videoRamSize];
     for (unsigned int i=0;i<videoRamSize;i++) {
-        buffer[i] = (i%8)+rand();
+        buffer[i] = (i%2)+16;
         //buffer[i] = 0;
     }
     timingBuffer = new uint8_t[bytesPerPixel*videoRamSize];
@@ -337,18 +369,162 @@ void VideoMemory::drawCpuTiming(uint32_t time, uint64_t p, uint64_t size) {
     }
 }
 
-void VideoMemory::drawGpuTiming(uint32_t time,
-                                const uint32_t x, const uint32_t y,
-                                const uint32_t w, const uint32_t h) {
-    // Converte o timing para uma cor
-    sf::Color color = sf::Color {
+sf::Color VideoMemory::index2Color(uint8_t color) {
+    return sf::Color {
+        color,
+        color,
+        color,
+        color
+    };
+}
+
+sf::Color VideoMemory::time2Color(uint32_t time) {
+    return sf::Color {
         (uint8_t)(time>>24),
         (uint8_t)(time>>16),
         (uint8_t)(time>>8),
         (uint8_t)time
     };
+}
 
-    gpuTimingBuffer.add({
+void VideoMemory::gpuLine(RenderBuffer &buffer, sf::Color color,
+                          const uint16_t x1, const uint16_t y1,
+                          const uint16_t x2, const uint16_t y2) {
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+    });
+}
+
+void VideoMemory::gpuRect(RenderBuffer &buffer, sf::Color color,
+                          const uint16_t x, const uint16_t y,
+                          const uint16_t w, const uint16_t h) {
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x, y), color),
+        sf::Vertex(sf::Vector2f(x+w, y), color),
+    });
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x+w, y), color),
+        sf::Vertex(sf::Vector2f(x+w, y+h), color),
+    });
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x+w, y+h), color),
+        sf::Vertex(sf::Vector2f(x, y+h), color),
+    });
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x, y+h+1), color),
+        sf::Vertex(sf::Vector2f(x, y), color),
+    });
+}
+
+void VideoMemory::gpuQuad(RenderBuffer &buffer, sf::Color color,
+                          const uint16_t x1, const uint16_t y1,
+                          const uint16_t x2, const uint16_t y2,
+                          const uint16_t x3, const uint16_t y3,
+                          const uint16_t x4, const uint16_t y4) {
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+    });
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+        sf::Vertex(sf::Vector2f(x3, y3), color),
+    });
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x3, y3), color),
+        sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
+    });
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+    });
+}
+
+void VideoMemory::gpuTri(RenderBuffer &buffer, sf::Color color,
+                         const uint16_t x1, const uint16_t y1,
+                         const uint16_t x2, const uint16_t y2,
+                         const uint16_t x3, const uint16_t y3) {
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+    });
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+        sf::Vertex(sf::Vector2f(x3, y3), color),
+    });
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x3, y3), color),
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+    });
+}
+
+void VideoMemory::gpuCircle(RenderBuffer &buffer, sf::Color color,
+                            const uint16_t destX, const uint16_t destY,
+                            const uint16_t radius) {
+    unsigned int size = radius/6>0?radius/6:1;
+    unsigned int segments = radius * 2 * M_PI/size;
+
+    float theta = 2 * M_PI / float(segments); 
+	float c = cosf(theta);
+	float s = sinf(theta);
+	float tmp;
+
+	float x = radius;
+	float y = 0; 
+    
+    float px, py;
+
+	for(unsigned int i = 0; i < segments; i++) {
+        px = x; py = y;   
+
+        // Rotacionando x e y
+		tmp = x;
+		x = c * x - s * y;
+		y = s * tmp + c * y;
+
+        buffer.add({
+            sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
+            sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
+        });
+    }
+}
+
+void VideoMemory::gpuFillCircle(RenderBuffer &buffer, sf::Color color,
+                                const uint16_t destX, const uint16_t destY,
+                                const uint16_t radius) {
+    unsigned int size = radius/6>0?radius/6:1;
+    unsigned int segments = radius * 2 * M_PI/size;
+
+    float theta = 2 * M_PI / float(segments); 
+	float c = cosf(theta);
+	float s = sinf(theta);
+	float tmp;
+
+	float x = radius;
+	float y = 0; 
+    
+    float px, py;
+
+	for(unsigned int i = 0; i < segments*2; i++) {
+        px = x; py = y;   
+
+        // Rotacionando x e y
+		tmp = x;
+		x = c * x - s * y;
+		y = s * tmp + c * y;
+
+        buffer.add({
+            sf::Vertex(sf::Vector2f(destX, destY), color),
+            sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
+            sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
+        });
+    }
+}
+
+void VideoMemory::gpuFillRect(RenderBuffer &buffer, sf::Color color,
+                              const uint16_t x, const uint16_t y,
+                              const uint16_t w, const uint16_t h) {
+    buffer.add({
         sf::Vertex(sf::Vector2f(x, y), color),
         sf::Vertex(sf::Vector2f(x+w, y), color),
         sf::Vertex(sf::Vector2f(x+w, y+h), color),
@@ -356,41 +532,168 @@ void VideoMemory::drawGpuTiming(uint32_t time,
     });
 }
 
-void VideoMemory::drawGpuQuad(uint8_t color,
-                              const uint16_t x, const uint16_t y,
-                              const uint16_t w, const uint16_t h) {
-    // Gera cor
-    sf::Color sfcolor {color, color, color, color};
-
-    gpuQuadsBuffer.add({
-        sf::Vertex(sf::Vector2f(x, y), sfcolor),
-        sf::Vertex(sf::Vector2f(x+w, y), sfcolor),
-        sf::Vertex(sf::Vector2f(x+w, y+h), sfcolor),
-        sf::Vertex(sf::Vector2f(x, y+h), sfcolor)
+void VideoMemory::gpuFillTri(RenderBuffer &buffer, sf::Color color,
+                              const uint16_t x1, const uint16_t y1,
+                              const uint16_t x2, const uint16_t y2,
+                              const uint16_t x3, const uint16_t y3) {
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+        sf::Vertex(sf::Vector2f(x3, y3), color)
     });
+}
+
+void VideoMemory::gpuFillQuad(RenderBuffer &buffer, sf::Color color,
+                              const uint16_t x1, const uint16_t y1,
+                              const uint16_t x2, const uint16_t y2,
+                              const uint16_t x3, const uint16_t y3,
+                              const uint16_t x4, const uint16_t y4) {
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+        sf::Vertex(sf::Vector2f(x3, y3), color),
+        sf::Vertex(sf::Vector2f(x4, y4), color)
+    });
+}
+
+uint8_t VideoMemory::next8Arg(uint8_t *&arg) {
+    return *arg++;
+}
+
+uint16_t VideoMemory::next16Arg(uint8_t *&arg) {
+    uint16_t value = (uint16_t)arg[0]<<8 | (uint16_t)arg[1];
+    arg+=sizeof(uint16_t);
+    return value;
 }
 
 void VideoMemory::execGpuCommand(uint8_t *cmd) {
     enum Commands {
         Clear = 0x00,
-        FillRect
+        FillRect,
+        FillQuad,
+        FillTri,
+        FillCircle,
+        Line,
+        Rect,
+        Quad,
+        Tri,
+        Circle,
     };
 
-    switch (*cmd) {
-        case Clear:
-            //cout << "gpu clear" << endl;
+    switch (*cmd++) {
+        case Clear: {
+            auto color = next8Arg(cmd);
+
+            gpuFillRect(gpuQuadsBuffer, index2Color(color),
+                        0, 0, w, h);
+            gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
+                        0, 0, w, h);
+        }
             break;
-        case FillRect:
-            // TODO: Inverter Y
-            uint8_t color = cmd[1];
-            uint16_t x = (uint16_t)cmd[2]<<8 | cmd[3];
-            uint16_t y = (uint16_t)cmd[4]<<8 | cmd[5];
-            uint16_t w = (uint16_t)cmd[6]<<8 | cmd[7];
-            uint16_t h = (uint16_t)cmd[8]<<8 | cmd[9];
+        case FillRect: {
+            auto color = next8Arg(cmd);
+            auto x = next16Arg(cmd), y = next16Arg(cmd);
+            auto w = next16Arg(cmd), h = next16Arg(cmd);
 
-            drawGpuQuad(color, x, y, w, h);
-            drawGpuTiming(currentDraw, x, y, w, h);
+            gpuFillRect(gpuQuadsBuffer, index2Color(color),
+                        x, y, w, h);
+            gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
+                        x, y, w, h);
+        }
+            break;
+        case FillQuad: {
+            auto color = next8Arg(cmd);
+            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
+            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
+            auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
 
+            gpuFillQuad(gpuQuadsBuffer, index2Color(color),
+                       x1, y1, x2, y2, x3, y3, x4, y4);
+            gpuFillQuad(gpuTQuadsBuffer, time2Color(currentDraw),
+                       x1, y1, x2, y2, x3, y3, x4, y4);
+        }
+            break;
+        case FillTri: {
+            auto color = next8Arg(cmd);
+            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
+            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
+
+            gpuFillTri(gpuTrisBuffer, index2Color(color),
+                       x1, y1, x2, y2, x3, y3);
+            gpuFillTri(gpuTTrisBuffer, time2Color(currentDraw),
+                       x1, y1, x2, y2, x3, y3);
+        }
+            break;
+        case Line: {
+            auto color = next8Arg(cmd);
+            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
+
+            gpuLine(gpuLinesBuffer, index2Color(color),
+                    x1, y1, x2, y2);
+            gpuLine(gpuTLinesBuffer, time2Color(currentDraw),
+                    x1, y1, x2, y2);
+        }
+            break;
+        case Rect: {
+            auto color = next8Arg(cmd);
+            auto x = next16Arg(cmd), y = next16Arg(cmd);
+            auto w = next16Arg(cmd), h = next16Arg(cmd);
+
+            gpuRect(gpuLinesBuffer, index2Color(color),
+                    x, y, w, h);
+            gpuRect(gpuTLinesBuffer, time2Color(currentDraw),
+                    x, y, w, h);
+        }
+            break;
+        case Quad: {
+            auto color = next8Arg(cmd);
+            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
+            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
+            auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
+
+            gpuQuad(gpuLinesBuffer, index2Color(color),
+                    x1, y1, x2, y2, x3, y3, x4, y4);
+            gpuQuad(gpuTLinesBuffer, time2Color(currentDraw),
+                    x1, y1, x2, y2, x3, y3, x4, y4);
+        }
+            break;
+        case Tri: {
+            auto color = next8Arg(cmd);
+            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
+            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
+
+            gpuTri(gpuLinesBuffer, index2Color(color),
+                   x1, y1, x2, y2, x3, y3);
+            gpuTri(gpuTLinesBuffer, index2Color(color),
+                   x1, y1, x2, y2, x3, y3);
+        }
+            break;
+        case Circle: {
+            auto color = next8Arg(cmd);
+            auto x = next16Arg(cmd), y = next16Arg(cmd);
+            auto r = next16Arg(cmd);
+
+            gpuCircle(gpuLinesBuffer, index2Color(color),
+                      x, y, r);
+            gpuCircle(gpuTLinesBuffer, index2Color(color),
+                      x, y, r);
+        }
+            break;
+        case FillCircle: {
+            auto color = next8Arg(cmd);
+            auto x = next16Arg(cmd), y = next16Arg(cmd);
+            auto r = next16Arg(cmd);
+
+            gpuFillCircle(gpuTrisBuffer, index2Color(color),
+                          x, y, r);
+            gpuFillCircle(gpuTTrisBuffer, index2Color(color),
+                          x, y, r);
+        }
             break;
     }
 
@@ -398,8 +701,13 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
 }
 
 void VideoMemory::draw() {
-    gpuTimingBuffer.draw(gpuRenderTiming);
-    gpuQuadsBuffer.draw(gpuRenderTexture);
+    // Renderiza polígonos e seus timings na GPU
+    gpuTQuadsBuffer.draw(gpuRenderTimingQuads);
+    gpuTTrisBuffer.draw(gpuRenderTimingTris);
+    gpuTLinesBuffer.draw(gpuRenderTimingLines);
+    gpuQuadsBuffer.draw(gpuRenderTextureQuads);
+    gpuTrisBuffer.draw(gpuRenderTextureTris);
+    gpuLinesBuffer.draw(gpuRenderTextureLines);
 
     // Atualiza textura de timing da CPU
     cpuTiming.update(timingBuffer, w, h, 0, 0);
@@ -423,15 +731,31 @@ void VideoMemory::draw() {
         captureFrame();
     }
 
+    // Mantém o aspect ratio
+    // TODO: Criar um método resize pra isso
+    // TODO: Considerar screens com h > w
+    // TODO: Limpar a tela apenas no resize
+    auto windowSize = window.getSize();
+    auto ratio = (float)windowSize.y/(float)windowSize.x*(float)w/(float)h;
+    float spriteWidth = ratio*bytesPerPixel;
+    framebufferSpr.setScale(spriteWidth, 1.0);
+    framebufferSpr.setPosition((float)w*(1-ratio)/2.0, 0);
+    window.clear();
 	// Desenha o framebuffer na tela, usando o shader para converter do
     // formato 1byte por pixel para cores RGBA nos pixels
     window.draw(framebufferSpr, &toRGBAShader);
 
     // Zera o timing dos draws
     currentDraw = 1;
-    gpuTimingBuffer.clear();
+    gpuTQuadsBuffer.clear();
     gpuQuadsBuffer.clear();
-    gpuRenderTiming.clear(sf::Color::Transparent);
+    gpuTTrisBuffer.clear();
+    gpuTrisBuffer.clear();
+    gpuTLinesBuffer.clear();
+    gpuLinesBuffer.clear();
+    gpuRenderTimingQuads.clear(sf::Color::Transparent);
+    gpuRenderTimingTris.clear(sf::Color::Transparent);
+    gpuRenderTimingLines.clear(sf::Color::Transparent);
     clearCpuTiming();
 }
 
