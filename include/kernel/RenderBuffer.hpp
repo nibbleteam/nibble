@@ -12,13 +12,16 @@ class RenderBuffer {
     const sf::PrimitiveType primitive;
     const uint8_t primitiveSize;
     vector<sf::VertexArray> arrays;
+    sf::Shader *shader;
     uint64_t pos;
 public:
-    RenderBuffer(const sf::PrimitiveType, const uint8_t);
+    RenderBuffer(const sf::PrimitiveType, const uint8_t, sf::Shader* = NULL);
     
     void clear();
     void draw(sf::RenderTarget&);
     void add(vector<sf::Vertex>);
+
+    void setShader(sf::Shader*);
 private:
     void trim();
 };

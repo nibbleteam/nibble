@@ -31,14 +31,44 @@ function gpu8(a, b, c, d, e, f, g, h)
 end
 
 function init()
+    math.randomseed(os.time())
+
+    local r
+    local g
+    local b
+    r, g, b = 1, 1, 1
+    for i=PAL,PAL+PAL_SIZE*PAL_NUM*PAL_ENTRY_SIZE,4 do
+        kernel.write(i, string.char(math.floor(r), math.floor(g), math.floor(b), 0))
+
+        r = (r+math.random()*128-30)%256
+        g = (g+math.random()*128-30)%256
+        b = (b+math.random()*128-64)%256
+
+        if i%16 == 0 then
+            r, g, b = 1, 50, 128
+        end
+    end
 end
 
 local t = 0
+local pal = 0
 function draw()
     t = t + 0.017
-    kernel.write(0, '\00\00');
 
-    kernel.write(0, '\04\01'..gpu3(320/2, 240/2, math.floor((math.cos(t)+1)*100)));
+    if math.floor(t*2)%2 ~= 0 and change then
+        change = false
+        pal = (pal+1)%8
+    end
+
+    if math.floor(t*2)%2 == 0 then
+        change = true
+    end
+    
+    x, y = 0, 0
+
+    -- Desenha um sprite (vazio)
+    -- com uma paleta aleatória
+    kernel.write(0, '\10'..string.char(pal)..gpu6(x, y, 0, 0, 320, 240))
 end
 
 function update()

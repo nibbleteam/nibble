@@ -47,9 +47,12 @@ class VideoMemory : public Memory {
     const static string shaderVertex;
     const static string toRGBAShaderFragment;
     const static string combineShaderFragment;
-    sf::Shader toRGBAShader, combineShader;
+    const static string spriteShaderFragment;
+    sf::Shader toRGBAShader, combineShader, spriteShader;
     // Textura utilizada como paleta pelo shader
     sf::Texture paletteTex;
+    // Textura contendo sprites
+    sf::Texture spriteTex;
     // Arquivo para salvar gifs
     GifFileType *gif;
     // Paleta do gif
@@ -112,15 +115,20 @@ protected:
                      uint16_t, uint16_t,
                      uint16_t, uint16_t,
                      uint16_t, uint16_t);
+    void gpuSprite(RenderBuffer &, sf::Color,
+                   uint16_t, uint16_t,
+                   uint16_t, uint16_t,
+                   uint16_t, uint16_t);
     void execGpuCommand(uint8_t*);
 private:
     // Helpers para extrair argumentos de um comando
     // da GPU
     uint16_t next16Arg(uint8_t*&);
     uint8_t next8Arg(uint8_t*&);
-    // Gera cores a partir de indices ou tempo
+    // Gera cores a partir de indices, paletas ou tempo
     sf::Color time2Color(uint32_t);
     sf::Color index2Color(uint8_t);
+    sf::Color pal2Color(uint8_t);
     // Desenho do timing da CPU
     void drawCpuTiming(uint32_t, uint64_t, uint64_t);
     void clearCpuTiming();

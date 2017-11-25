@@ -4,16 +4,28 @@
 
 const uint64_t RenderBuffer::arrayLength = 1000;
 
-RenderBuffer::RenderBuffer(sf::PrimitiveType primitive, uint8_t size) :
-    primitive(primitive), primitiveSize(size) {
+RenderBuffer::RenderBuffer(sf::PrimitiveType primitive, uint8_t size, sf::Shader *shader) :
+    primitive(primitive), primitiveSize(size), shader(shader) {
     pos = 0;
+}
+
+void RenderBuffer::setShader(sf::Shader* shader) {
+    this->shader = shader;
 }
 
 void RenderBuffer::draw(sf::RenderTarget& target) {
     trim();
 
     for (auto &array : arrays) {
-        target.draw(array, sf::BlendNone);
+        if (shader == NULL) {
+            target.draw(array, sf::BlendNone);
+        } else {
+            target.draw(array,
+                        sf::RenderStates(sf::BlendNone,
+                                         sf::Transform::Identity,
+                                         NULL,
+                                         shader));
+        }
     }
 }
 
@@ -30,8 +42,7 @@ void RenderBuffer::add(vector<sf::Vertex> vertices) {
     }
 
     for (uint64_t i=0;i<vertices.size();i++) {
-        arrays[array][position+i].position = vertices[i].position;
-        arrays[array][position+i].color = vertices[i].color;
+        arrays[array][position+i] = vertices[i];
     }
 
     pos++;

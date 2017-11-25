@@ -24,6 +24,27 @@ void main()
 }
 )";
 
+// Desenha Quads e Sprites
+const string VideoMemory::spriteShaderFragment = R"(
+// Sprites
+uniform sampler2D sprites;
+
+void main()
+{
+    if (gl_Color.b != gl_Color.a) {
+        vec2 coord = vec2(gl_TexCoord[0].x, gl_TexCoord[0].y);
+        vec4 pix = texture2D(sprites, coord);
+        float d = 1.0/16.0;
+        float shade = (mod(pix.r, d)+mod(pix.g, d)+mod(pix.b, d))/3.0;
+        // Aplica a paleta
+        shade = shade + mod(gl_Color.r, 1.0/16.0)*16.0;
+        gl_FragColor = vec4(shade, shade, shade, shade);
+    } else {
+        gl_FragColor = gl_Color;
+    }
+}
+)";
+
 // Utiliza duas texturas adicionais com as
 // informações de timing das duas texturas utilizadas para desenhar
 // de forma que pode escolher apenas desenhar cada pixel
@@ -136,7 +157,7 @@ void main()
     //if (color.a == 0.0)
     //    discard;
 
-    gl_FragColor = vec4(color.rgb, 1.0);
+    gl_FragColor = vec4(color.r, color.g, color.b, 1.0);
 }
 )";
 
@@ -181,7 +202,10 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     combineSpr.setScale(1, 1);
 
     // Cria a textura da palleta
-    paletteTex.create(128, 1);
+    paletteTex.create(GPU::paletteLength*GPU::paletteAmount, 1);
+
+    // TODO: Acesso a textura de sprites
+    spriteTex.create(1024, 1024);
 
     // Tenta carregar o shader, em caso de erro termina
     // uma vez que não será possível mostrar nada
@@ -212,6 +236,16 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
         toRGBAShader.setUniform("source", framebufferTexture);
         toRGBAShader.setUniform("palette", paletteTex);
     }
+    // Shader para desenhar sprites
+    if (!spriteShader.loadFromMemory(shaderVertex, spriteShaderFragment)) {
+        cout << "video" << "error loading sprite shader" << endl;
+        exit(1);
+    } else {
+        spriteShader.setUniform("sprites", spriteTex);
+    }
+
+    // Usa o shader de sprites no buffer de Quads
+    gpuQuadsBuffer.setShader(&spriteShader);
 
     const uint64_t videoRamSize = w*h;
 
@@ -369,6 +403,15 @@ void VideoMemory::drawCpuTiming(uint32_t time, uint64_t p, uint64_t size) {
     }
 }
 
+sf::Color VideoMemory::pal2Color(uint8_t pal) {
+    return sf::Color {
+        pal,
+        0,
+        1,
+        2
+    };
+}
+
 sf::Color VideoMemory::index2Color(uint8_t color) {
     return sf::Color {
         color,
@@ -493,7 +536,7 @@ void VideoMemory::gpuFillCircle(RenderBuffer &buffer, sf::Color color,
                                 const uint16_t destX, const uint16_t destY,
                                 const uint16_t radius) {
     unsigned int size = radius/6>0?radius/6:1;
-    unsigned int segments = radius * 2 * M_PI/size;
+    unsigned int segments = ceil(radius * 2 * M_PI/float(size));
 
     float theta = 2 * M_PI / float(segments); 
 	float c = cosf(theta);
@@ -529,6 +572,26 @@ void VideoMemory::gpuFillRect(RenderBuffer &buffer, sf::Color color,
         sf::Vertex(sf::Vector2f(x+w, y), color),
         sf::Vertex(sf::Vector2f(x+w, y+h), color),
         sf::Vertex(sf::Vector2f(x, y+h), color)
+    });
+}
+
+void VideoMemory::gpuSprite(RenderBuffer &buffer, sf::Color color,
+                            const uint16_t sx, const uint16_t sy,
+                            const uint16_t x, const uint16_t y,
+                            const uint16_t w, const uint16_t h) {
+    float a, b, c, d;
+    auto size = spriteTex.getSize();
+
+    a = float(sx)/size.x;
+    b = float(sy)/size.y;
+    c = float(sx+w)/size.x;
+    d = float(sy+h)/size.y;
+
+    buffer.add({
+        sf::Vertex(sf::Vector2f(x, y), color, sf::Vector2f(a, b)),
+        sf::Vertex(sf::Vector2f(x+w, y), color, sf::Vector2f(c, b)),
+        sf::Vertex(sf::Vector2f(x+w, y+h), color, sf::Vector2f(c, d)),
+        sf::Vertex(sf::Vector2f(x, y+h), color, sf::Vector2f(a, d))
     });
 }
 
@@ -578,6 +641,7 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         Quad,
         Tri,
         Circle,
+        Sprite,
     };
 
     switch (*cmd++) {
@@ -669,7 +733,7 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
 
             gpuTri(gpuLinesBuffer, index2Color(color),
                    x1, y1, x2, y2, x3, y3);
-            gpuTri(gpuTLinesBuffer, index2Color(color),
+            gpuTri(gpuTLinesBuffer, time2Color(currentDraw),
                    x1, y1, x2, y2, x3, y3);
         }
             break;
@@ -680,7 +744,7 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
 
             gpuCircle(gpuLinesBuffer, index2Color(color),
                       x, y, r);
-            gpuCircle(gpuTLinesBuffer, index2Color(color),
+            gpuCircle(gpuTLinesBuffer, time2Color(currentDraw),
                       x, y, r);
         }
             break;
@@ -691,8 +755,20 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
 
             gpuFillCircle(gpuTrisBuffer, index2Color(color),
                           x, y, r);
-            gpuFillCircle(gpuTTrisBuffer, index2Color(color),
+            gpuFillCircle(gpuTTrisBuffer, time2Color(currentDraw),
                           x, y, r);
+        }
+            break;
+        case Sprite: {
+            auto pal = next8Arg(cmd);
+            auto sx = next16Arg(cmd), sy = next16Arg(cmd);
+            auto x = next16Arg(cmd), y = next16Arg(cmd);
+            auto w = next16Arg(cmd), h = next16Arg(cmd);
+
+            gpuSprite(gpuQuadsBuffer, pal2Color(pal),
+                      sx, sy, x, y, w, h);
+            gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
+                        x, y, w, h);
         }
             break;
     }
