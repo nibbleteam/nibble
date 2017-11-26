@@ -8,7 +8,7 @@
 #include <kernel/filesystem.hpp>
 #include <kernel/Process.hpp>
 #include <kernel/Memory.hpp>
-#include <kernel/drivers/VideoMemory.hpp>
+#include <kernel/drivers/GPU.hpp>
 #include <SFML/Graphics.hpp>
 
 using namespace std;
@@ -30,8 +30,8 @@ class Kernel {
 	uint64_t lastPid;
 	// Aponta para o último byte usado de memória
 	uint64_t lastUsedMemByte;
-	// Memória de vídeo
-	VideoMemory *video;
+	// GPU 
+    GPU *gpu;
 public:
     Kernel();
     ~Kernel();

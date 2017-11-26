@@ -9,6 +9,7 @@ int main() {
     std::atexit(cleanup);
 
 	KernelSingleton = new Kernel();
+
 	KernelSingleton->loop();
 
     return 0;

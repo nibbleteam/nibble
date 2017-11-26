@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CXX_EXTENSIONS OFF)
 if(MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14 /W0")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
 endif(MSVC)
 
 # Output
@@ -39,6 +39,11 @@ ExternalProject_Add(LUA
                     CMAKE_ARGS
                         "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 
+ExternalProject_Add(GIF
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/giflib/"
+                    CMAKE_ARGS
+                        "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+
 include_directories("${PROJECT_HEADER_DIR}")
 include_directories("${PROJECT_BUILD_DIR}/include")
 link_directories("${PROJECT_BUILD_DIR}/lib")
@@ -58,6 +63,8 @@ add_executable(pongboy
                 ${PROJECT_HEADER_DIR}/kernel/Kernel.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Process.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Process.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/RenderBuffer.cpp
+                ${PROJECT_HEADER_DIR}/kernel/RenderBuffer.hpp
                 ${PROJECT_HEADER_DIR}/kernel/Memory.hpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/CartridgeMemory.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/CartridgeMemory.cpp
@@ -65,10 +72,16 @@ add_executable(pongboy
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/RAM.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/VideoMemory.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/VideoMemory.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/GPU.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/GPU.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/GPUCommandMemory.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/GPUCommandMemory.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/PaletteMemory.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/PaletteMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/filesystem.cpp
               )
-add_dependencies(pongboy SFML LUA LuaCartsBin LuaCartsBuild)
+add_dependencies(pongboy SFML LUA GIF LuaCartsBin LuaCartsBuild)
 
 if ( MSVC )
     set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
@@ -84,6 +97,7 @@ target_link_libraries(pongboy debug sfml-audio-s-d optimized sfml-audio-s)
 target_link_libraries(pongboy debug sfml-network-s-d optimized sfml-network-s)
 target_link_libraries(pongboy debug sfml-system-s-d optimized sfml-system-s)
 target_link_libraries(pongboy lualib)
+target_link_libraries(pongboy giflib)
 
 if (UNIX)
     target_link_libraries(pongboy pthread udev X11 Xrandr GL openal FLAC vorbis)

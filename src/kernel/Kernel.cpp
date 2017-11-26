@@ -9,9 +9,11 @@ using namespace std;
 Kernel *KernelSingleton;
 
 Kernel::Kernel():
-	window(sf::VideoMode(320, 240), "PongBoy"),
+	window(sf::VideoMode(640, 480), "Nibble"),
 	lastPid(1),
 	lastUsedMemByte(0) {
+    window.setFramerateLimit(60);
+    window.setView(sf::View(sf::FloatRect(0, 0, 320, 240)));
 
 	createMemoryMap();
 
@@ -27,6 +29,7 @@ Kernel::~Kernel() {
 	for (auto process : processes) {
 		delete process;
 	}
+    delete gpu;
 }
 
 void Kernel::addMemoryDevice(Memory* device) {
@@ -37,8 +40,10 @@ void Kernel::addMemoryDevice(Memory* device) {
 // Mapeia os dispositivos (placa de vídeo, placa de áudio, controles, leds etc)
 // para a RAM
 void Kernel::createMemoryMap() {
-	video = new VideoMemory(window, 320, 240, lastUsedMemByte);
-	addMemoryDevice(video);
+    gpu = new GPU(window, 320, 240, lastUsedMemByte);
+    addMemoryDevice(gpu->getCommandMemory());
+	addMemoryDevice(gpu->getPaletteMemory());
+	addMemoryDevice(gpu->getVideoMemory());
 	//addMemoryDevice(new RAM(lastUsedMemByte, 32*1024));
 }
 
@@ -60,14 +65,25 @@ void Kernel::destroyMemoryMap() {
 }
 
 void Kernel::loop() {
+    sf::Clock clock;
+    float lastTime = 0;
+    
 	while (window.isOpen()) {
+        float currentTime = clock.getElapsedTime().asSeconds();
+        float fps = 1.f / (currentTime - lastTime);
+        lastTime = currentTime;
+        cerr << fps << "\r";
+
 		sf::Event event;
 
 		// Event handling
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed) {
 				window.close();
-			}
+			} else
+            if (event.type == sf::Event::Resized) {
+                window.setSize(sf::Vector2u(event.size.width, event.size.height));
+            }
 		}
 
 		// Roda o processo no topo da lista de processos
@@ -79,6 +95,8 @@ void Kernel::loop() {
 				// TODO: unmap o processo que estava mapeado
 				// anteriormente se existir
 				ram.push_back(p->getMemory());
+
+                p->init();
 			}
 
 			// Chama as callbacks do processo
@@ -86,7 +104,7 @@ void Kernel::loop() {
 			p->draw();
 		}
 
-		video->draw();
+		gpu->draw();
 		window.display();
 	}
 }

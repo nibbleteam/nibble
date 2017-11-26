@@ -45,6 +45,20 @@ void Process::addSyscalls() {
 		.endNamespace();
 }
 
+void Process::init() {
+	lua_getglobal(st, "init");
+	if (lua_isfunction(st, -1)) {
+		if (lua_pcall(st, 0, 0, 0) != 0) {
+			cout << "pid " << pid << " init(): " << lua_tostring(st, -1) << endl;
+			KernelSingleton->exit(pid);
+		}
+	}
+	else {
+		cout << "pid " << pid << " init() is not defined. exiting." << endl;
+		KernelSingleton->exit(pid);
+	}
+}
+
 void Process::update() {
 	lua_getglobal(st, "update");
 	if (lua_isfunction(st, -1)) {
