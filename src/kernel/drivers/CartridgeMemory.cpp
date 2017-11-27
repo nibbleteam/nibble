@@ -12,7 +12,7 @@ CartridgeMemory::CartridgeMemory(Path& assets, const uint64_t addr, VideoMemory*
 
     data = new uint8_t[size_t(length)];
 
-    if (fs::fileExists(spriteSheet) and !fs::isDir(spriteSheet)) {
+    if (fs::fileExists(spriteSheet) && !fs::isDir(spriteSheet)) {
         cout << "loading spritesheet from " << spriteSheet.getPath() << endl;
 
         // Tenta carregar a spritesheet, se não conseguir sai
