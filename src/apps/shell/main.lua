@@ -45,10 +45,11 @@ local y = 0
 function draw()
     -- Limpa a tela com a pattern salva
     kernel.write(VID, vidpat)
+    kernel.write(0, '\0\0')
 
     -- Desenha um caractere na tela
     -- A partir de x, y na spritesheet para o centro da tela
-    kernel.write(0, '\10\00'..gpu6(x, y, 320/2, 240/2, 8, 8))
+    kernel.write(0, '\10\00'..gpu6(0, 0, 0, 0, 320, 240))
 end
 
 function update()
