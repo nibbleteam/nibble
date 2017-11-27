@@ -295,7 +295,7 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // Inicializa a memória
     buffer = new uint8_t[videoRamSize];
     for (unsigned int i=0;i<videoRamSize;i++) {
-        buffer[i] = (i%2)+16;
+        buffer[i] = (i%2);
         //buffer[i] = 0;
     }
     timingBuffer = new uint8_t[bytesPerPixel*videoRamSize];
