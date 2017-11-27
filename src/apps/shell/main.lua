@@ -31,42 +31,41 @@ function gpu8(a, b, c, d, e, f, g, h)
 end
 
 function init()
-    math.randomseed(os.time())
-
-    -- 0 = transparente
-    kernel.write(PAL, string.char(0, 0, 0, 0))
+    -- Deixa a cor 0 na paleta 0 transparente
+    kernel.write(PAL+3, '\00')
 end
 
 local t = 0
-local pal = 0
 local x = 0
 local y = 0
 function draw()
+    -- Limpa a tela
+    kernel.write(0, '\00\00')
+
+    -- Desenha um caractere na tela
+    -- A partir de x, y na spritesheet para o centro da tela
+    kernel.write(0, '\10\00'..gpu6(x, y, 320/2, 240/2, 8, 8))
+end
+
+function update()
+    -- 30 FPS
     t = t + 0.034
 
     if math.floor(t*6)%2 ~= 0 and change then
         change = false
-        pal = (pal+1)%8
         x = x+8
 
         if x >= 80 then
             x = 0
             y = y+8
         end
+
+        if y > 80 then
+            y = 0
+        end
     end
 
     if math.floor(t*6)%2 == 0 then
         change = true
     end
-    
-    kernel.write(0, '\00\00')
-    --kernel.write(0, '\03\03'..gpu6(0, 0, 320, 0, 160, 240))
-
-    -- Desenha um sprite (vazio)
-    -- com uma paleta aleatória
-    kernel.write(0, '\10\00'..gpu6(x, y, x, y, 8, 8))
-
-end
-
-function update()
 end
