@@ -30,17 +30,21 @@ function gpu8(a, b, c, d, e, f, g, h)
     return gpu4(a, b, c, d)..gpu4(e, f, g, h)
 end
 
+local vidpat = ''
 function init()
     -- Deixa a cor 0 na paleta 0 transparente
     kernel.write(PAL+3, '\00')
+
+    -- Salva a pattern que está no video
+    vidpat = kernel.read(VID, 320*240)
 end
 
 local t = 0
 local x = 0
 local y = 0
 function draw()
-    -- Limpa a tela
-    kernel.write(0, '\00\00')
+    -- Limpa a tela com a pattern salva
+    kernel.write(VID, vidpat)
 
     -- Desenha um caractere na tela
     -- A partir de x, y na spritesheet para o centro da tela
