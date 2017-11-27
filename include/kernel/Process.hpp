@@ -31,6 +31,7 @@ class Process {
 public:
 	const static string LuaEntryPoint;
 	const static string AssetsEntryPoint;
+    const static string NiblibEntryPoint;
 
     Process(Path&, vector<string>, const uint64_t, const uint64_t, VideoMemory*);
 	~Process();

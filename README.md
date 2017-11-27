@@ -18,7 +18,7 @@ Console Fantasia feito para funcionar em hardware real.
 * **[extern](extern/)**: bibliotecas externas que são compiladas junto ao projeto
 * **[src/kernel/drivers/](src/kernel/drivers/)**: implemenctação de dispositivos
 * **[src/apps/](src/apps/)**: carts de aplicativos de sistema
-* **[src/stdlib/](src/stdlib/)**: uma biblioteca acessível para todos os processos (em lua) que facilita o acesso ao kernel e adiciona uma API simples de usar
+* **[src/niblib/](src/niblib/)**: uma biblioteca acessível para todos os processos (em lua) que facilita o acesso ao kernel e adiciona uma API simples de usar
 
 ## Arquivos
 

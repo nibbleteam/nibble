@@ -8,6 +8,7 @@ using namespace luabridge;
 
 const string Process::LuaEntryPoint = "main.lua";
 const string Process::AssetsEntryPoint = "assets";
+const string Process::NiblibEntryPoint = "niblib/main.lua";
 
 Process::Process(Path& executable,
 				 vector<string> environment,
@@ -21,14 +22,18 @@ Process::Process(Path& executable,
 	// e dados do cart
 	Path lua = executable.resolve(LuaEntryPoint);
 	Path assets = executable.resolve(AssetsEntryPoint);
+    Path niblib = Path(NiblibEntryPoint);
 	
 	// Carrega os assets para o cartridge (que será copiado para RAM
 	// na localização cartStart)
 	cartridgeMemory = new CartridgeMemory(assets, cartStart, video);
 
-	// Carrega o código
 	st = luaL_newstate();
+    // Carrega libs padrão lua
 	luaL_openlibs(st);
+    // Carrega a niblib
+    luaL_dofile(st, (const char*)niblib.getPath().c_str());
+	// Carrega o código do cart
 	luaL_dofile(st, (const char*)lua.getPath().c_str());
 
 	cout << "pid " << pid << " loading cart " << lua.getPath() << endl;
