@@ -81,6 +81,8 @@ public:
 
     // Chamado por paletteMemory quando o usuário troca a paleta
     void updatePalette(const uint8_t*);
+    // Chamado por CartidgeMemory quando algum sprite muda
+    void updateSpriteSheet(const uint64_t, const uint8_t*, const uint64_t);
 protected:
     // Operações nas VertexArrays utilizadas para
     // desenho na GPU
@@ -127,6 +129,7 @@ private:
     uint8_t next8Arg(uint8_t*&);
     // Gera cores a partir de indices, paletas ou tempo
     sf::Color time2Color(uint32_t);
+    sf::Color spriteTime2Color(uint8_t, uint32_t);
     sf::Color index2Color(uint8_t);
     sf::Color pal2Color(uint8_t);
     // Desenho do timing da CPU

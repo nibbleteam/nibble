@@ -12,7 +12,8 @@ const string Process::AssetsEntryPoint = "assets";
 Process::Process(Path& executable,
 				 vector<string> environment,
 				 const uint64_t pid,
-				 const uint64_t cartStart):
+				 const uint64_t cartStart,
+                 VideoMemory *video):
 	environment(environment),
 	pid(pid),
 	mapped(false) {
@@ -23,7 +24,7 @@ Process::Process(Path& executable,
 	
 	// Carrega os assets para o cartridge (que será copiado para RAM
 	// na localização cartStart)
-	cartridgeMemory = new CartridgeMemory(assets, cartStart);
+	cartridgeMemory = new CartridgeMemory(assets, cartStart, video);
 
 	// Carrega o código
 	st = luaL_newstate();
@@ -93,6 +94,7 @@ const uint64_t Process::getPid() {
 
 Memory* Process::getMemory() {
 	mapped = true;
+    cartridgeMemory->load();
 	return cartridgeMemory;
 }
 

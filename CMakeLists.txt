@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(pongboy)
+project(nibble)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
 # Use C++14
@@ -57,7 +57,7 @@ add_custom_target(LuaCartsBuild
 )
 
 # Exe
-add_executable(pongboy
+add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/main.cpp
                 ${PROJECT_SOURCE_DIR}/kernel/Kernel.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Kernel.hpp
@@ -81,28 +81,28 @@ add_executable(pongboy
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/filesystem.cpp
               )
-add_dependencies(pongboy SFML LUA GIF LuaCartsBin LuaCartsBuild)
+add_dependencies(nibble SFML LUA GIF LuaCartsBin LuaCartsBuild)
 
 if ( MSVC )
-    set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
-    set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR} )
-    set_target_properties(pongboy PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR} )
-	set_target_properties(pongboy PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    set_target_properties(nibble PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+    set_target_properties(nibble PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR} )
+    set_target_properties(nibble PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR} )
+	set_target_properties(nibble PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endif ( MSVC )
 
 # Linking
-target_link_libraries(pongboy debug sfml-window-s-d optimized sfml-window-s)
-target_link_libraries(pongboy debug sfml-graphics-s-d optimized sfml-graphics-s)
-target_link_libraries(pongboy debug sfml-audio-s-d optimized sfml-audio-s)
-target_link_libraries(pongboy debug sfml-network-s-d optimized sfml-network-s)
-target_link_libraries(pongboy debug sfml-system-s-d optimized sfml-system-s)
-target_link_libraries(pongboy lualib)
-target_link_libraries(pongboy giflib)
+target_link_libraries(nibble debug sfml-window-s-d optimized sfml-window-s)
+target_link_libraries(nibble debug sfml-graphics-s-d optimized sfml-graphics-s)
+target_link_libraries(nibble debug sfml-audio-s-d optimized sfml-audio-s)
+target_link_libraries(nibble debug sfml-network-s-d optimized sfml-network-s)
+target_link_libraries(nibble debug sfml-system-s-d optimized sfml-system-s)
+target_link_libraries(nibble lualib)
+target_link_libraries(nibble giflib)
 
 if (UNIX)
-    target_link_libraries(pongboy pthread udev X11 Xrandr GL openal FLAC vorbis)
+    target_link_libraries(nibble pthread udev X11 Xrandr GL openal FLAC vorbis)
 endif (UNIX)
 
 if (WIN32)
-    target_link_libraries(pongboy opengl32 winmm FLAC vorbis)
+    target_link_libraries(nibble opengl32 winmm FLAC vorbis)
 endif (WIN32)

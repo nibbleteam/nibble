@@ -33,42 +33,39 @@ end
 function init()
     math.randomseed(os.time())
 
-    local r
-    local g
-    local b
-    r, g, b = 1, 1, 1
-    for i=PAL,PAL+PAL_SIZE*PAL_NUM*PAL_ENTRY_SIZE,4 do
-        kernel.write(i, string.char(math.floor(r), math.floor(g), math.floor(b), 0))
-
-        r = (r+math.random()*128-30)%256
-        g = (g+math.random()*128-30)%256
-        b = (b+math.random()*128-64)%256
-
-        if i%16 == 0 then
-            r, g, b = 1, 50, 128
-        end
-    end
+    -- 0 = transparente
+    kernel.write(PAL, string.char(0, 0, 0, 0))
 end
 
 local t = 0
 local pal = 0
+local x = 0
+local y = 0
 function draw()
-    t = t + 0.017
+    t = t + 0.034
 
-    if math.floor(t*2)%2 ~= 0 and change then
+    if math.floor(t*6)%2 ~= 0 and change then
         change = false
         pal = (pal+1)%8
+        x = x+8
+
+        if x >= 80 then
+            x = 0
+            y = y+8
+        end
     end
 
-    if math.floor(t*2)%2 == 0 then
+    if math.floor(t*6)%2 == 0 then
         change = true
     end
     
-    x, y = 0, 0
+    kernel.write(0, '\00\00')
+    --kernel.write(0, '\03\03'..gpu6(0, 0, 320, 0, 160, 240))
 
     -- Desenha um sprite (vazio)
     -- com uma paleta aleatória
-    kernel.write(0, '\10'..string.char(pal)..gpu6(x, y, 0, 0, 320, 240))
+    kernel.write(0, '\10\00'..gpu6(x, y, x, y, 8, 8))
+
 end
 
 function update()

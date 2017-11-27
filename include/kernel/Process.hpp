@@ -13,6 +13,7 @@ extern "C" {
 #include <kernel/filesystem.hpp>
 #include <kernel/Memory.hpp>
 #include <kernel/drivers/CartridgeMemory.hpp>
+#include <kernel/drivers/VideoMemory.hpp>
 
 using namespace std;
 
@@ -31,7 +32,7 @@ public:
 	const static string LuaEntryPoint;
 	const static string AssetsEntryPoint;
 
-    Process(Path&, vector<string>, const uint64_t, const uint64_t);
+    Process(Path&, vector<string>, const uint64_t, const uint64_t, VideoMemory*);
 	~Process();
 
 	// Roda o processo

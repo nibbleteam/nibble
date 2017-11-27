@@ -26,21 +26,65 @@ void main()
 
 // Desenha Quads e Sprites
 const string VideoMemory::spriteShaderFragment = R"(
+#define HIGH(x) int(x*255.0)/16
+#define LOW(x) int(x*255.0)-HIGH(x)*16
+
+const float screen_w = 8192.0;
+const float nibbles_per_pixel = 8.0;
 // Sprites
 uniform sampler2D sprites;
+// Paleta
+uniform sampler2D palette;
 
 void main()
 {
-    if (gl_Color.b != gl_Color.a) {
+    // Sprite desenhado no buffer de cor ou tempo
+    if (HIGH(gl_Color.r) == 1 || HIGH(gl_Color.r) == 2) {
         vec2 coord = vec2(gl_TexCoord[0].x, gl_TexCoord[0].y);
+        // Em qual byte e nibble do pixel estamos
+        int nibble = int(mod(coord.x*screen_w, nibbles_per_pixel));
+        int byte = nibble/2;
         vec4 pix = texture2D(sprites, coord);
-        float d = 1.0/16.0;
-        float shade = (mod(pix.r, d)+mod(pix.g, d)+mod(pix.b, d))/3.0;
+
+        float source;
+
+        if (byte == 0) {
+            source = pix.r;
+        } else if (byte == 1) {
+            source = pix.g;
+        } else if (byte == 2) {
+            source = pix.b;
+        } else {
+            source = pix.a;
+        }
+
+        float shade;
+        
+        if (mod(float(nibble), 2.0) == 0.0)
+            shade = float(HIGH(source))/256.0;
+        else
+            shade = float(LOW(source))/256.0;
+ 
         // Aplica a paleta
-        shade = shade + mod(gl_Color.r, 1.0/16.0)*16.0;
-        gl_FragColor = vec4(shade, shade, shade, shade);
-    } else {
-        gl_FragColor = gl_Color;
+        shade = shade + (float(LOW(gl_Color.r))/256.0)*16.0;
+
+        vec4 color = texture2D(palette, vec2(mod(shade*2.0, 1.0), 0.5));
+
+        if (color.a == 0.0)
+            discard;
+
+        // Desenha tempo
+        if (HIGH(gl_Color.r) == 2) {
+            gl_FragColor = vec4(0.0, gl_Color.gba);
+        }
+        // Desenha cor
+        else {
+            gl_FragColor = vec4(shade, shade, shade, shade);
+        }
+    }
+    // Quad no buffer de cor ou tempo
+    else if (HIGH(gl_Color.r) == 3 || HIGH(gl_Color.r) == 0) {
+        gl_FragColor = vec4(0.0, gl_Color.gba);
     }
 }
 )";
@@ -51,7 +95,7 @@ void main()
 // daquela atualizada mais recentemente
 const string VideoMemory::combineShaderFragment = R"(
 // Converte um vetor de float pra um int de 4bytes
-#define INT4BYTES(x) int(x.r*255.0)*256*256*256+int(x.g*255.0)*256*256+int(x.b*255.0)*256+int(x.a*255.0)
+#define INT4BYTES(x) int(x.g*255.0)*256*256+int(x.b*255.0)*256+int(x.a*255.0)
 
 const float screen_w = 320.0;
 // 4 canais na textura (RGBA)
@@ -99,11 +143,13 @@ void main()
             gl_FragColor[i] = pixelCpu[i];
         } else if (gpuTimeQuads > gpuTimeTris &&
                    gpuTimeQuads > gpuTimeLines) {
-            gl_FragColor[i] = pixelGpuQuads[i];
+            gl_FragColor[i] = pixelGpuQuads.a;
         } else if (gpuTimeTris > gpuTimeLines) {
-            gl_FragColor[i] = pixelGpuTris[i];
+            gl_FragColor[i] = pixelGpuTris.a;
+        } else if (gpuTimeLines > 0) {
+            gl_FragColor[i] = pixelGpuLines.a;
         } else {
-            gl_FragColor[i] = pixelGpuLines[i];
+            discard;
         }
 
         // Próximo pixel
@@ -151,11 +197,7 @@ void main()
     else if (byte == 3)
         source = pixel.a;
 
-    vec4 color = texture2D(palette, vec2(mod(source*2.0, 1.0), 0.5));
-
-    // Não desenha pixels transparentes
-    //if (color.a == 0.0)
-    //    discard;
+    vec4 color = texture2D(palette, vec2(mod(source*2.0, 1.0), 0.0));
 
     gl_FragColor = vec4(color.r, color.g, color.b, 1.0);
 }
@@ -204,7 +246,6 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // Cria a textura da palleta
     paletteTex.create(GPU::paletteLength*GPU::paletteAmount, 1);
 
-    // TODO: Acesso a textura de sprites
     spriteTex.create(1024, 1024);
 
     // Tenta carregar o shader, em caso de erro termina
@@ -242,10 +283,12 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
         exit(1);
     } else {
         spriteShader.setUniform("sprites", spriteTex);
+        spriteShader.setUniform("palette", paletteTex);
     }
 
     // Usa o shader de sprites no buffer de Quads
     gpuQuadsBuffer.setShader(&spriteShader);
+    gpuTQuadsBuffer.setShader(&spriteShader);
 
     const uint64_t videoRamSize = w*h;
 
@@ -326,7 +369,7 @@ bool VideoMemory::stopCapturing() {
 bool VideoMemory::captureFrame() {
     int error;
     char graphics[] {
-        0, 2&0xFF, 2>>8, 0
+        0, 4&0xFF, 4>>8, 0
     };
     error = EGifPutExtension(
         gif,
@@ -405,25 +448,34 @@ void VideoMemory::drawCpuTiming(uint32_t time, uint64_t p, uint64_t size) {
 
 sf::Color VideoMemory::pal2Color(uint8_t pal) {
     return sf::Color {
-        pal,
+        uint8_t('\x10'+pal),
         0,
-        1,
-        2
+        0,
+        0
     };
 }
 
 sf::Color VideoMemory::index2Color(uint8_t color) {
     return sf::Color {
-        color,
-        color,
-        color,
+        '\x30'+8,
+        0,
+        0,
         color
     };
 }
 
 sf::Color VideoMemory::time2Color(uint32_t time) {
     return sf::Color {
-        (uint8_t)(time>>24),
+        0,
+        (uint8_t)(time>>16),
+        (uint8_t)(time>>8),
+        (uint8_t)time
+    };
+}
+
+sf::Color VideoMemory::spriteTime2Color(uint8_t pal, uint32_t time) {
+    return sf::Color {
+        uint8_t('\x20'+pal),
         (uint8_t)(time>>16),
         (uint8_t)(time>>8),
         (uint8_t)time
@@ -582,9 +634,9 @@ void VideoMemory::gpuSprite(RenderBuffer &buffer, sf::Color color,
     float a, b, c, d;
     auto size = spriteTex.getSize();
 
-    a = float(sx)/size.x;
+    a = float(sx)/(size.x*8);
     b = float(sy)/size.y;
-    c = float(sx+w)/size.x;
+    c = float(sx+w)/(size.x*8);
     d = float(sy+h)/size.y;
 
     buffer.add({
@@ -760,15 +812,15 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         }
             break;
         case Sprite: {
-            auto pal = next8Arg(cmd);
+            auto pal = next8Arg(cmd)&0x0F;
             auto sx = next16Arg(cmd), sy = next16Arg(cmd);
             auto x = next16Arg(cmd), y = next16Arg(cmd);
             auto w = next16Arg(cmd), h = next16Arg(cmd);
 
             gpuSprite(gpuQuadsBuffer, pal2Color(pal),
                       sx, sy, x, y, w, h);
-            gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
-                        x, y, w, h);
+            gpuSprite(gpuTQuadsBuffer, spriteTime2Color(pal, currentDraw),
+                      sx, sy, x, y, w, h);
         }
             break;
     }
@@ -788,6 +840,7 @@ void VideoMemory::draw() {
     // Atualiza textura de timing da CPU
     cpuTiming.update(timingBuffer, w, h, 0, 0);
     // Atualiza resultado do render da CPU
+    // TODO: Apenas atualizar se houver desenho feito na CPU
     cpuTexture.update(buffer, w/4, h, 0, 0);
 
     // Desenha as texturas combinadas da CPU e GPU
@@ -837,6 +890,12 @@ void VideoMemory::draw() {
 
 void VideoMemory::updatePalette(const uint8_t* palette) {
     paletteTex.update(palette, paletteTex.getSize().x, paletteTex.getSize().y, 0, 0);
+}
+
+void VideoMemory::updateSpriteSheet(const uint64_t p, const uint8_t* data, const uint64_t size) {
+    // TODO: Atualizar apenas parte da imagem
+    auto spriteSize = spriteTex.getSize();
+    spriteTex.update(data, spriteSize.x, spriteSize.y, 0, 0);
 }
 
 // Escreve data (que tem size bytes) na posição p na memória de vídeo

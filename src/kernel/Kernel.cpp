@@ -12,7 +12,7 @@ Kernel::Kernel():
 	window(sf::VideoMode(640, 480), "Nibble"),
 	lastPid(1),
 	lastUsedMemByte(0) {
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(30);
     window.setView(sf::View(sf::FloatRect(0, 0, 320, 240)));
 
 	createMemoryMap();
@@ -80,10 +80,7 @@ void Kernel::loop() {
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed) {
 				window.close();
-			} else
-            if (event.type == sf::Event::Resized) {
-                window.setSize(sf::Vector2u(event.size.width, event.size.height));
-            }
+			}
 		}
 
 		// Roda o processo no topo da lista de processos
@@ -124,7 +121,7 @@ uint64_t Kernel::exec(const string& executable, vector<string> environment) {
 
 	// Cria o processo carregando o cart para a memória na
 	// primeira localização livre
-	auto process = new Process(executablePath, environment, lastPid++, lastUsedMemByte);
+	auto process = new Process(executablePath, environment, lastPid++, lastUsedMemByte, (VideoMemory*)gpu->getVideoMemory());
 
 	// Adiciona as chamadas de sistema providas pelo Kernel
 	// ao ambiente lua do processo
