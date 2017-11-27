@@ -1,9 +1,10 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <SFML/OpenGL.hpp>
 #include <kernel/drivers/VideoMemory.hpp>
 #include <kernel/drivers/GPU.hpp>
 #include <iostream>
 #include <cstring>
-#include <cmath>
 
 const uint64_t VideoMemory::nibblesPerPixel = 8;
 const uint64_t VideoMemory::bytesPerPixel = 4;
@@ -396,15 +397,13 @@ bool VideoMemory::captureFrame() {
 }
 
 ColorMapObject* VideoMemory::getColorMap() {
-    // Tamanho da paleta do console
-    uint64_t paletteSize = GPU::paletteLength*GPU::paletteAmount;
     // "Paleta" do GIF
-    GifColorType colors[paletteSize];
+    GifColorType colors[GPU_PALETTE_LENGTH*GPU_PALETTE_AMOUNT];
     auto image = paletteTex.copyToImage();
 
     // Preenche o color map no formato do GIF
     // a partir do formato de paleta do console
-    for (uint64_t i=0;i<paletteSize;i++) {
+    for (uint64_t i=0;i<GPU_PALETTE_LENGTH*GPU_PALETTE_AMOUNT;i++) {
         sf::Color color = image.getPixel(i, 0);
         // Remove o alpha
         colors[i] = GifColorType {
@@ -412,7 +411,7 @@ ColorMapObject* VideoMemory::getColorMap() {
         };
     }
 
-    colormap = GifMakeMapObject(paletteSize, colors);
+    colormap = GifMakeMapObject(GPU_PALETTE_LENGTH*GPU_PALETTE_AMOUNT, colors);
 
     return colormap;
 }

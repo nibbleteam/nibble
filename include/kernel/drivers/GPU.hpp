@@ -11,6 +11,11 @@ class VideoMemory;
 class PaletteMemory;
 class GPUCommandMemory;
 
+// Visual Studio não suporta arrays declaradas
+// com const statics, então precisamos usar #defines
+#define GPU_PALETTE_LENGTH 16
+#define GPU_PALETTE_AMOUNT 8
+
 class GPU {
     // Memórias
     GPUCommandMemory *commandMemory;
