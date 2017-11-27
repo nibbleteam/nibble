@@ -3,7 +3,7 @@
 const string CartridgeMemory::spriteSheetLocation = "/sheet.png";
 const uint16_t CartridgeMemory::width = 8192;
 const uint16_t CartridgeMemory::height = 1024;
-const uint64_t CartridgeMemory::length = CartridgeMemory::width*CartridgeMemory::height/8;
+const uint64_t CartridgeMemory::length = CartridgeMemory::width*CartridgeMemory::height/2;
 
 CartridgeMemory::CartridgeMemory(Path& assets, const uint64_t addr, VideoMemory* video) :
 	address(addr),
@@ -24,7 +24,7 @@ CartridgeMemory::CartridgeMemory(Path& assets, const uint64_t addr, VideoMemory*
     }
     
     // Atualiza na video memory
-    load();
+	load();
 }
 
 CartridgeMemory::~CartridgeMemory() {
