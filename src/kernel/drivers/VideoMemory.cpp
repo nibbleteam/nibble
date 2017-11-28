@@ -310,8 +310,8 @@ VideoMemory::~VideoMemory() {
         stopCapturing();
     }
 
-    delete timingBuffer;
-    delete buffer;
+    delete[] timingBuffer;
+    delete[] buffer;
 }
 
 bool VideoMemory::startCapturing(const string& path) {

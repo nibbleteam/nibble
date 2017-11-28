@@ -11,7 +11,7 @@ GPUCommandMemory::GPUCommandMemory(VideoMemory* video, const uint64_t addr) :
 }
 
 GPUCommandMemory::~GPUCommandMemory() {
-	delete data;
+	delete[] data;
 }
 
 uint64_t GPUCommandMemory::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {

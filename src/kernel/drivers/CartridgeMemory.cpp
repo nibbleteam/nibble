@@ -28,7 +28,7 @@ CartridgeMemory::CartridgeMemory(Path& assets, const uint64_t addr, VideoMemory*
 }
 
 CartridgeMemory::~CartridgeMemory() {
-    delete data;
+    delete[] data;
 }
 
 void CartridgeMemory::updateSpriteSheet(uint64_t p, uint64_t size) {

@@ -251,7 +251,7 @@ bool fs::copyFile (Path _pathA, Path _pathB, bool _overwrite) {
 			return false;
 
 		function <void (int,int,char*)> cleanup = [] (int fdA,int fdB, char *fileBuffer) -> void {
-			delete fileBuffer;
+			delete[] fileBuffer;
 			close (fdA);
 			close (fdB);
 		};
@@ -290,7 +290,7 @@ char* fs::getFileData (Path _path) {
         while (nr != 0) {
             nr = read (fd,buffer,bufferSize);
             if (nr < 0) {
-                delete data;
+                delete[] data;
                 return NULL;
             }
             memcpy (data+rs, buffer, nr);
@@ -299,7 +299,7 @@ char* fs::getFileData (Path _path) {
 
 		close (fd);
 
-        delete buffer;
+        delete[] buffer;
 		return data;
 	}
 
