@@ -8,7 +8,7 @@ RAM::RAM(const uint64_t addr, const uint64_t len) :
 }
 
 RAM::~RAM() {
-	delete data;
+	delete[] data;
 }
 
 uint64_t RAM::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
