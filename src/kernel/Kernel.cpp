@@ -176,10 +176,10 @@ uint64_t Kernel::write(uint64_t start, const uint8_t* data, uint64_t size) {
 	// Segmenta o write para cada bloco de ram em que ele afetar
 	for (auto memBlock : ram) {
 		uint64_t blkStart = memBlock->addr(), blkSize = memBlock->size();
-		uint64_t blkEnd = blkStart + blkSize;
+		uint64_t blkEnd = blkStart + blkSize - 1;
 
 		// Verifica se o write afeta esse bloco de memória
-		if (blkEnd >= start && blkStart <= end) {
+		if (blkEnd >= start && blkStart < end) {
 			// Calcula as boundaries do write para atingir apenas esse bloco
 			uint64_t writeStart, writeEnd;
 
@@ -235,7 +235,7 @@ string Kernel::read(uint64_t start, uint64_t size) {
 		uint64_t blkEnd = blkStart + blkSize - 1;
 
 		// Verifica se o read afeta esse bloco de memória
-		if (blkEnd >= start && blkStart <= end) {
+		if (blkEnd >= start && blkStart < end) {
 			// Calcula as boundaries do read para atingir apenas esse bloco
 			uint64_t readStart, readEnd;
 
