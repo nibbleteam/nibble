@@ -8,9 +8,9 @@ void cleanup() {
 int main() {
     std::atexit(cleanup);
 
-	KernelSingleton = new Kernel();
+    KernelSingleton = new Kernel();
 
-	KernelSingleton->loop();
+    KernelSingleton->loop();
 
     return 0;
 }

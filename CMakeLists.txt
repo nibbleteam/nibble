@@ -85,6 +85,12 @@ add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/CartridgeMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/RAM.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/RAM.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/Controller.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/Controller.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/Keyboard.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/Keyboard.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/Mouse.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/Mouse.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/RandomMemory.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/RandomMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/VideoMemory.hpp

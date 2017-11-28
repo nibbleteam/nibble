@@ -5,11 +5,14 @@
 #include <vector>
 #include <list>
 #include <string>
+#include <SFML/Graphics.hpp>
 #include <kernel/filesystem.hpp>
 #include <kernel/Process.hpp>
 #include <kernel/Memory.hpp>
 #include <kernel/drivers/GPU.hpp>
-#include <SFML/Graphics.hpp>
+#include <kernel/drivers/Keyboard.hpp>
+#include <kernel/drivers/Mouse.hpp>
+#include <kernel/drivers/Controller.hpp>
 
 using namespace std;
 
@@ -17,8 +20,8 @@ using namespace std;
 // seis chamadas de sistema. Três para gerenciar
 // a memória e três para gerenciar processos.
 class Kernel {
-	sf::RenderWindow window;
-	// Memória para acesso direto aos dispositivos
+    sf::RenderWindow window;
+    // Memória para acesso direto aos dispositivos
     // Cada seção específica (joysticks, video, cart)
     // é implementada como uma extensão
     // da classe Memory
@@ -26,12 +29,15 @@ class Kernel {
     // Contém todos os processos carregados em memória
     // apenas um está em execução a cada instante (o último elemento da lista)
     list <Process*> processes;
-	// Contador de ID para os processos gerados
-	uint64_t lastPid;
-	// Aponta para o último byte usado de memória
-	uint64_t lastUsedMemByte;
-	// GPU 
+    // Contador de ID para os processos gerados
+    uint64_t lastPid;
+    // Aponta para o último byte usado de memória
+    uint64_t lastUsedMemByte;
+    // GPU 
     GPU *gpu;
+    Keyboard *keyboard;
+    Mouse *mouse;
+    Controller *controller;
 public:
     Kernel();
     ~Kernel();
@@ -58,9 +64,9 @@ private:
     // construtor
     void createMemoryMap();
     void destroyMemoryMap();
-	void addMemoryDevice(Memory*);
-	// Verifica estrutura de um cartridge
-	bool checkCartStructure(Path&);
+    void addMemoryDevice(Memory*);
+    // Verifica estrutura de um cartridge
+    bool checkCartStructure(Path&);
 };
 
 extern Kernel *KernelSingleton;

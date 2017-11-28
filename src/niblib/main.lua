@@ -18,7 +18,7 @@ local NIBLIB_GPU_SPRITE = string.char(0x0a)
 -- Funções genéricas para GPU
 -- Números de 16 bits
 function u16(x)
-    return string.char(math.floor(x/256), math.floor(math.floor(x)%256))
+    return string.char(math.floor(x/256)%256, math.floor(math.floor(x)%256))
 end
 
 -- Parâmetros de 16 bits
@@ -57,4 +57,4 @@ end
 
 -- Apaga variáveis globais desnecessárias
 os = nil
-print = nil
+--print = nil
