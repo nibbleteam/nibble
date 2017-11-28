@@ -357,7 +357,6 @@ bool VideoMemory::stopCapturing() {
     int error;
     EGifCloseFile(gif, &error);
     if (error != GIF_OK) {
-        cerr << GifErrorString(error) << endl;
         return false;
     }
 
