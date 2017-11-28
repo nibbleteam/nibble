@@ -85,6 +85,8 @@ add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/CartridgeMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/RAM.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/RAM.cpp
+                ${PROJECT_HEADER_DIR}/kernel/drivers/RandomMemory.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/drivers/RandomMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/VideoMemory.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/VideoMemory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/GPU.hpp

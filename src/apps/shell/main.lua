@@ -5,6 +5,7 @@ end
 
 function draw()
     spr(0, 0, 0, 0)
+    kernel.write(0x220, kernel.read(0x12E20, 320*240))
 end
 
 function update()

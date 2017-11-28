@@ -864,11 +864,11 @@ void VideoMemory::draw() {
     auto img = framebufferSpr.getTexture()->copyToImage();
     memcpy(buffer, img.getPixelsPtr(), w*h);
 
-    //if (colormap == NULL) {
-    //    startCapturing("screencap.gif");
-    //} else {
-    //    captureFrame();
-    //}
+    if (colormap == NULL) {
+        startCapturing("screencap.gif");
+    } else {
+        captureFrame();
+    }
 
     // Mantém o aspect ratio
     // TODO: Criar um método resize pra isso

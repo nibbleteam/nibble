@@ -1,6 +1,7 @@
 #include <kernel/Kernel.hpp>
 #include <kernel/drivers/RAM.hpp>
 #include <kernel/drivers/VideoMemory.hpp>
+#include <kernel/drivers/RandomMemory.hpp>
 #include <algorithm>
 #include <iostream>
 
@@ -44,6 +45,7 @@ void Kernel::createMemoryMap() {
     addMemoryDevice(gpu->getCommandMemory());
 	addMemoryDevice(gpu->getPaletteMemory());
 	addMemoryDevice(gpu->getVideoMemory());
+    addMemoryDevice(new RandomMemory(lastUsedMemByte));
 	//addMemoryDevice(new RAM(lastUsedMemByte, 32*1024));
 }
 
