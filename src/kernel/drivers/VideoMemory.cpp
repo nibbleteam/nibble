@@ -423,6 +423,7 @@ void VideoMemory::clearCpuTiming() {
 }
 
 void VideoMemory::drawCpuTiming(uint32_t time, uint64_t p, uint64_t size) {
+    // Converte o tempo para big endian
     uint8_t *otime = (uint8_t*)&time;
     uint8_t ntime[4];
 
@@ -436,14 +437,23 @@ void VideoMemory::drawCpuTiming(uint32_t time, uint64_t p, uint64_t size) {
     // Escreve os primeiros 4 bytes
     memmove(timingBuffer+p, ntime, sizeof(time));
 
+    // Início
+    uint64_t start = p;
+    // Em que posição da memória esse processo acaba
     uint64_t end = p+size*sizeof(time);
+    // Quantos bytes vamos transferir na próxima iteração
+    uint64_t transfer = sizeof(time);
 
-    // Copia os outros
-    while (p+sizeof(time) < end) {
-        memmove(timingBuffer+p+sizeof(time), timingBuffer+p, sizeof(time));
-
-        p += sizeof(time);
+    // Copia dobrando a quantidade até onde possível
+    p += sizeof(time);
+    while (p+transfer < end) {
+        memmove(timingBuffer+p, timingBuffer+start, transfer);
+        p += transfer;
+        transfer *= 2;
     }
+    
+    // Copia o restante
+    memmove(timingBuffer+p, timingBuffer+start, end-p);
 }
 
 sf::Color VideoMemory::pal2Color(uint8_t pal) {
