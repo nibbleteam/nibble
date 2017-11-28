@@ -311,13 +311,13 @@ bool fs::setFileData (Path _path, const char* _data, size_t _size) {
 		if (!createFile(_path))
 			return false;
 
-	int fd,nr;
+	int fd, nr;
 
 	fd = open (_path.getPath().c_str(), O_WRONLY |  O_TRUNC);
 	nr = write (fd, _data, _size);
 	close (fd);
 
-	if (nr < _size)
+	if ((unsigned int)nr < _size)
 		return false;
 
 	return true;

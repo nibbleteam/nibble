@@ -23,10 +23,10 @@ class Process {
     // RAM do cartucho. É colocada na ram
     // principal do kernel quando o cartucho está em execução
     CartridgeMemory *cartridgeMemory;
-	// ID
-	const uint64_t pid;
 	// Variáveis ambiente
 	vector<string> environment;
+	// ID
+	const uint64_t pid;
 	bool mapped;
 public:
 	const static string LuaEntryPoint;

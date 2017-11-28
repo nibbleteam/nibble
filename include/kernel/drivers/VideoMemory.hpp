@@ -13,9 +13,9 @@ class VideoMemory : public Memory {
     // Permite o acesso as funçõe protected
     friend class GPUCommandMemory;
     // Detalhes da memória
-	const uint64_t length;
-	const uint64_t address;
 	const unsigned int w, h;
+	const uint64_t address;
+	const uint64_t length;
     // Framebuffer da imagem final
     sf::RenderTexture framebuffer;
 	// Textura contendo a imagem que é visível na tela,
@@ -32,8 +32,9 @@ class VideoMemory : public Memory {
     sf::Texture cpuTiming;
     uint8_t *timingBuffer;
     // Vertex arrays utilizadas para desenhar informação de timing
-    RenderBuffer gpuTQuadsBuffer, gpuTLinesBuffer, gpuTTrisBuffer;
-    RenderBuffer gpuQuadsBuffer, gpuLinesBuffer, gpuTrisBuffer;
+    RenderBuffer gpuTQuadsBuffer, gpuQuadsBuffer;
+    RenderBuffer gpuTLinesBuffer, gpuLinesBuffer;
+    RenderBuffer gpuTTrisBuffer, gpuTrisBuffer;
     // Contador de draws
     uint32_t currentDraw;
     // Textura que permite a leitura e escrita.

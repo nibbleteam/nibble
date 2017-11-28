@@ -208,11 +208,11 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
                          const unsigned int w,
                          const unsigned int h,
                          const uint64_t addr):
-	w(w), h(h), address(addr), length(w*h), window(window),
-    colormap(NULL), currentDraw(0),
+	w(w), h(h), address(addr), length(w*h),
     gpuTQuadsBuffer(sf::Quads, 4), gpuQuadsBuffer(sf::Quads, 4),
     gpuTLinesBuffer(sf::Lines, 2), gpuLinesBuffer(sf::Lines, 2),
-    gpuTTrisBuffer(sf::Triangles, 3), gpuTrisBuffer(sf::Triangles, 3) {
+    gpuTTrisBuffer(sf::Triangles, 3), gpuTrisBuffer(sf::Triangles, 3),
+    currentDraw(0), window(window), colormap(NULL) {
     // Tamanho da textura é 1/4 do tamanho da tela
     // uma vez que um pixel no sfml são quatro bytes
     // e no console é apenas um
@@ -394,6 +394,8 @@ bool VideoMemory::captureFrame() {
         cerr << GifErrorString(error) << endl;
         return false;
     }
+
+    return true;
 }
 
 ColorMapObject* VideoMemory::getColorMap() {

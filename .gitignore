@@ -37,3 +37,6 @@ bin/
 
 # Visual Studio Directories
 .vs/
+
+# Clang files
+.clang
