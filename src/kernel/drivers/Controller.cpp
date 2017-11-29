@@ -5,7 +5,7 @@
 Controller::Controller(const uint64_t addr) :
     address(addr), length(sizeof(controllers)) {
     // Zera todos os botões
-    explicit_bzero(&controllers, sizeof(controllers));
+    memset(&controllers, 0, sizeof(controllers));
     // O primeiro controle está sempre conectado 
     controllers.connected = 0b10000000;
 }
