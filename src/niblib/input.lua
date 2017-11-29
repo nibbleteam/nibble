@@ -29,11 +29,11 @@ function input.bt(b)
   if b%4 == input.UP then
     return math.floor(value/64)
   elseif b%4 == input.RIGHT then
-    return math.floor(value/16)-math.floor(value/64)*64
+    return math.floor((value-math.floor(value/64)*64)/16)
   elseif b%4 == input.DOWN then
-    return math.floor(value/4)-math.floor(value/16)*16
+    return math.floor((value-math.floor(value/16)*16)/4)
   elseif b%4 == input.LEFT then
-    return math.floor(value)-math.floor(value/4)*4
+    return value-math.floor(value/4)*4
   end
 end
 
