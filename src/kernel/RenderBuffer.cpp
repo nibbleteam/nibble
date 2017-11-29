@@ -9,6 +9,12 @@ RenderBuffer::RenderBuffer(sf::PrimitiveType primitive, uint8_t size, sf::Shader
     pos = 0;
 }
 
+RenderBuffer::~RenderBuffer() {
+    for (auto &array : arrays) {
+        delete[] array;
+    }
+}
+
 void RenderBuffer::setShader(sf::Shader* shader) {
     this->shader = shader;
 }
@@ -16,29 +22,33 @@ void RenderBuffer::setShader(sf::Shader* shader) {
 void RenderBuffer::draw(sf::RenderTarget& target) {
     trim();
 
+    uint64_t remaining = pos;
+
     for (auto &array : arrays) {
+        uint64_t size = remaining%arrayLength;
         if (shader == NULL) {
-            target.draw(array, sf::BlendNone);
+            target.draw(array, size*primitiveSize, primitive, sf::BlendNone);
         } else {
-            target.draw(array,
+            target.draw(array, size*primitiveSize, primitive,
                         sf::RenderStates(sf::BlendNone,
                                          sf::Transform::Identity,
                                          NULL,
                                          shader));
         }
+        remaining -= size;
     }
 }
 
 void RenderBuffer::add(vector<sf::Vertex> vertices) {
     assert(vertices.size() == primitiveSize);
 
-    uint32_t array = pos / (arrayLength/primitiveSize);
-    uint32_t position = (pos % (arrayLength/primitiveSize))*primitiveSize;
+    uint32_t array = pos / arrayLength;
+    uint32_t position = (pos % arrayLength)*primitiveSize;
 
     if (arrays.size() <= array) {
         arrays.push_back(
-            sf::VertexArray(primitive, arrayLength)
-        );
+            new sf::Vertex[arrayLength*primitiveSize]
+            );
     }
 
     for (uint64_t i=0;i<vertices.size();i++) {
@@ -53,14 +63,4 @@ void RenderBuffer::clear() {
 }
 
 void RenderBuffer::trim() {
-    if (arrays.size() > 0) {
-        // Corta parte que não foi redesenhada fora do buffer
-        uint32_t trimPos = pos/(arrayLength/primitiveSize);
-        arrays[trimPos].resize(
-            (pos % (arrayLength/primitiveSize))*primitiveSize
-        );
-        for (trimPos++;trimPos<arrays.size();trimPos++) {
-            arrays[trimPos].resize(0);
-        }
-    }
 }

@@ -1,46 +1,68 @@
 function init()
   -- Deixa a cor 0 na paleta 0 transparente
   kernel.write(0x20+3, '\0')
-
-  -- Copia a primeira paleta para as outras
-  for i=1,7 do
-    kernel.write(i*16*4+32, kernel.read(32, 16*4))
-  end
 end
 
 local x, y = 0, 0
-local v, w = 1, 1
+local v, w = 2, 4
+local btstr = ""
 function draw()
-  kernel.write(0x220, kernel.read(0x12E20, 320*240))
-  spr(x, y, 0, 0)
+  clr()
+
+  quad(0, 0, 60, 80, 30, 20, 10, 2, mix(1, 0))
+
+  -- Nibble logo
+  -- Caracteres especiais são numerados na ordem
+  -- que aparecem na spritesheet
+  print("\13", x, y)
+
+  print("pos "..tostring(x)..", "..tostring(y), 0, 0)
+
+  print(btstr, 0, 232)
 end
 
 function update()
-  local controllers = kernel.read(0x25A21, 1):byte()
+  btstr = ""
 
-  if math.floor(controllers/64) == 2 then
-    v, w = 0, -1
+  if btd(UP) then
+    btstr = btstr.." \1"
   end
 
-  if math.floor(controllers/16)-math.floor(controllers/64)*64 == 2 then
-    v, w = 1, 0
+  if btd(RIGHT) then
+    btstr = btstr.." \4"
   end
 
-  if math.floor(controllers/4)-math.floor(controllers/16)*16 == 2 then
-    v, w = 0, 1
+  if btd(DOWN) then
+    btstr = btstr.." \3"
   end
 
-  if controllers-math.floor(controllers/4)*4 == 2 then
-    v, w = -1, 0
+  if btd(LEFT) then
+    btstr = btstr.." \2"
+  end
+
+  if btd(RED) then
+    btstr = btstr.." \8"
+  end
+
+  if btd(BLUE) then
+    btstr = btstr.." \9"
+  end
+ 
+  if btd(WHITE) then
+    btstr = btstr.." \10"
+  end
+
+  if btd(BLACK) then
+    btstr = btstr.." \11"
   end
 
   x, y = x+v, y+w
 
-  if x == 0 or x == 319-16 then
+  if x <= 0 or x >= 319-8 then
     v = v*-1
   end
 
-  if y == 0 or y == 239-16 then
+  if y <= 0 or y >= 239-8 then
     w = w*-1
   end
 end

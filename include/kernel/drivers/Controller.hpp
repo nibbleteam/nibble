@@ -22,8 +22,8 @@ class Controller : public Memory {
         unsigned int right :2;
         unsigned int up :2;
 
-        unsigned int white :2;
         unsigned int black :2;
+        unsigned int white :2;
 
         unsigned int blue :2;
         unsigned int red :2;

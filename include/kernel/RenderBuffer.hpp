@@ -11,11 +11,12 @@ class RenderBuffer {
     const static uint64_t arrayLength;
     const sf::PrimitiveType primitive;
     const uint8_t primitiveSize;
-    vector<sf::VertexArray> arrays;
+    vector<sf::Vertex*> arrays;
     sf::Shader *shader;
     uint64_t pos;
 public:
     RenderBuffer(const sf::PrimitiveType, const uint8_t, sf::Shader* = NULL);
+    ~RenderBuffer();
     
     void clear();
     void draw(sf::RenderTarget&);

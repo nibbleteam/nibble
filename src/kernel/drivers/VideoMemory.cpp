@@ -296,7 +296,7 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // Inicializa a memória
     buffer = new uint8_t[videoRamSize];
     for (unsigned int i=0;i<videoRamSize;i++) {
-        buffer[i] = (i>>13)%0x10;
+buffer[i] = int(255*sin(i/14))%0x10;
         //buffer[i] = 0;
     }
     timingBuffer = new uint8_t[bytesPerPixel*videoRamSize];
@@ -610,7 +610,7 @@ void VideoMemory::gpuFillCircle(RenderBuffer &buffer, sf::Color color,
     
     float px, py;
 
-	for(unsigned int i = 0; i < segments*2; i++) {
+	for(unsigned int i = 0; i < segments; i++) {
         px = x; py = y;   
 
         // Rotacionando x e y
