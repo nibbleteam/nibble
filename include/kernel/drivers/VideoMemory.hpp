@@ -13,17 +13,17 @@ class VideoMemory : public Memory {
     // Permite o acesso as funçõe protected
     friend class GPUCommandMemory;
     // Detalhes da memória
-	const unsigned int w, h;
-	const uint64_t address;
-	const uint64_t length;
+    const unsigned int w, h;
+    const uint64_t address;
+    const uint64_t length;
     // Framebuffer da imagem final
     sf::RenderTexture framebuffer;
-	// Textura contendo a imagem que é visível na tela,
-	// funciona como memória de vídeo
-	sf::RenderTexture gpuRenderTextureQuads, gpuRenderTextureTris, gpuRenderTextureLines;
-	// Áreas para desenho do framebuffer e combinar os renders
+    // Textura contendo a imagem que é visível na tela,
+    // funciona como memória de vídeo
+    sf::RenderTexture gpuRenderTextureQuads, gpuRenderTextureTris, gpuRenderTextureLines;
+    // Áreas para desenho do framebuffer e combinar os renders
     // em CPU e GPU
-	sf::Sprite framebufferSpr, combineSpr;
+    sf::Sprite framebufferSpr, combineSpr;
     // Texturas para guardar os timings dos desenhos feitos pela cpu
     // e pela gpu, de forma que eles possam ser combinados na ordem
     // correta, facilitando para o desenvolvedor
@@ -39,10 +39,10 @@ class VideoMemory : public Memory {
     uint32_t currentDraw;
     // Textura que permite a leitura e escrita.
     // Memória de vídeo para operações não aceleradas em hardware
-	sf::Texture cpuTexture;
+    sf::Texture cpuTexture;
     uint8_t *buffer;
-	// Referência para a janela para que possamos desenhar para ela
-	sf::RenderWindow &window;
+    // Referência para a janela para que possamos desenhar para ela
+    sf::RenderWindow &window;
     // Código e o shader utilizado para desenhar mixar texturas
     // e expandir para a tela
     const static string shaderVertex;
@@ -63,22 +63,26 @@ public:
     const static uint64_t bytesPerPixel;
     const static uint32_t vertexArrayLength;
 public:
-	VideoMemory(sf::RenderWindow&,
+    VideoMemory(sf::RenderWindow&,
                 const unsigned int,
                 const unsigned int,
                 const uint64_t);
-	~VideoMemory();
+    ~VideoMemory();
+
+    // Ajust escala e aspect ratio para a
+    // a janela atual
+    void resize();
 
     // Fecha arquivos abertos
     void close();
 
-	void draw();
+    void draw();
 
-	uint64_t write(const uint64_t, const uint8_t*, const uint64_t);
-	uint64_t read(const uint64_t, uint8_t*, const uint64_t);
+    uint64_t write(const uint64_t, const uint8_t*, const uint64_t);
+    uint64_t read(const uint64_t, uint8_t*, const uint64_t);
 
-	uint64_t size();
-	uint64_t addr();
+    uint64_t size();
+    uint64_t addr();
 
     // Chamado por paletteMemory quando o usuário troca a paleta
     void updatePalette(const uint8_t*);
@@ -94,14 +98,14 @@ protected:
                  uint16_t, uint16_t,
                  uint16_t, uint16_t);
     void gpuTri(RenderBuffer &, sf::Color,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t);
+                uint16_t, uint16_t,
+                uint16_t, uint16_t,
+                uint16_t, uint16_t);
     void gpuQuad(RenderBuffer &, sf::Color,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t);
+                 uint16_t, uint16_t,
+                 uint16_t, uint16_t,
+                 uint16_t, uint16_t,
+                 uint16_t, uint16_t);
     void gpuCircle(RenderBuffer &, sf::Color,
                    uint16_t, uint16_t, uint16_t);
     void gpuFillCircle(RenderBuffer &, sf::Color,
@@ -110,9 +114,9 @@ protected:
                      uint16_t, uint16_t,
                      uint16_t, uint16_t);
     void gpuFillTri(RenderBuffer &, sf::Color,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t);
+                    uint16_t, uint16_t,
+                    uint16_t, uint16_t,
+                    uint16_t, uint16_t);
     void gpuFillQuad(RenderBuffer &, sf::Color,
                      uint16_t, uint16_t,
                      uint16_t, uint16_t,

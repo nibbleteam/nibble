@@ -882,15 +882,6 @@ void VideoMemory::draw() {
         captureFrame();
     }
 
-    // Mantém o aspect ratio
-    // TODO: Criar um método resize pra isso
-    // TODO: Considerar screens com h > w
-    // TODO: Limpar a tela apenas no resize
-    auto windowSize = window.getSize();
-    auto ratio = (float)windowSize.y/(float)windowSize.x*(float)w/(float)h;
-    float spriteWidth = ratio*bytesPerPixel;
-    framebufferSpr.setScale(spriteWidth, 1.0);
-    framebufferSpr.setPosition((float)w*(1-ratio)/2.0, 0);
     window.clear();
     // Desenha o framebuffer na tela, usando o shader para converter do
     // formato 1byte por pixel para cores RGBA nos pixels
@@ -908,6 +899,23 @@ void VideoMemory::draw() {
     gpuRenderTimingTris.clear(sf::Color::Transparent);
     gpuRenderTimingLines.clear(sf::Color::Transparent);
     clearCpuTiming();
+}
+
+void VideoMemory::resize() {
+    // Mantém o aspect ratio
+    auto windowSize = window.getSize();
+    if (windowSize.x > windowSize.y) {
+        auto ratio = (float)windowSize.y/(float)windowSize.x*(float)w/(float)h;
+        float spriteWidth = ratio*bytesPerPixel;
+        framebufferSpr.setScale(spriteWidth, 1.0);
+        framebufferSpr.setPosition((float)w*(1-ratio)/2.0, 0);
+    }
+    else {
+        auto ratio = (float)windowSize.x/(float)windowSize.y*(float)h/(float)w;
+        float spriteHeight = ratio;
+        framebufferSpr.setScale(bytesPerPixel, spriteHeight);
+        framebufferSpr.setPosition(0, (float)h*(1-ratio)/2.0);
+    }
 }
 
 void VideoMemory::updatePalette(const uint8_t* palette) {

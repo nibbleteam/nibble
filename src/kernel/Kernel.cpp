@@ -126,7 +126,7 @@ void Kernel::loop() {
                 break;
                 // TODO: Redimensiona e centraliza o vídeo
             case sf::Event::Resized: {
-                //video->resize();
+                ((VideoMemory*)gpu->getVideoMemory())->resize();
             }
                 break;
                 // Teclado
