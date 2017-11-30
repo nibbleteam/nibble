@@ -23,36 +23,40 @@ class Process {
     // RAM do cartucho. É colocada na ram
     // principal do kernel quando o cartucho está em execução
     CartridgeMemory *cartridgeMemory;
-	// Variáveis ambiente
-	vector<string> environment;
-	// ID
-	const uint64_t pid;
-	bool mapped;
+    // Variáveis ambiente
+    vector<string> environment;
+    // ID
+    const uint64_t pid;
+    bool mapped;
+    bool ok;
 public:
-	const static string LuaEntryPoint;
-	const static string AssetsEntryPoint;
+    const static string LuaEntryPoint;
+    const static string AssetsEntryPoint;
     const static string NiblibEntryPoint;
 
     Process(Path&, vector<string>, const uint64_t, const uint64_t, VideoMemory*);
-	~Process();
+    ~Process();
 
-	// Roda o processo
-	// TODO: delta tempo
+    // Verifica se não há erros no código
+    bool isOk();
+
+    // Roda o processo
+    // TODO: delta tempo
     void init();
-	void update();
-	void draw();
+    void update();
+    void draw();
 
     // Usado para colocar o cart na ram principal quando
     // esse processo entrar em execução
     Memory* getMemory();
-	// Retira o cart da ram
-	void unmap();
-	// Verifica se o cart está em ram
-	bool isMapped();
+    // Retira o cart da ram
+    void unmap();
+    // Verifica se o cart está em ram
+    bool isMapped();
 
-	const uint64_t getPid();
+    const uint64_t getPid();
 
-	void addSyscalls();
+    void addSyscalls();
 };
 
 #endif /* PROCESS_H */

@@ -26,7 +26,9 @@ Kernel::Kernel():
     // talvez um pequeno processo codificado em C++ diretamente
     // apenas para mostrar mensagens de erro e coisas parecidas?
     // e.g.: um processo "system"
-    exec("apps/shell", vector<string>());
+    if (exec("apps/shell", vector<string>()) > 0) {
+        cout << "[kernel] " << "process started" << endl;
+    }
 }
 
 Kernel::~Kernel() {
@@ -135,7 +137,15 @@ void Kernel::loop() {
                 controller->joyReleased(event);
             }
                 break;
-                // Mouse
+            case sf::Event::JoystickConnected: {
+                controller->joyConnected(event);
+            }
+                break;
+            case sf::Event::JoystickDisconnected: {
+                controller->joyDisconnected(event);
+            }
+                break;
+            // Mouse
             case sf::Event::MouseButtonPressed: {
                 //mouse->pressed();
             }
@@ -165,11 +175,11 @@ void Kernel::loop() {
                 ram.push_back(p->getMemory());
 
                 p->init();
+            } else {
+                // Chama as callbacks do processo
+                p->update();
+                p->draw();
             }
-
-            // Chama as callbacks do processo
-            p->update();
-            p->draw();
         }
 
         gpu->draw();
@@ -182,7 +192,7 @@ void Kernel::loop() {
 // <cart-name>/
 //	- assets/
 //  - main.lua
-uint64_t Kernel::exec(const string& executable, vector<string> environment) {
+int64_t Kernel::exec(const string& executable, vector<string> environment) {
     Path executablePath(executable);
 
     // Verifica a existência e estrutura de do cart "executable"
@@ -194,14 +204,20 @@ uint64_t Kernel::exec(const string& executable, vector<string> environment) {
     // primeira localização livre
     auto process = new Process(executablePath, environment, lastPid++, lastUsedMemByte, (VideoMemory*)gpu->getVideoMemory());
 
-    // Adiciona as chamadas de sistema providas pelo Kernel
-    // ao ambiente lua do processo
-    process->addSyscalls();
+    if (process->isOk()) {
+        // Adiciona as chamadas de sistema providas pelo Kernel
+        // ao ambiente lua do processo
+        process->addSyscalls();
 
-    // Adiciona ao início da pilha de execução de forma que não será
-    // executado até que todos os outros saiam ou um yield seja chamado
-    // (ou caso esse seja o único processo na pilha)
-    processes.push_front(process);
+        // Adiciona ao início da pilha de execução de forma que não será
+        // executado até que todos os outros saiam ou um yield seja chamado
+        // (ou caso esse seja o único processo na pilha)
+        processes.push_front(process);
+
+        return process->getPid();
+    } else {
+        return -1;
+    }
 
     return process->getPid();
 }
@@ -331,7 +347,7 @@ string Kernel::read(uint64_t start, uint64_t size) {
 }
 
 bool Kernel::checkCartStructure(Path& root) {
-    cout << "kernel " << "checking cart " << root.getPath() << endl;
+    cout << "[kernel] " << "checking cart " << root.getPath() << endl;
 
     Path lua = root.resolve(Process::LuaEntryPoint);
     Path assets = root.resolve(Process::AssetsEntryPoint);

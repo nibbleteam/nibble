@@ -10,7 +10,7 @@ function vid.putp(x, y, color)
 
   color = math.abs(math.floor(color))%256
 
-  kernel.write(y*320+x+0x220, color)
+  kernel.write(y*320+x+0x220, string.char(color))
 end
 
 function vid.getp(x, y)

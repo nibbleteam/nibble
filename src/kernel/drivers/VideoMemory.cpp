@@ -102,7 +102,7 @@ const float screen_w = 320.0;
 // 4 canais na textura (RGBA)
 const float bytes_per_pixel = 4.0;
 
-// Primeira textura "esticada", desenhos da CPU
+// Primeira textura esticada, desenhos da CPU
 uniform sampler2D cpuTexture;
 // Segunda textura, desenhos da GPU 
 uniform sampler2D gpuTextureLines;
@@ -169,7 +169,7 @@ const float screen_w = 320.0;
 // 4 canais na textura (RGBA)
 const float bytes_per_pixel = 4.0;
 
-// Textura "comprimida" onde 1 pixel real são 4 pixels virtuais
+// Textura comprimida onde 1 pixel real são 4 pixels virtuais
 uniform sampler2D source;
 // Textura 1xN da paleta
 uniform sampler2D palette;
@@ -208,7 +208,7 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
                          const unsigned int w,
                          const unsigned int h,
                          const uint64_t addr):
-	w(w), h(h), address(addr), length(w*h),
+    w(w), h(h), address(addr), length(w*h),
     gpuTQuadsBuffer(sf::Quads, 4), gpuQuadsBuffer(sf::Quads, 4),
     gpuTLinesBuffer(sf::Lines, 2), gpuLinesBuffer(sf::Lines, 2),
     gpuTTrisBuffer(sf::Triangles, 3), gpuTrisBuffer(sf::Triangles, 3),
@@ -216,10 +216,10 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // Tamanho da textura é 1/4 do tamanho da tela
     // uma vez que um pixel no sfml são quatro bytes
     // e no console é apenas um
-	cpuTexture.create(w/bytesPerPixel, h);
-	gpuRenderTextureQuads.create(w, h);
-	gpuRenderTextureTris.create(w, h);
-	gpuRenderTextureLines.create(w, h);
+    cpuTexture.create(w/bytesPerPixel, h);
+    gpuRenderTextureQuads.create(w, h);
+    gpuRenderTextureTris.create(w, h);
+    gpuRenderTextureLines.create(w, h);
     framebuffer.create(w/bytesPerPixel, h);
     // Timings das operações de desenho
     cpuTiming.create(w, h);
@@ -228,27 +228,27 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     gpuRenderTimingLines.create(w, h);
 
     // Texturas para ler as RenderTextures
-	auto &gpuTextureLines = gpuRenderTextureLines.getTexture();
-	auto &gpuTextureTris = gpuRenderTextureTris.getTexture();
-	auto &gpuTextureQuads = gpuRenderTextureQuads.getTexture();
+    auto &gpuTextureLines = gpuRenderTextureLines.getTexture();
+    auto &gpuTextureTris = gpuRenderTextureTris.getTexture();
+    auto &gpuTextureQuads = gpuRenderTextureQuads.getTexture();
     auto &gpuTimingQuads = gpuRenderTimingQuads.getTexture();
     auto &gpuTimingTris = gpuRenderTimingTris.getTexture();
     auto &gpuTimingLines = gpuRenderTimingLines.getTexture();
     auto &framebufferTexture = framebuffer.getTexture();
-
+    
     // Sprites para desenhar as RenderTextures
     // Framebuffer na tela inteira
-	framebufferSpr = sf::Sprite(framebufferTexture);
+    framebufferSpr = sf::Sprite(framebufferTexture);
     framebufferSpr.setScale(bytesPerPixel, 1);
     // combineSpr na área de cpuTexture, gpuTexture e framebuffer
-	combineSpr = sf::Sprite(cpuTexture);
+    combineSpr = sf::Sprite(cpuTexture);
     combineSpr.setScale(1, 1);
-
+    
     // Cria a textura da palleta
     paletteTex.create(GPU::paletteLength*GPU::paletteAmount, 1);
-
+    
     spriteTex.create(1024, 1024);
-
+    
     // Tenta carregar o shader, em caso de erro termina
     // uma vez que não será possível mostrar nada
     if (!combineShader.loadFromMemory(shaderVertex, combineShaderFragment)) {
@@ -261,7 +261,7 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
         combineShader.setUniform("gpuTextureLines", gpuTextureLines);
         combineShader.setUniform("gpuTextureTris", gpuTextureTris);
         combineShader.setUniform("gpuTextureQuads", gpuTextureQuads);
-
+        
         // Passa texturas de timing
         combineShader.setUniform("cpuTiming", cpuTiming);
         combineShader.setUniform("gpuTimingLines", gpuTimingLines);
@@ -296,7 +296,7 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     // Inicializa a memória
     buffer = new uint8_t[videoRamSize];
     for (unsigned int i=0;i<videoRamSize;i++) {
-buffer[i] = int(255*sin(i/14))%0x10;
+        buffer[i] = int(255*sin(i/14))%0x10;
         //buffer[i] = 0;
     }
     timingBuffer = new uint8_t[bytesPerPixel*videoRamSize];
@@ -326,8 +326,8 @@ bool VideoMemory::startCapturing(const string& path) {
     EGifSetGifVersion(gif, true);
     // Coonfigurações da screen
     error = EGifPutScreenDesc(gif, w, h,
-                      GPU::paletteLength*GPU::paletteAmount, 0,
-                      colormap);
+                              GPU::paletteLength*GPU::paletteAmount, 0,
+                              colormap);
     // Limpa a paleta que foi escrita
     GifFreeMapObject(colormap);
 
@@ -338,7 +338,7 @@ bool VideoMemory::startCapturing(const string& path) {
 
     char loop[] {
         0x01, 0x00, 0x00
-    };
+            };
     error = 0;
     error |= EGifPutExtensionLeader(gif, APPLICATION_EXT_FUNC_CODE);
     error |= EGifPutExtensionBlock(gif, 0x0b, "NETSCAPE2.0");
@@ -370,7 +370,7 @@ bool VideoMemory::captureFrame() {
     int error;
     char graphics[] {
         0, 4&0xFF, 4>>8, 0
-    };
+            };
     error = EGifPutExtension(
         gif,
         GRAPHICS_EXT_FUNC_CODE,
@@ -459,67 +459,67 @@ void VideoMemory::drawCpuTiming(uint32_t time, uint64_t p, uint64_t size) {
 sf::Color VideoMemory::pal2Color(uint8_t pal) {
     return sf::Color {
         uint8_t('\x10'+pal),
-        0,
-        0,
-        0
-    };
+            0,
+            0,
+            0
+            };
 }
 
 sf::Color VideoMemory::index2Color(uint8_t color) {
     return sf::Color {
         '\x30'+8,
-        0,
-        0,
-        color
-    };
+            0,
+            0,
+            color
+            };
 }
 
 sf::Color VideoMemory::time2Color(uint32_t time) {
     return sf::Color {
         0,
-        (uint8_t)(time>>16),
-        (uint8_t)(time>>8),
-        (uint8_t)time
-    };
+            (uint8_t)(time>>16),
+            (uint8_t)(time>>8),
+            (uint8_t)time
+            };
 }
 
 sf::Color VideoMemory::spriteTime2Color(uint8_t pal, uint32_t time) {
     return sf::Color {
         uint8_t('\x20'+pal),
-        (uint8_t)(time>>16),
-        (uint8_t)(time>>8),
-        (uint8_t)time
-    };
+            (uint8_t)(time>>16),
+            (uint8_t)(time>>8),
+            (uint8_t)time
+            };
 }
 
 void VideoMemory::gpuLine(RenderBuffer &buffer, sf::Color color,
                           const uint16_t x1, const uint16_t y1,
                           const uint16_t x2, const uint16_t y2) {
     buffer.add({
-        sf::Vertex(sf::Vector2f(x1, y1), color),
-        sf::Vertex(sf::Vector2f(x2, y2), color),
-    });
+            sf::Vertex(sf::Vector2f(x1, y1), color),
+                sf::Vertex(sf::Vector2f(x2, y2), color),
+                });
 }
 
 void VideoMemory::gpuRect(RenderBuffer &buffer, sf::Color color,
                           const uint16_t x, const uint16_t y,
                           const uint16_t w, const uint16_t h) {
     buffer.add({
-        sf::Vertex(sf::Vector2f(x, y), color),
-        sf::Vertex(sf::Vector2f(x+w, y), color),
-    });
+            sf::Vertex(sf::Vector2f(x, y), color),
+                sf::Vertex(sf::Vector2f(x+w, y), color),
+                });
     buffer.add({
-        sf::Vertex(sf::Vector2f(x+w, y), color),
-        sf::Vertex(sf::Vector2f(x+w, y+h), color),
-    });
+            sf::Vertex(sf::Vector2f(x+w, y), color),
+                sf::Vertex(sf::Vector2f(x+w, y+h), color),
+                });
     buffer.add({
-        sf::Vertex(sf::Vector2f(x+w, y+h), color),
-        sf::Vertex(sf::Vector2f(x, y+h), color),
-    });
+            sf::Vertex(sf::Vector2f(x+w, y+h), color),
+                sf::Vertex(sf::Vector2f(x, y+h), color),
+                });
     buffer.add({
-        sf::Vertex(sf::Vector2f(x, y+h+1), color),
-        sf::Vertex(sf::Vector2f(x, y), color),
-    });
+            sf::Vertex(sf::Vector2f(x, y+h+1), color),
+                sf::Vertex(sf::Vector2f(x, y), color),
+                });
 }
 
 void VideoMemory::gpuQuad(RenderBuffer &buffer, sf::Color color,
@@ -528,21 +528,21 @@ void VideoMemory::gpuQuad(RenderBuffer &buffer, sf::Color color,
                           const uint16_t x3, const uint16_t y3,
                           const uint16_t x4, const uint16_t y4) {
     buffer.add({
-        sf::Vertex(sf::Vector2f(x1, y1), color),
-        sf::Vertex(sf::Vector2f(x2, y2), color),
-    });
+            sf::Vertex(sf::Vector2f(x1, y1), color),
+                sf::Vertex(sf::Vector2f(x2, y2), color),
+                });
     buffer.add({
-        sf::Vertex(sf::Vector2f(x2, y2), color),
-        sf::Vertex(sf::Vector2f(x3, y3), color),
-    });
+            sf::Vertex(sf::Vector2f(x2, y2), color),
+                sf::Vertex(sf::Vector2f(x3, y3), color),
+                });
     buffer.add({
-        sf::Vertex(sf::Vector2f(x3, y3), color),
-        sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
-    });
+            sf::Vertex(sf::Vector2f(x3, y3), color),
+                sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
+                });
     buffer.add({
-        sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
-        sf::Vertex(sf::Vector2f(x1, y1), color),
-    });
+            sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
+                sf::Vertex(sf::Vector2f(x1, y1), color),
+                });
 }
 
 void VideoMemory::gpuTri(RenderBuffer &buffer, sf::Color color,
@@ -550,17 +550,17 @@ void VideoMemory::gpuTri(RenderBuffer &buffer, sf::Color color,
                          const uint16_t x2, const uint16_t y2,
                          const uint16_t x3, const uint16_t y3) {
     buffer.add({
-        sf::Vertex(sf::Vector2f(x1, y1), color),
-        sf::Vertex(sf::Vector2f(x2, y2), color),
-    });
+            sf::Vertex(sf::Vector2f(x1, y1), color),
+                sf::Vertex(sf::Vector2f(x2, y2), color),
+                });
     buffer.add({
-        sf::Vertex(sf::Vector2f(x2, y2), color),
-        sf::Vertex(sf::Vector2f(x3, y3), color),
-    });
+            sf::Vertex(sf::Vector2f(x2, y2), color),
+                sf::Vertex(sf::Vector2f(x3, y3), color),
+                });
     buffer.add({
-        sf::Vertex(sf::Vector2f(x3, y3), color),
-        sf::Vertex(sf::Vector2f(x1, y1), color),
-    });
+            sf::Vertex(sf::Vector2f(x3, y3), color),
+                sf::Vertex(sf::Vector2f(x1, y1), color),
+                });
 }
 
 void VideoMemory::gpuCircle(RenderBuffer &buffer, sf::Color color,
@@ -570,27 +570,27 @@ void VideoMemory::gpuCircle(RenderBuffer &buffer, sf::Color color,
     unsigned int segments = radius * 2 * M_PI/size;
 
     float theta = 2 * M_PI / float(segments); 
-	float c = cosf(theta);
-	float s = sinf(theta);
-	float tmp;
+    float c = cosf(theta);
+    float s = sinf(theta);
+    float tmp;
 
-	float x = radius;
-	float y = 0; 
+    float x = radius;
+    float y = 0; 
     
     float px, py;
 
-	for(unsigned int i = 0; i < segments; i++) {
+    for(unsigned int i = 0; i < segments; i++) {
         px = x; py = y;   
 
         // Rotacionando x e y
-		tmp = x;
-		x = c * x - s * y;
-		y = s * tmp + c * y;
+        tmp = x;
+        x = c * x - s * y;
+        y = s * tmp + c * y;
 
         buffer.add({
-            sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
-            sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
-        });
+                sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
+                    sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
+                    });
     }
 }
 
@@ -601,28 +601,28 @@ void VideoMemory::gpuFillCircle(RenderBuffer &buffer, sf::Color color,
     unsigned int segments = ceil(radius * 2 * M_PI/float(size));
 
     float theta = 2 * M_PI / float(segments); 
-	float c = cosf(theta);
-	float s = sinf(theta);
-	float tmp;
+    float c = cosf(theta);
+    float s = sinf(theta);
+    float tmp;
 
-	float x = radius;
-	float y = 0; 
+    float x = radius;
+    float y = 0; 
     
     float px, py;
 
-	for(unsigned int i = 0; i < segments; i++) {
+    for(unsigned int i = 0; i < segments; i++) {
         px = x; py = y;   
 
         // Rotacionando x e y
-		tmp = x;
-		x = c * x - s * y;
-		y = s * tmp + c * y;
+        tmp = x;
+        x = c * x - s * y;
+        y = s * tmp + c * y;
 
         buffer.add({
-            sf::Vertex(sf::Vector2f(destX, destY), color),
-            sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
-            sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
-        });
+                sf::Vertex(sf::Vector2f(destX, destY), color),
+                    sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
+                    sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
+                    });
     }
 }
 
@@ -630,11 +630,11 @@ void VideoMemory::gpuFillRect(RenderBuffer &buffer, sf::Color color,
                               const uint16_t x, const uint16_t y,
                               const uint16_t w, const uint16_t h) {
     buffer.add({
-        sf::Vertex(sf::Vector2f(x, y), color),
-        sf::Vertex(sf::Vector2f(x+w, y), color),
-        sf::Vertex(sf::Vector2f(x+w, y+h), color),
-        sf::Vertex(sf::Vector2f(x, y+h), color)
-    });
+            sf::Vertex(sf::Vector2f(x, y), color),
+                sf::Vertex(sf::Vector2f(x+w, y), color),
+                sf::Vertex(sf::Vector2f(x+w, y+h), color),
+                sf::Vertex(sf::Vector2f(x, y+h), color)
+                });
 }
 
 void VideoMemory::gpuSprite(RenderBuffer &buffer, sf::Color color,
@@ -650,22 +650,22 @@ void VideoMemory::gpuSprite(RenderBuffer &buffer, sf::Color color,
     d = float(sy+h)/size.y;
 
     buffer.add({
-        sf::Vertex(sf::Vector2f(x, y), color, sf::Vector2f(a, b)),
-        sf::Vertex(sf::Vector2f(x+w, y), color, sf::Vector2f(c, b)),
-        sf::Vertex(sf::Vector2f(x+w, y+h), color, sf::Vector2f(c, d)),
-        sf::Vertex(sf::Vector2f(x, y+h), color, sf::Vector2f(a, d))
-    });
+            sf::Vertex(sf::Vector2f(x, y), color, sf::Vector2f(a, b)),
+                sf::Vertex(sf::Vector2f(x+w, y), color, sf::Vector2f(c, b)),
+                sf::Vertex(sf::Vector2f(x+w, y+h), color, sf::Vector2f(c, d)),
+                sf::Vertex(sf::Vector2f(x, y+h), color, sf::Vector2f(a, d))
+                });
 }
 
 void VideoMemory::gpuFillTri(RenderBuffer &buffer, sf::Color color,
-                              const uint16_t x1, const uint16_t y1,
-                              const uint16_t x2, const uint16_t y2,
-                              const uint16_t x3, const uint16_t y3) {
+                             const uint16_t x1, const uint16_t y1,
+                             const uint16_t x2, const uint16_t y2,
+                             const uint16_t x3, const uint16_t y3) {
     buffer.add({
-        sf::Vertex(sf::Vector2f(x1, y1), color),
-        sf::Vertex(sf::Vector2f(x2, y2), color),
-        sf::Vertex(sf::Vector2f(x3, y3), color)
-    });
+            sf::Vertex(sf::Vector2f(x1, y1), color),
+                sf::Vertex(sf::Vector2f(x2, y2), color),
+                sf::Vertex(sf::Vector2f(x3, y3), color)
+                });
 }
 
 void VideoMemory::gpuFillQuad(RenderBuffer &buffer, sf::Color color,
@@ -674,11 +674,11 @@ void VideoMemory::gpuFillQuad(RenderBuffer &buffer, sf::Color color,
                               const uint16_t x3, const uint16_t y3,
                               const uint16_t x4, const uint16_t y4) {
     buffer.add({
-        sf::Vertex(sf::Vector2f(x1, y1), color),
-        sf::Vertex(sf::Vector2f(x2, y2), color),
-        sf::Vertex(sf::Vector2f(x3, y3), color),
-        sf::Vertex(sf::Vector2f(x4, y4), color)
-    });
+            sf::Vertex(sf::Vector2f(x1, y1), color),
+                sf::Vertex(sf::Vector2f(x2, y2), color),
+                sf::Vertex(sf::Vector2f(x3, y3), color),
+                sf::Vertex(sf::Vector2f(x4, y4), color)
+                });
 }
 
 uint8_t VideoMemory::next8Arg(uint8_t *&arg) {
@@ -707,132 +707,132 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
     };
 
     switch (*cmd++) {
-        case Clear: {
-            auto color = next8Arg(cmd);
-
-            gpuFillRect(gpuQuadsBuffer, index2Color(color),
-                        0, 0, w, h);
-            gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
-                        0, 0, w, h);
-        }
-            break;
-        case FillRect: {
-            auto color = next8Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto w = next16Arg(cmd), h = next16Arg(cmd);
-
-            gpuFillRect(gpuQuadsBuffer, index2Color(color),
-                        x, y, w, h);
-            gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
-                        x, y, w, h);
-        }
-            break;
-        case FillQuad: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
-            auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
-
-            gpuFillQuad(gpuQuadsBuffer, index2Color(color),
-                       x1, y1, x2, y2, x3, y3, x4, y4);
-            gpuFillQuad(gpuTQuadsBuffer, time2Color(currentDraw),
-                       x1, y1, x2, y2, x3, y3, x4, y4);
-        }
-            break;
-        case FillTri: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
-
-            gpuFillTri(gpuTrisBuffer, index2Color(color),
-                       x1, y1, x2, y2, x3, y3);
-            gpuFillTri(gpuTTrisBuffer, time2Color(currentDraw),
-                       x1, y1, x2, y2, x3, y3);
-        }
-            break;
-        case Line: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-
-            gpuLine(gpuLinesBuffer, index2Color(color),
-                    x1, y1, x2, y2);
-            gpuLine(gpuTLinesBuffer, time2Color(currentDraw),
-                    x1, y1, x2, y2);
-        }
-            break;
-        case Rect: {
-            auto color = next8Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto w = next16Arg(cmd), h = next16Arg(cmd);
-
-            gpuRect(gpuLinesBuffer, index2Color(color),
+    case Clear: {
+        auto color = next8Arg(cmd);
+        
+        gpuFillRect(gpuQuadsBuffer, index2Color(color),
+                    0, 0, w, h);
+        gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
+                    0, 0, w, h);
+    }
+        break;
+    case FillRect: {
+        auto color = next8Arg(cmd);
+        auto x = next16Arg(cmd), y = next16Arg(cmd);
+        auto w = next16Arg(cmd), h = next16Arg(cmd);
+        
+        gpuFillRect(gpuQuadsBuffer, index2Color(color),
                     x, y, w, h);
-            gpuRect(gpuTLinesBuffer, time2Color(currentDraw),
+        gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
                     x, y, w, h);
-        }
-            break;
-        case Quad: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
-            auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
+    }
+        break;
+    case FillQuad: {
+        auto color = next8Arg(cmd);
+        auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+        auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
+        auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
+        auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
 
-            gpuQuad(gpuLinesBuffer, index2Color(color),
+        gpuFillQuad(gpuQuadsBuffer, index2Color(color),
                     x1, y1, x2, y2, x3, y3, x4, y4);
-            gpuQuad(gpuTLinesBuffer, time2Color(currentDraw),
+        gpuFillQuad(gpuTQuadsBuffer, time2Color(currentDraw),
                     x1, y1, x2, y2, x3, y3, x4, y4);
-        }
-            break;
-        case Tri: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
+    }
+        break;
+    case FillTri: {
+        auto color = next8Arg(cmd);
+        auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+        auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
+        auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
 
-            gpuTri(gpuLinesBuffer, index2Color(color),
+        gpuFillTri(gpuTrisBuffer, index2Color(color),
                    x1, y1, x2, y2, x3, y3);
-            gpuTri(gpuTLinesBuffer, time2Color(currentDraw),
+        gpuFillTri(gpuTTrisBuffer, time2Color(currentDraw),
                    x1, y1, x2, y2, x3, y3);
-        }
-            break;
-        case Circle: {
-            auto color = next8Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto r = next16Arg(cmd);
+    }
+        break;
+    case Line: {
+        auto color = next8Arg(cmd);
+        auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+        auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
 
-            gpuCircle(gpuLinesBuffer, index2Color(color),
+        gpuLine(gpuLinesBuffer, index2Color(color),
+                x1, y1, x2, y2);
+        gpuLine(gpuTLinesBuffer, time2Color(currentDraw),
+                x1, y1, x2, y2);
+    }
+        break;
+    case Rect: {
+        auto color = next8Arg(cmd);
+        auto x = next16Arg(cmd), y = next16Arg(cmd);
+        auto w = next16Arg(cmd), h = next16Arg(cmd);
+
+        gpuRect(gpuLinesBuffer, index2Color(color),
+                x, y, w, h);
+        gpuRect(gpuTLinesBuffer, time2Color(currentDraw),
+                x, y, w, h);
+    }
+        break;
+    case Quad: {
+        auto color = next8Arg(cmd);
+        auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+        auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
+        auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
+        auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
+
+        gpuQuad(gpuLinesBuffer, index2Color(color),
+                x1, y1, x2, y2, x3, y3, x4, y4);
+        gpuQuad(gpuTLinesBuffer, time2Color(currentDraw),
+                x1, y1, x2, y2, x3, y3, x4, y4);
+    }
+        break;
+    case Tri: {
+        auto color = next8Arg(cmd);
+        auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
+        auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
+        auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
+
+        gpuTri(gpuLinesBuffer, index2Color(color),
+               x1, y1, x2, y2, x3, y3);
+        gpuTri(gpuTLinesBuffer, time2Color(currentDraw),
+               x1, y1, x2, y2, x3, y3);
+    }
+        break;
+    case Circle: {
+        auto color = next8Arg(cmd);
+        auto x = next16Arg(cmd), y = next16Arg(cmd);
+        auto r = next16Arg(cmd);
+
+        gpuCircle(gpuLinesBuffer, index2Color(color),
+                  x, y, r);
+        gpuCircle(gpuTLinesBuffer, time2Color(currentDraw),
+                  x, y, r);
+    }
+        break;
+    case FillCircle: {
+        auto color = next8Arg(cmd);
+        auto x = next16Arg(cmd), y = next16Arg(cmd);
+        auto r = next16Arg(cmd);
+
+        gpuFillCircle(gpuTrisBuffer, index2Color(color),
                       x, y, r);
-            gpuCircle(gpuTLinesBuffer, time2Color(currentDraw),
+        gpuFillCircle(gpuTTrisBuffer, time2Color(currentDraw),
                       x, y, r);
-        }
-            break;
-        case FillCircle: {
-            auto color = next8Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto r = next16Arg(cmd);
+    }
+        break;
+    case Sprite: {
+        auto pal = next8Arg(cmd)&0x0F;
+        auto sx = next16Arg(cmd), sy = next16Arg(cmd);
+        auto x = next16Arg(cmd), y = next16Arg(cmd);
+        auto w = next16Arg(cmd), h = next16Arg(cmd);
 
-            gpuFillCircle(gpuTrisBuffer, index2Color(color),
-                          x, y, r);
-            gpuFillCircle(gpuTTrisBuffer, time2Color(currentDraw),
-                          x, y, r);
-        }
-            break;
-        case Sprite: {
-            auto pal = next8Arg(cmd)&0x0F;
-            auto sx = next16Arg(cmd), sy = next16Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto w = next16Arg(cmd), h = next16Arg(cmd);
-
-            gpuSprite(gpuQuadsBuffer, pal2Color(pal),
-                      sx, sy, x, y, w, h);
-            gpuSprite(gpuTQuadsBuffer, spriteTime2Color(pal, currentDraw),
-                      sx, sy, x, y, w, h);
-        }
-            break;
+        gpuSprite(gpuQuadsBuffer, pal2Color(pal),
+                  sx, sy, x, y, w, h);
+        gpuSprite(gpuTQuadsBuffer, spriteTime2Color(pal, currentDraw),
+                  sx, sy, x, y, w, h);
+    }
+        break;
     }
 
     currentDraw++;
@@ -880,7 +880,7 @@ void VideoMemory::draw() {
     framebufferSpr.setScale(spriteWidth, 1.0);
     framebufferSpr.setPosition((float)w*(1-ratio)/2.0, 0);
     window.clear();
-	// Desenha o framebuffer na tela, usando o shader para converter do
+    // Desenha o framebuffer na tela, usando o shader para converter do
     // formato 1byte por pixel para cores RGBA nos pixels
     window.draw(framebufferSpr, &toRGBAShader);
 
@@ -914,27 +914,20 @@ uint64_t VideoMemory::write(const uint64_t p, const uint8_t* data, const uint64_
     memcpy(buffer+p, data, size);
     drawCpuTiming(currentDraw, p, size);
     currentDraw++;
-	return size;
+    return size;
 }
 
 uint64_t VideoMemory::read(const uint64_t p, uint8_t* data, const uint64_t size) {
-    // Será necessário quando estivermos usando a GPU para desenhar
-	//if (dirty) {
-	//	// Carrega da GPU para a RAM
-	//	img = tex->copyToImage();
-	//	dirty = false;
-	//}
-
     // Copia da memória de vídeo para o buffer do cliente
     memcpy(data, buffer+p, size);
 	
-	return size;
+    return size;
 }
 
 uint64_t VideoMemory::size() {
-	return length;
+    return length;
 }
 
 uint64_t VideoMemory::addr() {
-	return address;
+    return address;
 }

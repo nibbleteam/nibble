@@ -177,8 +177,13 @@ void Controller::joyPressed(sf::Event&) {
 }
 
 void Controller::joyReleased(sf::Event&) {
-
 }
+
+void Controller::joyConnected(sf::Event&) {
+} 
+
+void Controller::joyDisconnected(sf::Event&) {
+} 
 
 void Controller::allReleased() {
     for (unsigned int c=0;c<CONTROLLER_NUM;c++) {

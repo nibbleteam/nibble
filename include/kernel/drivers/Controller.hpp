@@ -49,6 +49,8 @@ public:
     void kbdReleased(sf::Event&);
     void joyPressed(sf::Event&);
     void joyReleased(sf::Event&);
+    void joyConnected(sf::Event&);
+    void joyDisconnected(sf::Event&);
     void allReleased();
 
     uint64_t write(const uint64_t, const uint8_t*, const uint64_t);

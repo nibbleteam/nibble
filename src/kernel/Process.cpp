@@ -17,7 +17,8 @@ Process::Process(Path& executable,
                  VideoMemory *video):
     environment(environment),
     pid(pid),
-    mapped(false) {
+    mapped(false),
+    ok(true) {
     // Pontos de entrada no sistema de arquivos para código
     // e dados do cart
     Path lua = executable.resolve(LuaEntryPoint);
@@ -36,20 +37,32 @@ Process::Process(Path& executable,
     // Carrega a niblib
     if (luaL_loadfile(st, (const char*)niblib.getPath().c_str())) {
         cout << "error loading niblib " << lua_tostring(st, -1) << endl;
+        ok = false;
     }
     else if (lua_pcall(st, 0, LUA_MULTRET, 0)) {
         cout << "error loading niblib " << lua_tostring(st, -1) << endl;
-        exit(pid);
+        ok = false;
     }
 
-    // Carrega o código do cart
-    luaL_dofile(st, (const char*)lua.getPath().c_str());
-
     cout << "pid " << pid << " loading cart " << lua.getPath() << endl;
+
+    // Carrega o código do cart
+    if (luaL_loadfile(st, (const char*)lua.getPath().c_str())) {
+        cout << "syntax error on cartridge " << lua_tostring(st, -1) << endl;
+        ok = false;
+    }
+    else if (lua_pcall(st, 0, LUA_MULTRET, 0)) {
+        cout << "runtime error on cartridge " << lua_tostring(st, -1) << endl;
+        ok = false;
+    }
 }
 
 Process::~Process() {
     lua_close(st);
+}
+
+bool Process::isOk() {
+    return ok;
 }
 
 void Process::addSyscalls() {

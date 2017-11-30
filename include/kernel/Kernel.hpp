@@ -55,7 +55,7 @@ public:
     uint64_t write(uint64_t, const uint8_t*, uint64_t);
     string read(uint64_t, uint64_t);
     // Gerenciamento de processos
-    uint64_t exec(const string&, vector<string>);
+    int64_t exec(const string&, vector<string>);
     bool yield(const uint64_t, const uint64_t);
     void exit(const uint64_t);
 private:
