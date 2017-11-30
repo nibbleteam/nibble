@@ -212,7 +212,7 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     gpuTQuadsBuffer(sf::Quads, 4), gpuQuadsBuffer(sf::Quads, 4),
     gpuTLinesBuffer(sf::Lines, 2), gpuLinesBuffer(sf::Lines, 2),
     gpuTTrisBuffer(sf::Triangles, 3), gpuTrisBuffer(sf::Triangles, 3),
-    currentDraw(0), window(window), colormap(NULL) {
+    currentDraw(1), window(window), colormap(NULL) {
     // Tamanho da textura é 1/4 do tamanho da tela
     // uma vez que um pixel no sfml são quatro bytes
     // e no console é apenas um
