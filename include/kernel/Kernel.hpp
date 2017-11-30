@@ -42,6 +42,11 @@ public:
     Kernel();
     ~Kernel();
 
+    // Controles de power
+    void startup();
+    void shutdown();
+    void reset();
+
     // Loop principal do console. Atualiza o processo em execução e desenha a tela.
     void loop();
 

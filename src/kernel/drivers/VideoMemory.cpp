@@ -227,6 +227,14 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     gpuRenderTimingTris.create(w, h);
     gpuRenderTimingLines.create(w, h);
 
+    gpuRenderTextureQuads.clear(sf::Color::Transparent);
+    gpuRenderTextureTris.clear(sf::Color::Transparent);
+    gpuRenderTextureLines.clear(sf::Color::Transparent);
+    framebuffer.clear(sf::Color::Transparent);
+    gpuRenderTimingQuads.clear(sf::Color::Transparent);
+    gpuRenderTimingTris.clear(sf::Color::Transparent);
+    gpuRenderTimingLines.clear(sf::Color::Transparent);
+
     // Texturas para ler as RenderTextures
     auto &gpuTextureLines = gpuRenderTextureLines.getTexture();
     auto &gpuTextureTris = gpuRenderTextureTris.getTexture();
@@ -300,6 +308,10 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
         //buffer[i] = 0;
     }
     timingBuffer = new uint8_t[bytesPerPixel*videoRamSize];
+
+    for (unsigned int i=0;i<videoRamSize*bytesPerPixel;i++) {
+        timingBuffer[i] = 0;
+    }
 
     // Inicializa com bytes não inicializados
     cpuTexture.update(buffer);

@@ -20,6 +20,28 @@ Kernel::Kernel():
     // Não gera múltiplos keypresses se a tecla ficar apertada
     window.setKeyRepeatEnabled(false);
 
+    startup();
+}
+
+void Kernel::reset() {
+    shutdown();
+    startup();
+}
+
+void Kernel::shutdown() {
+    destroyMemoryMap();
+    for (auto process : processes) {
+        delete process;
+    }
+    delete gpu;
+
+    processes.clear();
+}
+
+void Kernel::startup() {
+    lastPid = 1;
+    lastUsedMemByte = 0;
+
     createMemoryMap();
 
     // TODO: Erro quando não conseguir lançar o processo,
@@ -32,11 +54,7 @@ Kernel::Kernel():
 }
 
 Kernel::~Kernel() {
-    destroyMemoryMap();
-    for (auto process : processes) {
-        delete process;
-    }
-    delete gpu;
+    shutdown();
 }
 
 void Kernel::addMemoryDevice(Memory* device) {
@@ -80,6 +98,8 @@ void Kernel::destroyMemoryMap() {
 
         if (rm) delete memory;
     }
+
+    ram.clear();
 }
 
 void Kernel::loop() {
@@ -122,7 +142,13 @@ void Kernel::loop() {
                 break;
                 // TODO: apenas se não tiver controle conectado
             case sf::Event::KeyPressed: {
-                controller->kbdPressed(event);
+                if (event.key.code == sf::Keyboard::R &&
+                    event.key.control) {
+                    reset();
+                    continue;
+                } else {
+                    controller->kbdPressed(event);
+                }
             }
                 break;
             case sf::Event::KeyReleased: {
