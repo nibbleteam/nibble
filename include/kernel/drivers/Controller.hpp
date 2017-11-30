@@ -29,12 +29,21 @@ class Controller : public Memory {
         unsigned int red :2;
     };
 
+    struct PauseButton {
+        unsigned int a :2;
+        unsigned int b :2;
+        unsigned int c :2;
+        unsigned int d :2;
+    };
+
     struct ControllersMemory {
         // Cada dois bits indicam um dos quatro estados dos
         // joysticks
         uint8_t connected;
 
         ControllerMemory controllers[CONTROLLER_NUM];
+
+        PauseButton pauses;
     };
 #pragma pack(pop)
     ControllersMemory controllers;

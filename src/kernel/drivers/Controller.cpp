@@ -60,6 +60,15 @@ uint8_t Controller::get(uint8_t c, uint8_t b) {
     case 7:
         state = controllers.controllers[c].white;
         break;
+    case 8:
+        if (c == 0)
+            state = controllers.pauses.a;
+        else if (c == 1)
+            state = controllers.pauses.b;
+        else if (c == 2)
+            state = controllers.pauses.c;
+        else if (c == 3)
+            state = controllers.pauses.d;
     }
 
     return state;
@@ -90,6 +99,18 @@ void Controller::set(uint8_t c, uint8_t b, uint8_t value) {
         break;
     case 7:
         controllers.controllers[c].white = value;
+        break;
+    case 8:
+        if (c == 0)
+            controllers.pauses.a = value;
+        else if (c == 1)
+            controllers.pauses.b = value;
+        else if (c == 2)
+            controllers.pauses.c = value;
+        else if (c == 3)
+            controllers.pauses.d = value;
+        break;
+    default:
         break;
     }
 }
@@ -136,6 +157,9 @@ void Controller::kbdPressed(sf::Event& event) {
     case sf::Keyboard::D:
         press(0, 7);
         break;
+    case sf::Keyboard::P:
+        press(0, 8);
+        break;
     default:
         break;
     }
@@ -166,6 +190,9 @@ void Controller::kbdReleased(sf::Event& event) {
         break;
     case sf::Keyboard::D:
         release(0, 7);
+        break;
+    case sf::Keyboard::P:
+        release(0, 8);
         break;
     default:
         break;
