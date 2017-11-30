@@ -199,18 +199,116 @@ void Controller::kbdReleased(sf::Event& event) {
     }
 }
 
-void Controller::joyPressed(sf::Event&) {
+void Controller::joyMoved(sf::Event& event) {
+    unsigned int c = sfml2nibble[event.joystickMove.joystickId];
 
+    if (event.joystickMove.axis == sf::Joystick::X ||
+        event.joystickMove.axis == sf::Joystick::PovX) {
+        if (abs(event.joystickMove.position) < 10) {
+            release(c, 1);
+            release(c, 3);
+        } else if (event.joystickMove.position > 0) {
+            press(c, 1);
+        } else {
+            press(c, 3);
+        }
+    }
+
+    if (event.joystickMove.axis == sf::Joystick::Y ||
+        event.joystickMove.axis == sf::Joystick::PovY) {
+        if (abs(event.joystickMove.position) < 10) {
+            release(c, 0);
+            release(c, 2);
+        } else if (event.joystickMove.position > 0) {
+            press(c, 2);
+        } else {
+            press(c, 0);
+        }
+    }
 }
 
-void Controller::joyReleased(sf::Event&) {
+void Controller::joyPressed(sf::Event& event) {
+    unsigned int c = sfml2nibble[event.joystickButton.joystickId];
+
+    switch (event.joystickButton.button) {
+    case J_BLUE:
+        press(c, 4);
+        break;
+    case J_RED:
+        press(c, 5);
+        break;
+    case J_BLACK:
+        press(c, 6);
+        break;
+    case J_WHITE:
+        press(c, 7);
+        break;
+    case J_PAUSE:
+        press(c, 8);
+        break;
+    default:
+        break;
+    }
 }
 
-void Controller::joyConnected(sf::Event&) {
+void Controller::joyReleased(sf::Event& event) {
+    unsigned int c = sfml2nibble[event.joystickButton.joystickId];
+
+    switch (event.joystickButton.button) {
+    case J_BLUE:
+        release(c, 4);
+        break;
+    case J_RED:
+        release(c, 5);
+        break;
+    case J_BLACK:
+        release(c, 6);
+        break;
+    case J_WHITE:
+        release(c, 7);
+        break;
+    case J_PAUSE:
+        release(c, 8);
+        break;
+    default:
+        break;
+    }
+}
+
+void Controller::joyConnected(sf::Event& event) {
+    unsigned int slot = getOpenSlot();
+
+    sfml2nibble[event.joystickConnect.joystickId] = slot;
+
+    setState(slot, BUTTON_OFF_ON);
 } 
 
-void Controller::joyDisconnected(sf::Event&) {
+void Controller::joyDisconnected(sf::Event& event) {
+    unsigned int slot = sfml2nibble[event.joystickConnect.joystickId];
+    sfml2nibble.erase(event.joystickConnect.joystickId);
+
+    setState(slot, BUTTON_ON_OFF);
 } 
+
+unsigned int Controller::getState(const unsigned int c) {
+    return (controllers.connected>>((CONTROLLER_NUM-c)*2-2))&3;
+}
+
+void Controller::setState(const unsigned int c, const unsigned int value) {
+    controllers.connected |= value << ((CONTROLLER_NUM-c)*2-2);
+}
+
+unsigned int Controller::getOpenSlot() {
+    for (unsigned int i=0;i<CONTROLLER_NUM;i++) {
+        unsigned int connected = (controllers.connected>>((CONTROLLER_NUM-i)*2-2))&3;
+        if (connected == BUTTON_OFF ||
+            connected == BUTTON_ON_OFF) {
+            return i;
+        }
+    }
+
+    return 0;
+}
 
 void Controller::allReleased() {
     for (unsigned int c=0;c<CONTROLLER_NUM;c++) {
@@ -222,6 +320,13 @@ void Controller::allReleased() {
 
 void Controller::update() {
     for (unsigned int c=0;c<CONTROLLER_NUM;c++) {
+        int controllerState = getState(c);
+
+        if (controllerState == BUTTON_ON_OFF)
+            setState(c, BUTTON_OFF);
+        else if (controllerState == BUTTON_OFF_ON)
+            setState(c, BUTTON_ON);
+
         for (unsigned int b=0; b<8; b++) {
             int state = get(c, b);
 

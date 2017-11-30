@@ -2,6 +2,7 @@
 #define CONTROLLER_H
 
 #include <cstdint>
+#include <map>
 #include <SFML/Window.hpp>
 #include <kernel/Memory.hpp>
 
@@ -13,6 +14,16 @@ using namespace std;
 #define BUTTON_OFF_ON 1
 #define BUTTON_ON 2
 #define BUTTON_ON_OFF 3
+// Mapeamento padrão do controle
+#define J_UP 9
+#define J_RIGHT 12
+#define J_DOWN 10
+#define J_LEFT 11
+#define J_RED 0
+#define J_BLUE 3
+#define J_BLACK 6
+#define J_WHITE 7
+#define J_PAUSE 8
 
 class Controller : public Memory {
 #pragma pack(push, 1)
@@ -47,6 +58,9 @@ class Controller : public Memory {
     };
 #pragma pack(pop)
     ControllersMemory controllers;
+    // Mapeia os números os controles SFML para os
+    // controles do nibble
+    map<unsigned int, unsigned int> sfml2nibble;
     const uint64_t address;
     const uint64_t length;
 public:
@@ -60,6 +74,7 @@ public:
     void joyReleased(sf::Event&);
     void joyConnected(sf::Event&);
     void joyDisconnected(sf::Event&);
+    void joyMoved(sf::Event&);
     void allReleased();
 
     uint64_t write(const uint64_t, const uint8_t*, const uint64_t);
@@ -68,10 +83,13 @@ public:
     uint64_t size();
     uint64_t addr();
 private:
+    unsigned int getOpenSlot();
     void press(const uint8_t, const uint8_t);
     void release(const uint8_t, const uint8_t);
     uint8_t get(const uint8_t, const uint8_t);
     void set(const uint8_t, const uint8_t, const uint8_t);
+    void setState(const unsigned int, const unsigned int);
+    unsigned int getState(const unsigned int);
 };
 
 #endif /* CONTROLLER_H */

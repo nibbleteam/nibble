@@ -140,7 +140,6 @@ void Kernel::loop() {
                 //mouse->released();
             }
                 break;
-                // TODO: apenas se não tiver controle conectado
             case sf::Event::KeyPressed: {
                 if (event.key.code == sf::Keyboard::R &&
                     event.key.control) {
@@ -161,6 +160,10 @@ void Kernel::loop() {
                 break;
             case sf::Event::JoystickButtonReleased: {
                 controller->joyReleased(event);
+            }
+                break;
+            case sf::Event::JoystickMoved: {
+                controller->joyMoved(event);
             }
                 break;
             case sf::Event::JoystickConnected: {

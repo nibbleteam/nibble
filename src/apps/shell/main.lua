@@ -1,14 +1,14 @@
 ﻿function init()
   -- Deixa a cor 0 na paleta 0 transparente
   kernel.write(0x20+3, '\0')
-
-  clr()
 end
 
 local x, y = 0, 0
 local v, w = 2, 4
 local btstr = ""
 function draw()
+  clr()
+
   -- Nibble logo
   -- Caracteres especiais são numerados na ordem
   -- que aparecem na spritesheet
