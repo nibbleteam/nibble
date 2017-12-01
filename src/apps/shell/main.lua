@@ -6,6 +6,7 @@ end
 local x, y = 0, 0
 local v, w = 2, 4
 local btstr = ""
+local kbd = ""
 function draw()
   clr()
 
@@ -15,11 +16,28 @@ function draw()
   print("\12", x, y)
 
   print("pos "..tostring(x)..", "..tostring(y), 0, 0)
+  print(kbd, 0, 8)
 
   print(btstr, 0, 232)
 end
 
 function update()
+  local keys = kernel.read(0x25A2a, 1)
+
+  if #keys > 0 then
+    -- Backspace
+    if keys == "\8" then
+      if #kbd > 0 then
+        kbd = kbd:sub(1, #kbd-1)
+      end
+    -- Enter
+    elseif keys == "\13" then
+      kbd = ""
+    else
+      kbd = kbd..keys
+    end
+  end
+
   btstr = ""
 
   if btd(UP) then
@@ -58,7 +76,7 @@ function update()
     btstr = btstr.." \11"
   end
 
-  --x, y = x+v, y+w
+  x, y = x+v, y+w
 
   if x <= 0 or x >= 319-8 then
     v = v*-1

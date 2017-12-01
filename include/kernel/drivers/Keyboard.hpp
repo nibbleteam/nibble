@@ -7,16 +7,21 @@
 using namespace std;
 
 class Keyboard : public Memory {
-	const uint64_t address;
+    const uint64_t address;
+    uint8_t *queue;
+    unsigned int ptr;
+    const static unsigned int queueSize;
 public:
-	Keyboard(const uint64_t);
-	~Keyboard();
+    Keyboard(const uint64_t);
+    ~Keyboard();
 
-	uint64_t write(const uint64_t, const uint8_t*, const uint64_t);
-	uint64_t read(const uint64_t, uint8_t*, const uint64_t);
+    void input(const unsigned int);
 
-	uint64_t size();
-	uint64_t addr();
+    uint64_t write(const uint64_t, const uint8_t*, const uint64_t);
+    uint64_t read(const uint64_t, uint8_t*, const uint64_t);
+
+    uint64_t size();
+    uint64_t addr();
 };
 
 #endif /* KEYBOARD_H */

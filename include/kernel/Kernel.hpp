@@ -10,6 +10,7 @@
 #include <kernel/Process.hpp>
 #include <kernel/Memory.hpp>
 #include <kernel/drivers/GPU.hpp>
+#include <kernel/drivers/Audio.hpp>
 #include <kernel/drivers/Keyboard.hpp>
 #include <kernel/drivers/Mouse.hpp>
 #include <kernel/drivers/Controller.hpp>
@@ -38,6 +39,7 @@ class Kernel {
     Keyboard *keyboard;
     Mouse *mouse;
     Controller *controller;
+    Audio *audio;
 public:
     Kernel();
     ~Kernel();

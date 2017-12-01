@@ -1,5 +1,6 @@
 #include <kernel/Kernel.hpp>
 #include <kernel/drivers/RAM.hpp>
+#include <kernel/drivers/Audio.hpp>
 #include <kernel/drivers/VideoMemory.hpp>
 #include <kernel/drivers/RandomMemory.hpp>
 #include <algorithm>
@@ -44,6 +45,8 @@ void Kernel::startup() {
 
     createMemoryMap();
 
+    audio->play();
+
     // TODO: Erro quando não conseguir lançar o processo,
     // talvez um pequeno processo codificado em C++ diretamente
     // apenas para mostrar mensagens de erro e coisas parecidas?
@@ -54,6 +57,7 @@ void Kernel::startup() {
 }
 
 Kernel::~Kernel() {
+    audio->stop();
     shutdown();
 }
 
@@ -75,10 +79,13 @@ void Kernel::createMemoryMap() {
     // Input (controle, teclado, mouse)
     controller = new Controller(lastUsedMemByte);
     addMemoryDevice((Memory*)controller);
-    //keyboard = new Keyboard(lastUsedMemByte);
-    //addMemoryDevice((Memory*)keyboard);
+    keyboard = new Keyboard(lastUsedMemByte);
+    addMemoryDevice((Memory*)keyboard);
     //mouse = new Mouse(lastUsedMemByte);
     //addMemoryDevice((Memory*)mouse);
+    // Audio
+    audio = new Audio(lastUsedMemByte);
+    addMemoryDevice(audio);
     // RAM
     //addMemoryDevice(new RAM(lastUsedMemByte, 32*1024));
 }
@@ -110,7 +117,7 @@ void Kernel::loop() {
         float currentTime = clock.getElapsedTime().asSeconds();
         float fps = 1.f / (currentTime - lastTime);
         lastTime = currentTime;
-        cerr << fps << "\r";
+        //cerr << fps << "\r";
 
         sf::Event event;
 
@@ -131,7 +138,7 @@ void Kernel::loop() {
                 break;
                 // Teclado
             case sf::Event::TextEntered: {
-                // keyboard->input(event.text.unicode);
+                keyboard->input(event.text.unicode);
             }
                 break;
                 // Controle
@@ -372,7 +379,7 @@ string Kernel::read(uint64_t start, uint64_t size) {
         }
     }
 
-    return stringBuffer;
+    return stringBuffer.substr(0, numRead);
 }
 
 bool Kernel::checkCartStructure(Path& root) {
