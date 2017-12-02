@@ -3,6 +3,8 @@
 -- https://github.com/pongboy/nibble
 
 -- Apaga variáveis globais desnecessárias
+time = os.clock
+
 os = nil
 dprint = print
 
@@ -10,6 +12,7 @@ dprint = print
 local gpu = require('niblib/gpu')
 local input = require('niblib/input')
 local vid = require('niblib/vid')
+local audio = require('niblib/audio')
 
 -- Exporta a API gráfica
 
@@ -58,3 +61,12 @@ BLUE = input.BLUE
 
 BLACK = input.BLACK
 WHITE = input.WHITE
+
+-- Áudio
+snd = audio.snd
+mksnd = audio.mksnd
+note = audio.note
+skip = audio.skip
+rep = audio.rep
+loop = audio.loop
+stop = audio.stop

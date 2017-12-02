@@ -5,13 +5,16 @@
 #include <kernel/SquareWave.hpp>
 #include <SFML/Audio.hpp>
 
+#define SND_MEMORY_LENGTH 1024*4
+
 class Audio : public Memory, public sf::SoundStream {
     const static unsigned int sampleCount;
     const uint64_t address;
     int16_t *samples;
 
-    SquareWave wSquare;
-    SquareWave wSquare2;
+    SquareWave *wSquare;
+    SquareWave *wTriangle;
+    uint8_t *sndMemory;
 public:
     Audio(const uint64_t);
     ~Audio();

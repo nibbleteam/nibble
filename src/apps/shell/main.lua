@@ -1,6 +1,27 @@
 ﻿function init()
   -- Deixa a cor 0 na paleta 0 transparente
   kernel.write(0x20+3, '\0')
+
+  mus = mksnd()
+  note('C', 2)
+  rep(-1)
+  note('E', 2)
+  skip(3)
+  note('A', 2)
+  skip(3)
+  note('C', 2)
+  skip(1)
+  note('D', 2)
+  skip(5)
+  loop(-18)
+
+  bump = mksnd()
+  note('A', 4)
+  note('A#', 4)
+  stop()
+
+  -- Toca no canal 1, temos 2 canais
+  snd(mus, 1)
 end
 
 local x, y = 0, 0
@@ -17,6 +38,7 @@ function draw()
 
   print("pos "..tostring(x)..", "..tostring(y), 0, 0)
   print(kbd, 0, 8)
+  print(tostring(time()), 0, 16)
 
   print(btstr, 0, 232)
 end
@@ -80,9 +102,11 @@ function update()
 
   if x <= 0 or x >= 319-8 then
     v = v*-1
+    snd(bump)
   end
 
   if y <= 0 or y >= 239-8 then
     w = w*-1
+    snd(bump)
   end
 end

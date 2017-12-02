@@ -117,7 +117,7 @@ void Kernel::loop() {
         float currentTime = clock.getElapsedTime().asSeconds();
         float fps = 1.f / (currentTime - lastTime);
         lastTime = currentTime;
-        //cerr << fps << "\r";
+        cerr << fps << "\r";
 
         sf::Event event;
 
