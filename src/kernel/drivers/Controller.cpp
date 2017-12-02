@@ -3,9 +3,9 @@
 #include <cstring>
 
 Controller::Controller(const uint64_t addr) :
-    address(addr), length(sizeof(controllers)) {
+    address(addr), length(10) {
     // Zera todos os botões
-    memset(&controllers, 0, sizeof(controllers));
+    memset(&controllers, 0, 10);
     // O primeiro controle está sempre conectado 
     controllers.connected = 0b10000000;
 }

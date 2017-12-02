@@ -18,6 +18,9 @@ GPU::GPU(sf::RenderWindow& window,
 }
 
 GPU::~GPU() {
+	delete paletteMemory;
+	delete commandMemory;
+	delete videoMemory;
 }
 
 void GPU::draw() {

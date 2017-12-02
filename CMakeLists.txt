@@ -133,5 +133,5 @@ if (UNIX)
 endif (UNIX)
 
 if (WIN32)
-    target_link_libraries(nibble opengl32 winmm FLAC vorbis ogg vorbisfile)
+    target_link_libraries(nibble opengl32 winmm openal32 FLAC ogg vorbis vorbisenc vorbisfile)
 endif (WIN32)

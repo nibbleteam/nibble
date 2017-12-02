@@ -1,3 +1,4 @@
+#include <SFML/OpenGL.hpp>
 #include <kernel/Kernel.hpp>
 #include <kernel/drivers/RAM.hpp>
 #include <kernel/drivers/Audio.hpp>
@@ -21,29 +22,26 @@ Kernel::Kernel():
     // Não gera múltiplos keypresses se a tecla ficar apertada
     window.setKeyRepeatEnabled(false);
 
-    startup();
+	lastUsedMemByte = 0;
+	createMemoryMap();
+	startup();
 }
 
 void Kernel::reset() {
+	audio->stop();
     shutdown();
-    startup();
+	startup();
 }
 
 void Kernel::shutdown() {
-    destroyMemoryMap();
     for (auto process : processes) {
         delete process;
     }
-    delete gpu;
-
     processes.clear();
 }
 
 void Kernel::startup() {
     lastPid = 1;
-    lastUsedMemByte = 0;
-
-    createMemoryMap();
 
     audio->play();
 
@@ -58,7 +56,9 @@ void Kernel::startup() {
 
 Kernel::~Kernel() {
     audio->stop();
-    shutdown();
+	destroyMemoryMap();
+	shutdown();
+	delete gpu;
 }
 
 void Kernel::addMemoryDevice(Memory* device) {
@@ -98,7 +98,10 @@ void Kernel::destroyMemoryMap() {
         bool rm = true;
 
         for (auto process : processes) {
-            if (process->getMemory() == memory) {
+            if (process->getMemory() == memory ||
+				memory == gpu->getCommandMemory() ||
+				memory == gpu->getPaletteMemory() ||
+				memory == gpu->getVideoMemory()) {
                 rm = false;
             }
         }
@@ -150,8 +153,7 @@ void Kernel::loop() {
             case sf::Event::KeyPressed: {
                 if (event.key.code == sf::Keyboard::R &&
                     event.key.control) {
-                    reset();
-                    continue;
+					reset();
                 } else {
                     controller->kbdPressed(event);
                 }

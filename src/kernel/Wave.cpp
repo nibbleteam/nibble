@@ -26,9 +26,9 @@ Wave::Wave(uint8_t *mem, uint64_t len, uint64_t pos):
 void Wave::changeParameters() {
     if (!memory[confPosition+4])
         return;
-
+	
     if (fmod(t, clockPeriod) < fmod(t-1, clockPeriod)) {
-        uint32_t base =
+		uint32_t base =
             memory[confPosition+0]<<24 |
             memory[confPosition+1]<<16 |
             memory[confPosition+2]<<8  |
@@ -43,7 +43,7 @@ void Wave::changeParameters() {
         case 1:
             period = fromFrequency(fromNote(memory[ptr+2], memory[ptr+1]));
             //period = fromFrequency(fromNote(4, rand()%12));
-            adsr = 0;
+			adsr = 0;
             amplitude = SHRT_MAX;
             break;
             // Jump

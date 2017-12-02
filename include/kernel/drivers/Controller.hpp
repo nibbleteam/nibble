@@ -39,15 +39,19 @@ class Controller : public Memory {
         unsigned int red :2;
         unsigned int blue :2;
     };
+#pragma pack(pop)
 
-    struct PauseButton {
+#pragma pack(push, 1)
+	struct PauseButton {
         unsigned int a :2;
         unsigned int b :2;
         unsigned int c :2;
         unsigned int d :2;
     };
+#pragma pack(pop)
 
-    struct ControllersMemory {
+#pragma pack(push, 1)
+	struct ControllersMemory {
         // Cada dois bits indicam um dos quatro estados dos
         // joysticks
         uint8_t connected;

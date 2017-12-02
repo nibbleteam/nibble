@@ -12,7 +12,10 @@ Audio::Audio(const uint64_t addr):
     samples = new int16_t[sampleCount];
 
     sndMemory = new uint8_t[SND_MEMORY_LENGTH];
-    wSquare = new SquareWave(sndMemory, SND_MEMORY_LENGTH, 0);
+    
+	memset(sndMemory, 0, SND_MEMORY_LENGTH);
+	
+	wSquare = new SquareWave(sndMemory, SND_MEMORY_LENGTH, 0);
     wTriangle = new SquareWave(sndMemory, SND_MEMORY_LENGTH, 8);
 
     wTriangle->attack = 2000;
@@ -31,7 +34,7 @@ Audio::~Audio() {
 }
 
 uint64_t Audio::write(const uint64_t p, const uint8_t* data, const uint64_t size) {
-    memcpy(sndMemory+p, data, size);
+	memcpy(sndMemory+p, data, size);
     return size;
 }
 
