@@ -42,7 +42,11 @@ Console Fantasia feito para funcionar em hardware real.
         git submodule update --init --recursive
         mkdir build
 
-3. Entre no build e rode o cmake e make
+3. Instale as dependências
+
+        sudo apt install xrandr-dev
+
+4. Entre no build e rode o cmake e make
 
         cd build
         cmake ..
