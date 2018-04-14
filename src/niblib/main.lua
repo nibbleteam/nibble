@@ -70,3 +70,4 @@ skip = audio.skip
 rep = audio.rep
 loop = audio.loop
 stop = audio.stop
+adsr = audio.adsr

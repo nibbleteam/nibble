@@ -23,8 +23,8 @@ public:
     void add(vector<sf::Vertex>);
 
     void setShader(sf::Shader*);
-private:
-    void trim();
+
+    bool hasContent();
 };
 
 #endif /* RENDER_BUFFER_H */

@@ -8,6 +8,8 @@
 class Wave {
 public:
     int16_t samples[MAX_WAVE_SAMPLES];
+    double phase;
+    int16_t lut[128];
 
     uint32_t t;
     int16_t amplitude;
@@ -17,10 +19,10 @@ public:
     double clockPeriod;
     double duty;
 
-    int16_t attack;
-    int16_t decay;
-    int16_t sustain;
-    int16_t release;
+    uint16_t attack;
+    uint16_t decay;
+    uint16_t sustain;
+    uint16_t release;
 
     int16_t vAttack;
     int16_t vDecay;
@@ -37,6 +39,7 @@ public:
     static double fromFrequency(double);
 protected:
     void changeParameters();
+    double valueAt(double);
 };
 
 #endif /* WAVE_H */

@@ -20,12 +20,10 @@ void RenderBuffer::setShader(sf::Shader* shader) {
 }
 
 void RenderBuffer::draw(sf::RenderTarget& target) {
-    trim();
-
     uint64_t remaining = pos;
 
     for (auto &array : arrays) {
-        uint64_t size = remaining%arrayLength;
+        uint64_t size = remaining>arrayLength ? arrayLength : remaining;
         if (shader == NULL) {
             target.draw(array, size*primitiveSize, primitive, sf::BlendNone);
         } else {
@@ -62,5 +60,6 @@ void RenderBuffer::clear() {
     pos = 0;
 }
 
-void RenderBuffer::trim() {
+bool RenderBuffer::hasContent() {
+    return pos != 0;
 }

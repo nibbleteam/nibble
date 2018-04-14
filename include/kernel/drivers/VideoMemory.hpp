@@ -92,45 +92,45 @@ protected:
     // Operações nas VertexArrays utilizadas para
     // desenho na GPU
     void gpuLine(RenderBuffer &, sf::Color,
-                 uint16_t, uint16_t,
-                 uint16_t, uint16_t);
+                 int16_t, int16_t,
+                 int16_t, int16_t);
     void gpuRect(RenderBuffer &, sf::Color,
-                 uint16_t, uint16_t,
-                 uint16_t, uint16_t);
+                 int16_t, int16_t,
+                 int16_t, int16_t);
     void gpuTri(RenderBuffer &, sf::Color,
-                uint16_t, uint16_t,
-                uint16_t, uint16_t,
-                uint16_t, uint16_t);
+                int16_t, int16_t,
+                int16_t, int16_t,
+                int16_t, int16_t);
     void gpuQuad(RenderBuffer &, sf::Color,
-                 uint16_t, uint16_t,
-                 uint16_t, uint16_t,
-                 uint16_t, uint16_t,
-                 uint16_t, uint16_t);
+                 int16_t, int16_t,
+                 int16_t, int16_t,
+                 int16_t, int16_t,
+                 int16_t, int16_t);
     void gpuCircle(RenderBuffer &, sf::Color,
-                   uint16_t, uint16_t, uint16_t);
+                   int16_t, int16_t, int16_t);
     void gpuFillCircle(RenderBuffer &, sf::Color,
-                       uint16_t, uint16_t, uint16_t);
+                       int16_t, int16_t, int16_t);
     void gpuFillRect(RenderBuffer &, sf::Color,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t);
+                     int16_t, int16_t,
+                     int16_t, int16_t);
     void gpuFillTri(RenderBuffer &, sf::Color,
-                    uint16_t, uint16_t,
-                    uint16_t, uint16_t,
-                    uint16_t, uint16_t);
+                    int16_t, int16_t,
+                    int16_t, int16_t,
+                    int16_t, int16_t);
     void gpuFillQuad(RenderBuffer &, sf::Color,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t,
-                     uint16_t, uint16_t);
+                     int16_t, int16_t,
+                     int16_t, int16_t,
+                     int16_t, int16_t,
+                     int16_t, int16_t);
     void gpuSprite(RenderBuffer &, sf::Color,
-                   uint16_t, uint16_t,
-                   uint16_t, uint16_t,
-                   uint16_t, uint16_t);
+                   int16_t, int16_t,
+                   int16_t, int16_t,
+                   int16_t, int16_t);
     void execGpuCommand(uint8_t*);
 private:
     // Helpers para extrair argumentos de um comando
     // da GPU
-    uint16_t next16Arg(uint8_t*&);
+    int16_t next16Arg(uint8_t*&);
     uint8_t next8Arg(uint8_t*&);
     // Gera cores a partir de indices, paletas ou tempo
     sf::Color time2Color(uint32_t);

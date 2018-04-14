@@ -12,16 +12,11 @@ Audio::Audio(const uint64_t addr):
     samples = new int16_t[sampleCount];
 
     sndMemory = new uint8_t[SND_MEMORY_LENGTH];
-    
-	memset(sndMemory, 0, SND_MEMORY_LENGTH);
-	
-	wSquare = new SquareWave(sndMemory, SND_MEMORY_LENGTH, 0);
-    wTriangle = new SquareWave(sndMemory, SND_MEMORY_LENGTH, 8);
 
-    wTriangle->attack = 2000;
-    wTriangle->decay = 2000;
-    wTriangle->sustain = 3000;
-    wTriangle->release = 4000;
+    memset(sndMemory, 0, SND_MEMORY_LENGTH);
+
+    wSquare = new SquareWave(sndMemory, SND_MEMORY_LENGTH, 0);
+    wTriangle = new SquareWave(sndMemory, SND_MEMORY_LENGTH, 8);
 
     initialize(1, 44100);
 }

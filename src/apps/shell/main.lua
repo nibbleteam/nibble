@@ -17,11 +17,13 @@
 
   bump = mksnd()
   note('A', 4)
-  note('A#', 4)
   stop()
 
   -- Toca no canal 1, temos 2 canais
   snd(mus, 1)
+
+  --adsr(0, 0, 0, 0, 0)
+  --adsr(1, 128, 0, 0, 2)
 end
 
 local x, y = 0, 0

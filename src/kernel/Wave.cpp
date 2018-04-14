@@ -17,7 +17,7 @@ double Wave::fromNote(uint8_t o, uint8_t n) {
 }
 
 Wave::Wave(uint8_t *mem, uint64_t len, uint64_t pos):
-    t(0), amplitude(SHRT_MAX), period(0), beatPeriod(fromFrequency(120.0/60.0)),
+    t(0), amplitude(0), period(0), beatPeriod(fromFrequency(120.0/60.0)),
     clockPeriod(beatPeriod/4.0), duty(0.5),
     attack(0), decay(0), sustain(0), release(0),
     memory(mem), memoryLength(len), confPosition(pos) {
@@ -26,14 +26,20 @@ Wave::Wave(uint8_t *mem, uint64_t len, uint64_t pos):
 void Wave::changeParameters() {
     if (!memory[confPosition+4])
         return;
-	
+
+    attack = double(memory[confPosition+5])/255.0*41100;
+    sustain = double(memory[confPosition+6])/255.0*41100;
+    release = double(memory[confPosition+7])/255.0*41100;
+
     if (fmod(t, clockPeriod) < fmod(t-1, clockPeriod)) {
-		uint32_t base =
+        uint32_t base =
             memory[confPosition+0]<<24 |
             memory[confPosition+1]<<16 |
             memory[confPosition+2]<<8  |
             memory[confPosition+3];
         auto ptr = base%memoryLength;
+
+        double prevPeriod;
 
         switch(memory[ptr]) {
             // No Op
@@ -41,12 +47,21 @@ void Wave::changeParameters() {
             break;
             // Note
         case 1:
+            prevPeriod = period;
             period = fromFrequency(fromNote(memory[ptr+2], memory[ptr+1]));
-            //period = fromFrequency(fromNote(4, rand()%12));
-			adsr = 0;
+
+            if (prevPeriod != 0) {
+                phase = fmod(t, period)/period-fmod(t+phase, prevPeriod)/prevPeriod;
+                phase = -phase*period;
+            }
+
+            //period = fromFrequency(fromNote(4, 0));
+            adsr = 0;
             amplitude = SHRT_MAX;
+            vAttack = amplitude;
+            vDecay = amplitude/2;
             break;
-            // Jump
+            // Repeat from 
         case 2:
             memory[ptr] = 0;
             ptr =
@@ -54,9 +69,14 @@ void Wave::changeParameters() {
                 memory[ptr+2]<<8  |
                 memory[ptr+3];
             break;
+            // Stop
         case 3:
             memory[confPosition+4] = 0;
             amplitude = 0;
+            vAttack = 0;
+            vDecay = 0;
+            break;
+            // Loop
         case 4:
             ptr =
                 memory[ptr+1]<<16 |
@@ -90,4 +110,13 @@ void Wave::changeParameters() {
 
         amplitude = p*(-vDecay)+vDecay;
     }
+}
+
+double Wave::valueAt(double i) {
+    auto a = lut[(int)ceil(i*128)%128];
+    auto b = lut[(int)floor(i*128)];
+
+    auto p = i*128-floor(i*128);
+
+    return (a*p+b*(1.0-p));
 }

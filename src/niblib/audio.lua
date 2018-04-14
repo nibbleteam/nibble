@@ -63,4 +63,16 @@ function audio.snd(p, c)
   kernel.write(MEM_BASE+4+c*8, '\01')
 end
 
+function audio.adsr(c, a, d, s, r)
+  c = c or 0
+  a = a or 0
+  d = d or 0
+  s = s or 0
+  r = r or 0
+
+  kernel.write(MEM_BASE+c*8+5, string.char(a))
+  kernel.write(MEM_BASE+c*8+6, string.char(s))
+  kernel.write(MEM_BASE+c*8+7, string.char(r))
+end
+
 return audio

@@ -505,8 +505,8 @@ sf::Color VideoMemory::spriteTime2Color(uint8_t pal, uint32_t time) {
 }
 
 void VideoMemory::gpuLine(RenderBuffer &buffer, sf::Color color,
-                          const uint16_t x1, const uint16_t y1,
-                          const uint16_t x2, const uint16_t y2) {
+                          const int16_t x1, const int16_t y1,
+                          const int16_t x2, const int16_t y2) {
     buffer.add({
             sf::Vertex(sf::Vector2f(x1, y1), color),
                 sf::Vertex(sf::Vector2f(x2, y2), color),
@@ -514,8 +514,8 @@ void VideoMemory::gpuLine(RenderBuffer &buffer, sf::Color color,
 }
 
 void VideoMemory::gpuRect(RenderBuffer &buffer, sf::Color color,
-                          const uint16_t x, const uint16_t y,
-                          const uint16_t w, const uint16_t h) {
+                          const int16_t x, const int16_t y,
+                          const int16_t w, const int16_t h) {
     buffer.add({
             sf::Vertex(sf::Vector2f(x, y), color),
                 sf::Vertex(sf::Vector2f(x+w, y), color),
@@ -535,10 +535,10 @@ void VideoMemory::gpuRect(RenderBuffer &buffer, sf::Color color,
 }
 
 void VideoMemory::gpuQuad(RenderBuffer &buffer, sf::Color color,
-                          const uint16_t x1, const uint16_t y1,
-                          const uint16_t x2, const uint16_t y2,
-                          const uint16_t x3, const uint16_t y3,
-                          const uint16_t x4, const uint16_t y4) {
+                          const int16_t x1, const int16_t y1,
+                          const int16_t x2, const int16_t y2,
+                          const int16_t x3, const int16_t y3,
+                          const int16_t x4, const int16_t y4) {
     buffer.add({
             sf::Vertex(sf::Vector2f(x1, y1), color),
                 sf::Vertex(sf::Vector2f(x2, y2), color),
@@ -558,26 +558,26 @@ void VideoMemory::gpuQuad(RenderBuffer &buffer, sf::Color color,
 }
 
 void VideoMemory::gpuTri(RenderBuffer &buffer, sf::Color color,
-                         const uint16_t x1, const uint16_t y1,
-                         const uint16_t x2, const uint16_t y2,
-                         const uint16_t x3, const uint16_t y3) {
+                         const int16_t x1, const int16_t y1,
+                         const int16_t x2, const int16_t y2,
+                         const int16_t x3, const int16_t y3) {
     buffer.add({
-            sf::Vertex(sf::Vector2f(x1, y1), color),
-                sf::Vertex(sf::Vector2f(x2, y2), color),
+            sf::Vertex(sf::Vector2f(0.5+x1, 0.5+y1), color),
+                sf::Vertex(sf::Vector2f(0.5+x2, 0.5+y2), color),
                 });
     buffer.add({
-            sf::Vertex(sf::Vector2f(x2, y2), color),
-                sf::Vertex(sf::Vector2f(x3, y3), color),
+            sf::Vertex(sf::Vector2f(0.5+x2, 0.5+y2), color),
+                sf::Vertex(sf::Vector2f(0.5+x3, 0.5+y3), color),
                 });
     buffer.add({
-            sf::Vertex(sf::Vector2f(x3, y3), color),
-                sf::Vertex(sf::Vector2f(x1, y1), color),
+            sf::Vertex(sf::Vector2f(0.5+x3, 0.5+y3), color),
+                sf::Vertex(sf::Vector2f(0.5+x1, 0.5+y1), color),
                 });
 }
 
 void VideoMemory::gpuCircle(RenderBuffer &buffer, sf::Color color,
-                            const uint16_t destX, const uint16_t destY,
-                            const uint16_t radius) {
+                            const int16_t destX, const int16_t destY,
+                            const int16_t radius) {
     unsigned int size = radius/6>0?radius/6:1;
     unsigned int segments = radius * 2 * M_PI/size;
 
@@ -607,8 +607,8 @@ void VideoMemory::gpuCircle(RenderBuffer &buffer, sf::Color color,
 }
 
 void VideoMemory::gpuFillCircle(RenderBuffer &buffer, sf::Color color,
-                                const uint16_t destX, const uint16_t destY,
-                                const uint16_t radius) {
+                                const int16_t destX, const int16_t destY,
+                                const int16_t radius) {
     unsigned int size = radius/6>0?radius/6:1;
     unsigned int segments = ceil(radius * 2 * M_PI/float(size));
 
@@ -639,8 +639,8 @@ void VideoMemory::gpuFillCircle(RenderBuffer &buffer, sf::Color color,
 }
 
 void VideoMemory::gpuFillRect(RenderBuffer &buffer, sf::Color color,
-                              const uint16_t x, const uint16_t y,
-                              const uint16_t w, const uint16_t h) {
+                              const int16_t x, const int16_t y,
+                              const int16_t w, const int16_t h) {
     buffer.add({
             sf::Vertex(sf::Vector2f(x, y), color),
                 sf::Vertex(sf::Vector2f(x+w, y), color),
@@ -650,9 +650,9 @@ void VideoMemory::gpuFillRect(RenderBuffer &buffer, sf::Color color,
 }
 
 void VideoMemory::gpuSprite(RenderBuffer &buffer, sf::Color color,
-                            const uint16_t sx, const uint16_t sy,
-                            const uint16_t x, const uint16_t y,
-                            const uint16_t w, const uint16_t h) {
+                            const int16_t sx, const int16_t sy,
+                            const int16_t x, const int16_t y,
+                            const int16_t w, const int16_t h) {
     float a, b, c, d;
     auto size = spriteTex.getSize();
 
@@ -670,21 +670,21 @@ void VideoMemory::gpuSprite(RenderBuffer &buffer, sf::Color color,
 }
 
 void VideoMemory::gpuFillTri(RenderBuffer &buffer, sf::Color color,
-                             const uint16_t x1, const uint16_t y1,
-                             const uint16_t x2, const uint16_t y2,
-                             const uint16_t x3, const uint16_t y3) {
+                             const int16_t x1, const int16_t y1,
+                             const int16_t x2, const int16_t y2,
+                             const int16_t x3, const int16_t y3) {
     buffer.add({
-            sf::Vertex(sf::Vector2f(x1, y1), color),
+                sf::Vertex(sf::Vector2f(x1, y1), color),
                 sf::Vertex(sf::Vector2f(x2, y2), color),
                 sf::Vertex(sf::Vector2f(x3, y3), color)
                 });
 }
 
 void VideoMemory::gpuFillQuad(RenderBuffer &buffer, sf::Color color,
-                              const uint16_t x1, const uint16_t y1,
-                              const uint16_t x2, const uint16_t y2,
-                              const uint16_t x3, const uint16_t y3,
-                              const uint16_t x4, const uint16_t y4) {
+                              const int16_t x1, const int16_t y1,
+                              const int16_t x2, const int16_t y2,
+                              const int16_t x3, const int16_t y3,
+                              const int16_t x4, const int16_t y4) {
     buffer.add({
             sf::Vertex(sf::Vector2f(x1, y1), color),
                 sf::Vertex(sf::Vector2f(x2, y2), color),
@@ -697,9 +697,9 @@ uint8_t VideoMemory::next8Arg(uint8_t *&arg) {
     return *arg++;
 }
 
-uint16_t VideoMemory::next16Arg(uint8_t *&arg) {
-    uint16_t value = (uint16_t)arg[0]<<8 | (uint16_t)arg[1];
-    arg+=sizeof(uint16_t);
+int16_t VideoMemory::next16Arg(uint8_t *&arg) {
+    int16_t value = (int16_t)arg[0]<<8 | (uint16_t)arg[1];
+    arg+=sizeof(int16_t);
     return value;
 }
 
@@ -852,12 +852,18 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
 
 void VideoMemory::draw() {
     // Renderiza polígonos e seus timings na GPU
-    gpuTQuadsBuffer.draw(gpuRenderTimingQuads);
-    gpuTTrisBuffer.draw(gpuRenderTimingTris);
-    gpuTLinesBuffer.draw(gpuRenderTimingLines);
-    gpuQuadsBuffer.draw(gpuRenderTextureQuads);
-    gpuTrisBuffer.draw(gpuRenderTextureTris);
-    gpuLinesBuffer.draw(gpuRenderTextureLines);
+    if (gpuTQuadsBuffer.hasContent())
+        gpuTQuadsBuffer.draw(gpuRenderTimingQuads);
+    if (gpuTTrisBuffer.hasContent())
+        gpuTTrisBuffer.draw(gpuRenderTimingTris);
+    if (gpuTLinesBuffer.hasContent())
+        gpuTLinesBuffer.draw(gpuRenderTimingLines);
+    if (gpuQuadsBuffer.hasContent())
+        gpuQuadsBuffer.draw(gpuRenderTextureQuads);
+    if (gpuTrisBuffer.hasContent())
+        gpuTrisBuffer.draw(gpuRenderTextureTris);
+    if (gpuLinesBuffer.hasContent())
+        gpuLinesBuffer.draw(gpuRenderTextureLines);
 
     // Atualiza textura de timing da CPU
     cpuTiming.update(timingBuffer, w, h, 0, 0);
@@ -877,7 +883,7 @@ void VideoMemory::draw() {
     memcpy(buffer, img.getPixelsPtr(), w*h);
 
     if (colormap == NULL) {
-        startCapturing("screencap.gif");
+        //startCapturing("screencap.gif");
     } else {
         captureFrame();
     }

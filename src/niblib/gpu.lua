@@ -32,10 +32,29 @@ local GPU_TRI = string.char(0x08)
 local GPU_CIRC = string.char(0x09)
 local GPU_SPRITE = string.char(0x0a)
 
+function round(x)
+  return math.floor(x)
+
+  --if x >= math.floor(x)+0.5 then
+  --  return math.ceil(x)
+  --else
+  --  return math.floor(x)
+  --end
+end
+
 -- Funções para enviar argumentos
 -- Big Endian de 16 bits para a GPU
 function u16(x)
-  return string.char(math.floor(x/256)%256, math.floor(math.floor(x)%256))
+  local signal = x
+  x = math.abs(x)
+
+  if signal < 0 then
+    signal = 128
+  else
+    signal = 0
+  end
+
+  return string.char(round(x/256)%128+signal, round(x)%256)
 end
 
 -- Parâmetros de 16 bits
