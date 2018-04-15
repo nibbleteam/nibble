@@ -12,11 +12,10 @@ Audio::Audio(const uint64_t addr):
     samples = new int16_t[sampleCount];
 
     sndMemory = new uint8_t[SND_MEMORY_LENGTH];
-
     memset(sndMemory, 0, SND_MEMORY_LENGTH);
 
-    wSquare = new SquareWave(sndMemory, SND_MEMORY_LENGTH, 0);
-    wTriangle = new SquareWave(sndMemory, SND_MEMORY_LENGTH, 8);
+    wSquare = new SquareWave();
+    wTriangle = new SquareWave();
 
     initialize(1, 44100);
 }
@@ -38,11 +37,13 @@ uint64_t Audio::read(const uint64_t, uint8_t*, const uint64_t) {
 }
 
 bool Audio::onGetData(Audio::Chunk& chunk) {
+	// Generate
     int16_t *s1 = wSquare->fill(sampleCount);
     int16_t *s2 = wTriangle->fill(sampleCount);
 
+	// Mix
     for (unsigned int i=0;i<sampleCount;i++) {
-        samples[i] = s1[i]/2 + s2[i]/2;
+        samples[i] = s1[i];
     }
 
     chunk.samples = samples;
