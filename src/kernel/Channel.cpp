@@ -20,6 +20,7 @@ Channel::Channel(uint8_t *mem, unsigned int pc): nextTick(0), t(0), mem(mem), pc
 			wave = new SquareWave();
 		break;
 		default:
+		break;
 	}
 
 	// Frequência do tick em Hz
