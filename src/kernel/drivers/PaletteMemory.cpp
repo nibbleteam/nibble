@@ -34,6 +34,10 @@ PaletteMemory::~PaletteMemory() {
 	delete[] data;
 }
 
+string PaletteMemory::name() {
+	return "PAL";
+}
+
 uint64_t PaletteMemory::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
 	memcpy(this->data + pos, data, (size_t)amount);
 

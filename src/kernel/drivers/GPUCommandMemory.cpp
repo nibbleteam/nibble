@@ -14,6 +14,10 @@ GPUCommandMemory::~GPUCommandMemory() {
 	delete[] data;
 }
 
+string GPUCommandMemory::name() {
+	return "GPU";
+}
+
 uint64_t GPUCommandMemory::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
 	memcpy(this->data + pos, data, (size_t)amount);
 

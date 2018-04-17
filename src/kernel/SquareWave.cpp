@@ -1,10 +1,5 @@
-#include <SFML/Audio.hpp>
 #include <kernel/SquareWave.hpp>
 #include <climits>
-#include <cmath>
-#include <cstdlib>
-#include <iostream>
-#include <map>
 using namespace std;
 
 SquareWave::SquareWave():

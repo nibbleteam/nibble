@@ -63,6 +63,10 @@ Kernel::~Kernel() {
 
 void Kernel::addMemoryDevice(Memory* device) {
     ram.push_back(device);
+
+	cout << "[" << lastUsedMemByte << " - " << lastUsedMemByte+device->size() << "]: ";
+	cout << device->name() << endl;
+
     lastUsedMemByte += device->size();
 }
 

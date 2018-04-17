@@ -14,6 +14,10 @@ RandomMemory::~RandomMemory() {
 	delete[] data;
 }
 
+string RandomMemory::name() {
+	return "RAM";
+}
+
 // Apenas leitura
 uint64_t RandomMemory::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
     return 0;

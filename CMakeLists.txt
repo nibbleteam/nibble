@@ -91,6 +91,12 @@ add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/kernel/Wave.cpp
                 ${PROJECT_HEADER_DIR}/kernel/SquareWave.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/SquareWave.cpp
+                ${PROJECT_HEADER_DIR}/kernel/TriangleWave.hpp
+				${PROJECT_SOURCE_DIR}/kernel/TriangleWave.cpp
+                ${PROJECT_HEADER_DIR}/kernel/NoiseWave.hpp
+				${PROJECT_SOURCE_DIR}/kernel/NoiseWave.cpp
+				${PROJECT_HEADER_DIR}/kernel/Channel.hpp
+				${PROJECT_SOURCE_DIR}/kernel/Channel.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/Controller.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/Controller.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/Keyboard.hpp

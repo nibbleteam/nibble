@@ -31,6 +31,10 @@ CartridgeMemory::~CartridgeMemory() {
     delete[] data;
 }
 
+string CartridgeMemory::name() {
+	return "CART";
+}
+
 void CartridgeMemory::updateSpriteSheet(uint64_t p, uint64_t size) {
     video->updateSpriteSheet(p, data+p, size);
 }

@@ -14,17 +14,33 @@ Audio::Audio(const uint64_t addr):
     sndMemory = new uint8_t[SND_MEMORY_LENGTH];
     memset(sndMemory, 0, SND_MEMORY_LENGTH);
 
-    wSquare = new SquareWave();
-    wTriangle = new SquareWave();
+	CA = new Channel(sndMemory, 0);
+	CE = new Channel(sndMemory, 2);
+	CI = new Channel(sndMemory, 4);
+	CO = new Channel(sndMemory, 6);
+	CU = new Channel(sndMemory, 8);
+
+	S = new Channel(sndMemory, 10); 
+	N = new Channel(sndMemory, 14);
 
     initialize(1, 44100);
 }
 
 Audio::~Audio() {
-    delete wTriangle;
-    delete wSquare;
+	delete CA;
+	delete CE;
+	delete CI;
+	delete CO;
+	delete CU;
+	delete S;
+	delete N;
+
     delete[] samples;
     delete[] sndMemory;
+}
+
+string Audio::name() {
+	return "AUDIO";
 }
 
 uint64_t Audio::write(const uint64_t p, const uint8_t* data, const uint64_t size) {
@@ -38,12 +54,17 @@ uint64_t Audio::read(const uint64_t, uint8_t*, const uint64_t) {
 
 bool Audio::onGetData(Audio::Chunk& chunk) {
 	// Generate
-    int16_t *s1 = wSquare->fill(sampleCount);
-    int16_t *s2 = wTriangle->fill(sampleCount);
+    int16_t *w1 = CA->fill(sampleCount);
+    int16_t *w2 = CE->fill(sampleCount);
+    int16_t *w3 = CI->fill(sampleCount);
+    int16_t *w4 = CO->fill(sampleCount);
+    int16_t *w5 = CU->fill(sampleCount);
+    int16_t *w6 = S->fill(sampleCount);
+    int16_t *w7 = N->fill(sampleCount);
 
 	// Mix
     for (unsigned int i=0;i<sampleCount;i++) {
-        samples[i] = s1[i];
+        samples[i] = w1[i]/7 + w2[i]/7 + w3[i]/7 + w4[i]/7 + w5[i]/7 + w6[i]/7 + w7[i]/7;
     }
 
     chunk.samples = samples;

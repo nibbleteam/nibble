@@ -15,6 +15,8 @@ public:
 	PaletteMemory(VideoMemory*, const uint64_t);
 	~PaletteMemory();
 
+	string name();
+
 	uint64_t write(const uint64_t, const uint8_t*, const uint64_t);
 	uint64_t read(const uint64_t, uint8_t*, const uint64_t);
 

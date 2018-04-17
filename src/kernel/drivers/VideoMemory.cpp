@@ -326,6 +326,10 @@ VideoMemory::~VideoMemory() {
     delete[] buffer;
 }
 
+string VideoMemory::name() {
+	return "VIDEO";
+}
+
 bool VideoMemory::startCapturing(const string& path) {
     int error;
 

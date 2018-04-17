@@ -71,6 +71,8 @@ public:
     Controller(const uint64_t);
     ~Controller();
 
+	string name();
+
     void update();
     void kbdPressed(sf::Event&);
     void kbdReleased(sf::Event&);

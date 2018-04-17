@@ -15,6 +15,8 @@ public:
     Keyboard(const uint64_t);
     ~Keyboard();
 
+	string name();
+
     void input(const unsigned int);
 
     uint64_t write(const uint64_t, const uint8_t*, const uint64_t);

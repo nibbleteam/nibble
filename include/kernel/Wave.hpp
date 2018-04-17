@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #define MAX_WAVE_SAMPLES 4096
-#define WAVE_LUT_SIZE 256
+#define WAVE_LUT_SIZE 128
 
 class Wave {
 public:
@@ -21,7 +21,7 @@ public:
 public:
     Wave();
 
-    int16_t* fill(const unsigned int);
+    virtual int16_t* fill(const unsigned int);
 
     static double fromNote(uint8_t, uint8_t);
     static double fromFrequency(double);

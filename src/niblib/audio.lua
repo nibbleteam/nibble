@@ -15,8 +15,11 @@ local NOTE_TABLE = {
 }
 
 local MEM_BASE = 0x25a4a
-local MEM_OFFSET = MEM_BASE+32
+local MEM_OFFSET = MEM_BASE+14
 local WRITE_POS = MEM_OFFSET
+
+local CMD_LENGTH = 2
+local CONF_LENGTH = 2
 
 function u16(x)
   return string.char(math.floor(x/256)%256, math.floor(math.floor(x)%256))
@@ -28,13 +31,13 @@ end
 
 function audio.note(n, o)
   n = n:gsub('#', 's')
-  local note = '\01'..string.char(NOTE_TABLE[n])..string.char(o)
+  local note = '\00'..string.char(NOTE_TABLE[n]+o*16)
   kernel.write(WRITE_POS, note)
-  WRITE_POS = WRITE_POS+4
+  WRITE_POS = WRITE_POS+CMD_LENGTH
 end
 
 function audio.skip(n)
-  WRITE_POS = WRITE_POS+4*n
+  WRITE_POS = WRITE_POS+CMD_LENGTH*n
 end
 
 function audio.rep(n)
@@ -59,8 +62,7 @@ end
 function audio.snd(p, c)
   c = c or 0
 
-  kernel.write(MEM_BASE+c*8, '\00\00'..u16(p))
-  kernel.write(MEM_BASE+4+c*8, '\01')
+  kernel.write(MEM_BASE+c*CONF_LENGTH, u16(p))
 end
 
 function audio.adsr(c, a, d, s, r)

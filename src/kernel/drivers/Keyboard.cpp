@@ -13,6 +13,10 @@ Keyboard::~Keyboard() {
     delete[] queue;
 }
 
+string Keyboard::name() {
+	return "KEYBOARD";
+}
+
 void Keyboard::input(const unsigned int unicode) {
     queue[ptr++] = (char)unicode;
 }

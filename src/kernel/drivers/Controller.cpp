@@ -13,6 +13,10 @@ Controller::Controller(const uint64_t addr) :
 Controller::~Controller() {
 }
 
+string Controller::name() {
+	return "CONTROLLER";
+}
+
 // Apenas leitura
 uint64_t Controller::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
     return 0;

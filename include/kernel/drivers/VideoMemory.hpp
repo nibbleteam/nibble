@@ -69,6 +69,8 @@ public:
                 const uint64_t);
     ~VideoMemory();
 
+	string name();
+
     // Ajust escala e aspect ratio para a
     // a janela atual
     void resize();
