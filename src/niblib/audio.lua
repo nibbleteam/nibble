@@ -77,4 +77,11 @@ function audio.adsr(c, a, d, s, r)
   kernel.write(MEM_BASE+c*8+7, string.char(r))
 end
 
+n = 0
+
+function audio_tick(channel)
+    kernel.write(MEM_BASE+1, string.char(n%12))
+    n = n+1
+end
+
 return audio

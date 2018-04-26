@@ -115,6 +115,21 @@ void Process::draw() {
     }
 }
 
+void Process::audio_tick(uint8_t channel) {
+    lua_getglobal(st, "audio_tick");
+    lua_pushnumber(st, channel);
+    if (lua_isfunction(st, -2)) {
+        if (lua_pcall(st, 1, 0, 0) != 0) {
+            cout << "pid " << pid << " audio_tick(): " << lua_tostring(st, -1) << endl;
+            KernelSingleton->exit(pid);
+        }
+    }
+    else {
+        cout << "pid " << pid << " audio_tick() is not defined. exiting." << endl;
+        KernelSingleton->exit(pid);
+    }
+}
+
 const uint64_t Process::getPid() {
     return pid;
 }

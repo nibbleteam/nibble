@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <string>
+#include <mutex>
 #include <SFML/Graphics.hpp>
 #include <kernel/filesystem.hpp>
 #include <kernel/Process.hpp>
@@ -40,6 +41,11 @@ class Kernel {
     Mouse *mouse;
     Controller *controller;
     Audio *audio;
+
+
+    // Não deixa a callback de áudio/vídeo serem chamadas ao mesmo
+    // tempo
+    mutex audioMutex;
 public:
     Kernel();
     ~Kernel();
@@ -51,6 +57,8 @@ public:
 
     // Loop principal do console. Atualiza o processo em execução e desenha a tela.
     void loop();
+    // Tick do audio
+    void audio_tick(uint8_t);
 
     // API do kernel
     // Acesso direto a memória

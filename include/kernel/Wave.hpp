@@ -20,6 +20,7 @@ public:
     double duty;
 public:
     Wave();
+    virtual ~Wave();
 
     virtual int16_t* fill(const unsigned int);
 

@@ -46,6 +46,9 @@ public:
     void update();
     void draw();
 
+    // Áudio
+    void audio_tick(uint8_t);
+
     // Usado para colocar o cart na ram principal quando
     // esse processo entrar em execução
     Memory* getMemory();

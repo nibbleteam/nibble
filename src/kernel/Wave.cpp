@@ -25,6 +25,9 @@ Wave::Wave():
 	targetAmplitude = 1;
 }
 
+Wave::~Wave() {
+}
+
 void Wave::changeParameters() {
 }
 

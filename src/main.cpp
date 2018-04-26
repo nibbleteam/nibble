@@ -1,6 +1,8 @@
 #include <kernel/Kernel.hpp>
 #include <cstdlib>
 
+Kernel *KernelSingleton;
+
 void cleanup() {
     delete KernelSingleton;
 }
@@ -10,6 +12,7 @@ int main() {
 
     KernelSingleton = new Kernel();
 
+    KernelSingleton->startup();
     KernelSingleton->loop();
 
     return 0;

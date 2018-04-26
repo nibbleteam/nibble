@@ -15,13 +15,13 @@ Audio::Audio(const uint64_t addr):
     memset(sndMemory, 0, SND_MEMORY_LENGTH);
 
 	CA = new Channel(sndMemory, 0);
-	CE = new Channel(sndMemory, 2);
-	CI = new Channel(sndMemory, 4);
-	CO = new Channel(sndMemory, 6);
-	CU = new Channel(sndMemory, 8);
+	CE = new Channel(sndMemory, 1);
+	CI = new Channel(sndMemory, 2);
+	CO = new Channel(sndMemory, 3);
+	CU = new Channel(sndMemory, 4);
 
-	S = new Channel(sndMemory, 10); 
-	N = new Channel(sndMemory, 14);
+	S = new Channel(sndMemory, 5); 
+	N = new Channel(sndMemory, 6);
 
     initialize(1, 44100);
 }

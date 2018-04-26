@@ -7,7 +7,7 @@
 #include <kernel/TriangleWave.hpp>
 #include <SFML/Audio.hpp>
 
-#define SND_MEMORY_LENGTH 1024*4
+#define SND_MEMORY_LENGTH 14
 
 class Audio : public Memory, public sf::SoundStream {
     const static unsigned int sampleCount;

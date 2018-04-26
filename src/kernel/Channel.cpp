@@ -1,3 +1,4 @@
+#include <kernel/Kernel.hpp>
 #include <kernel/Channel.hpp>
 #include <kernel/SquareWave.hpp>
 #include <kernel/TriangleWave.hpp>
@@ -6,7 +7,9 @@
 #include <iostream>
 using namespace std;
 
-Channel::Channel(uint8_t *mem, unsigned int pc): nextTick(0), t(0), mem(mem), pcPosition(pc) {
+const uint16_t Channel::bytesPerChannel = 2;
+
+Channel::Channel(uint8_t *mem, unsigned int channelNumber): nextTick(0), t(0), mem(mem), channelNumber(channelNumber) {
 	srand(time(NULL));
 
 	switch(rand()%3) {
@@ -24,7 +27,7 @@ Channel::Channel(uint8_t *mem, unsigned int pc): nextTick(0), t(0), mem(mem), pc
 	}
 
 	// Frequência do tick em Hz
-	calculateTickPeriod(2);
+	calculateTickPeriod(60);
 }
 
 Channel::~Channel() {
@@ -73,33 +76,31 @@ void Channel::calculateNextTick() {
 }
 
 void Channel::tick() {
-	// Lê o program counter
-	uint16_t PC = readPC();
-	uint8_t cmd = mem[PC];
-	uint8_t arg = mem[PC+1];
+    KernelSingleton->audio_tick(channelNumber);
 
-	switch (cmd) {
-		case 0:
-			wave->period = wave->fromFrequency(wave->fromNote(arg>>4, arg&0xF));
-			break;
-		default:
-			break;
-	}
+    uint8_t octave = read8(channelNumber*bytesPerChannel);
+    uint8_t note = read8(channelNumber*bytesPerChannel+1);
 
-	PC+=2;
-
-	writePC(PC);
+    wave->period = wave->fromFrequency(wave->fromNote(octave, note));
 }
 
-uint16_t Channel::readPC() {
-	uint16_t PC = mem[pcPosition];
-	PC = PC<<8;
-	PC |= mem[pcPosition+1];
-
-	return PC;
+uint8_t Channel::read8(uint16_t position) {
+	return mem[position];
 }
 
-void Channel::writePC(uint16_t PC) {
-	mem[pcPosition+0] = PC >> 8;
-	mem[pcPosition+1] = PC&0xFF;
+void Channel::write8(uint16_t position, uint8_t value) {
+	mem[position] = value;
+}
+
+uint16_t Channel::read16(uint16_t position) {
+	uint16_t value = mem[position];
+	value = value<<8;
+	value |= mem[position+1];
+
+	return value;
+}
+
+void Channel::write16(uint16_t position, uint16_t value) {
+	mem[position] = value >> 8;
+	mem[position+1] = value&0xFF;
 }
