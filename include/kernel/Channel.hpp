@@ -11,7 +11,7 @@ class Channel {
 	unsigned int t;
 
 	uint8_t *mem;
-    unsigned int channelNumber;
+	unsigned int channelNumber;
 
 	Wave *wave;
 public:

@@ -74,6 +74,7 @@ add_custom_target(LuaCartsBuild
 # Exe
 add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/main.cpp
+                ${PROJECT_HEADER_DIR}/Icon.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Kernel.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Kernel.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Process.cpp
