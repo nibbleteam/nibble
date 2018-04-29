@@ -42,10 +42,10 @@ tri = gpu.tri
 print = gpu.print
 
 -- Exporta a API de entrada
-btd = function (b) return input.bt(b) == input.DOWN; end
-btu = function (b) return input.bt(b) == input.UP; end
-btp = function (b) return input.bt(b) == input.PRESSED; end
-btr = function (b) return input.bt(b) == input.RELEASED; end
+btd = function (b) return input.bt(b) == input.STDOWN; end
+btu = function (b) return input.bt(b) == input.STUP; end
+btp = function (b) return input.bt(b) == input.STPRESSED; end
+btr = function (b) return input.bt(b) == input.STRELEASED; end
 
 -- Manimulação direta da memória de vídeo
 putp = vid.putp

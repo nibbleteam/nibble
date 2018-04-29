@@ -3,11 +3,9 @@
 
 #include <kernel/Channel.hpp>
 #include <kernel/Memory.hpp>
-#include <kernel/SquareWave.hpp>
-#include <kernel/TriangleWave.hpp>
 #include <SFML/Audio.hpp>
 
-#define SND_MEMORY_LENGTH 14
+#define SND_MEMORY_LENGTH 512
 
 class Audio : public Memory, public sf::SoundStream {
     const static unsigned int sampleCount;

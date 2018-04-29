@@ -2,6 +2,11 @@ local input = {}
 
 CONTROLLER = 0x25a20
 
+input.STUP = 0
+input.STPRESSED = 1
+input.STDOWN = 2
+input.STRELEASED = 3
+
 input.UP = 0
 input.RIGHT = 1
 input.DOWN = 2
@@ -20,7 +25,7 @@ function input.bt(b)
 
   local value;
 
-  if b < input.RED then
+  if b < 4 then
     value = kernel.read(CONTROLLER+1, 1):byte()
   else
     value = kernel.read(CONTROLLER+2, 1):byte()

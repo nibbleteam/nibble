@@ -1,44 +1,33 @@
-﻿n = 0
+﻿local x, y = 0, 0
+local wave_type = 0
+local volume = 0
+local note = 0
 
 function audio_tick(channel)
-    for i=0,6 do
-        kernel.write(154186+i*2, "\02"..string.char(n%12))
+    if channel == 6 then
+        return
     end
 
-    n = n+1
+    local wave = string.char(wave_type%255)
+    local mem = string.char(math.abs(volume)%255).."\03"
+
+    kernel.write(154186+channel*4, wave..mem..string.char(math.abs(note)%12))
 end
 
 function init()
   -- Deixa a cor 0 na paleta 0 transparente
   kernel.write(0x20+3, '\0')
-
-  mus = mksnd()
-  note('A', 4)
-  note('B', 4)
-  note('C', 4)
-  note('D', 4)
-  note('E', 4)
-  note('F', 4)
-  note('G', 4)
-  note('F', 4)
-  note('E', 4)
-  note('D', 4)
-  note('C', 4)
-  note('B', 4)
-  note('A', 4)
-  note('D', 4)
-  note('F', 4)
-
-  -- Toca música
-  snd(mus, 0)
 end
 
-local x, y = 0, 0
 local v, w = 2, 4
 local btstr = ""
 local kbd = ""
 function draw()
-  clr()
+  clr(wave_type%5)
+
+
+  rectf(100, 100, note%12*10, 10, 8)
+  rectf(100, 120, volume, 10, 9)
 
   -- Nibble logo
   -- Caracteres especiais são numerados na ordem
@@ -54,6 +43,26 @@ end
 
 function update()
   local keys = kernel.read(0x25A2a, 1)
+
+    if btp(RED) then
+        wave_type = wave_type+1
+    end
+
+    if btd(DOWN) then
+        volume = volume - 1
+    end
+
+    if btd(UP) then
+        volume = volume + 1
+    end
+
+    if btp(RIGHT) then
+        note = note + 1
+    end
+
+    if btp(LEFT) then
+        note = note -1
+    end
 
   if #keys > 0 then
     -- Backspace
@@ -91,11 +100,11 @@ function update()
     x=x-1
   end
 
-  if btd(RED) then
+  if btd(BLUE) then
     btstr = btstr.." \8"
   end
 
-  if btd(BLUE) then
+  if btd(RED) then
     btstr = btstr.." \9"
   end
  
@@ -111,11 +120,9 @@ function update()
 
   if x <= 0 or x >= 319-8 then
     v = v*-1
-    --snd(bump)
   end
 
   if y <= 0 or y >= 239-8 then
     w = w*-1
-    --snd(bump)
   end
 end

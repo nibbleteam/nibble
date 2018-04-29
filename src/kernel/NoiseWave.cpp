@@ -10,6 +10,10 @@ NoiseWave::NoiseWave():
 	amplitude = 1;
 }
 
+Wave::ChannelType NoiseWave::type() {
+    return NOISE_CHANNEL;
+}
+
 int16_t* NoiseWave::fill(const unsigned int sampleCount) {
 	for (unsigned int i=0;i<sampleCount;i++) {
 		samples[i] = 0;
@@ -25,7 +29,7 @@ int16_t* NoiseWave::fill(const unsigned int sampleCount) {
 			err -= 44100;
 			val = rand();
 		}
-		samples[i] = val;
+		samples[i] = val*amplitude;
 	}
 
 	return samples;

@@ -18,11 +18,19 @@ public:
     double amplitude, targetAmplitude, previousAmplitude;
     double period;
     double duty;
+
+    enum ChannelType {
+        WAVE_CHANNEL,
+        SAMPLE_CHANNEL,
+        NOISE_CHANNEL
+    };
 public:
     Wave();
     virtual ~Wave();
 
     virtual int16_t* fill(const unsigned int);
+
+    virtual ChannelType type() = 0;
 
     static double fromNote(uint8_t, uint8_t);
     static double fromFrequency(double);
