@@ -4,6 +4,7 @@ Manual do Desenvolvedor
 .. toctree::
     :maxdepth: 2
 
-    hardware/index
     cartridges 
+    game loop
     niblib
+    hardware/index
