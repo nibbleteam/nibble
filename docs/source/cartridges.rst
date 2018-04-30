@@ -21,4 +21,4 @@ O Nibble carrega automaticamente uma spritesheet de até 4096x1024 pixels para a
     │   └── sheet.png
     └── main.lua
 
-Caso `sheet.png` seja menor que 4096x1024, ela será copiada para o canto superior esquerdo da spritesheet do nibble.
+Caso `sheet.png` seja menor que 4096x1024, ela será copiada para o canto superior esquerdo da spritesheet do Nibble.
