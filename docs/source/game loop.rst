@@ -2,7 +2,7 @@ Inicialização e Game Loop
 =========================
 
 A incialiazção e o game loop são um conjunto de funções que precisam obrigatoriamente existir
-em todo *cartridge*.
+em todo *cartridge*. Elas devem ser colocadas no arquivo `main.lua`.
 
 A inicialização é apenas uma função::
 

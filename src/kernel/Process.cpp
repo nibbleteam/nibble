@@ -70,6 +70,8 @@ void Process::addSyscalls() {
         .beginNamespace("kernel")
         .addFunction("write", &kernel_api_write)
         .addFunction("read", &kernel_api_read)
+        .addFunction("exec", &kernel_api_exec)
+        .addFunction("yield", &kernel_api_yield)
         .endNamespace();
 }
 

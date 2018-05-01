@@ -887,7 +887,7 @@ void VideoMemory::draw() {
     memcpy(buffer, img.getPixelsPtr(), w*h);
 
     if (colormap == NULL) {
-        //startCapturing("screencap.gif");
+        startCapturing("screencap.gif");
     } else {
         captureFrame();
     }

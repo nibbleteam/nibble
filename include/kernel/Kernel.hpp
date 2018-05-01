@@ -15,6 +15,7 @@
 #include <kernel/drivers/Keyboard.hpp>
 #include <kernel/drivers/Mouse.hpp>
 #include <kernel/drivers/Controller.hpp>
+#include <LuaBridge/LuaBridge.h>
 
 using namespace std;
 
@@ -89,5 +90,7 @@ extern Kernel *KernelSingleton;
 // API estática para o acesso via Lua
 unsigned long kernel_api_write(const unsigned long, const string);
 string kernel_api_read(const unsigned long, const unsigned long);
+unsigned long kernel_api_exec(const string, luabridge::LuaRef);
+bool kernel_api_yield(unsigned long);
 
 #endif /* KERNEL_H */

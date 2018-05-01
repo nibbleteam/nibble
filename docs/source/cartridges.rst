@@ -1,6 +1,18 @@
 Cartridges
 ==========
 
+.. todo::
+
+    Mencionar .zip renomeado para .nib para release.
+
+.. todo::
+
+    Explicar melhor a spritesheet (add imagens)
+
+.. todo::
+
+    Quebrar em seções
+
 Todo jogo ou aplicativo do Nibble é um *cartridge*, até mesmo os aplicativos de sistema.
 
 Um *cartridge* é uma pasta contendo todo o código, sprites e quaisquer outros dados

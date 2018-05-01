@@ -19,8 +19,6 @@ directions = {
 direction = 1
 counter = 0
 
-math.randomseed(os.time())
-
 function init()
     newpalette()
 end

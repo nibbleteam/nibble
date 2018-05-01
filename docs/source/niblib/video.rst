@@ -42,4 +42,33 @@ Niblib - Video
     :param int y: Coordenada y na tela
     :param int sx: Coordenada x na spritesheet
     :param int sy: Coordenada y na spritesheet
+    :param int w: Comprimento do sprite
+    :param int h: Altura do sprite
     :param int pal: Paleta a ser utilizada
+
+.. function:: rectf(x, y, w, h, cor)
+
+    Desenha um retângulo preenchido
+
+    :param int x: Coordenada x na tela
+    :param int y: Coordenada y na tela
+    :param int w: Comprimento
+    :param int h: Altura
+    :param int cor: Cor do preenchimento
+
+.. function:: quadf(x1, y1, x2, y2, x3, y3, x4, y4, cor)
+
+    Desenha um quadrilátero preenchido nos pontos dados
+
+.. function:: trif(x1, y1, x2, y2, x3, y3, cor)
+
+    Desenha um triângulo preenchido nos pontos dados
+
+.. function:: circf(x, y, r, cor)
+
+    Desenha um círculo preenchido
+
+    :param int x: Coordenada x na tela
+    :param int y: Coordenada y na tela
+    :param int r: Raio do círculo
+    :param int cor: Cor do preenchimento

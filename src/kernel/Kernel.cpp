@@ -241,6 +241,8 @@ void Kernel::loop() {
 //	- assets/
 //  - main.lua
 int64_t Kernel::exec(const string& executable, vector<string> environment) {
+    cout << "[kernel] exec " << executable << endl;
+
     Path executablePath(executable);
 
     // Verifica a existência e estrutura de do cart "executable"
@@ -272,6 +274,14 @@ int64_t Kernel::exec(const string& executable, vector<string> environment) {
 
 // Libera o fluxo de controle para "to"
 bool Kernel::yield(const uint64_t pid, const uint64_t to) {
+    for (auto process : processes) {
+        if (process->getPid() == to) {
+            processes.remove(process);
+            processes.push_back(process);
+            break;
+        }
+    }
+
     return false;
 }
 
@@ -433,4 +443,23 @@ unsigned long kernel_api_write(unsigned long to, const string data) {
 
 string kernel_api_read(const unsigned long from, const unsigned long amount) {
     return KernelSingleton->read(from, amount);
+}
+
+// TODO: Environment está vazio, adicionar possibilidade de passar um environment real
+unsigned long kernel_api_exec(const string executable, luabridge::LuaRef lEnvironment) {
+    if (lEnvironment.isTable()) {
+        vector <string> environment;
+        for (int i=0;i<lEnvironment.length();i++) {
+            environment.push_back(lEnvironment[i]);
+        }
+
+        return KernelSingleton->exec(executable, environment);
+    } else {
+        cout << "ERROR" << endl;
+        return 0;
+    }
+}
+
+bool kernel_api_yield(unsigned long pid) {
+    return KernelSingleton->yield(0, pid);
 }

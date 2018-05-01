@@ -1,6 +1,10 @@
 Manual do Desenvolvedor
 =======================
 
+.. todo::
+
+    Adicionar introdução.
+
 .. toctree::
     :maxdepth: 2
 
