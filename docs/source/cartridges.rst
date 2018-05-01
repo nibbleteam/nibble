@@ -24,7 +24,7 @@ O nome da pasta deve ser o nome do aplicativo, e ela deve conter (no mínimo), u
     ├── assets
     └── main.lua
 
-O arquivo `main.lua` contém o código do cartridge, e dentro da pasta `assets` encontram-se os arquivos gráficos, de áudio, de mapas e todos os outros dados do aplicativo.
+O arquivo `main.lua` contém o código do cartridge utilizando `Inicialização e Game Loop` e as funções da `Niblib`. Dentro da pasta `assets` encontram-se os arquivos gráficos, de áudio, de mapas e todos os outros dados do aplicativo.
 
 O Nibble carrega automaticamente uma spritesheet de até 4096x1024 pixels para a memória de sprites se encontrada em `assets/sheet.png`::
 
