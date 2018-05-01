@@ -3,14 +3,6 @@ Cartridges
 
 .. todo::
 
-    Mencionar .zip renomeado para .nib para release.
-
-.. todo::
-
-    Explicar melhor a spritesheet (add imagens)
-
-.. todo::
-
     Quebrar em seções
 
 Todo jogo ou aplicativo do Nibble é um *cartridge*, até mesmo os aplicativos de sistema.
@@ -24,7 +16,7 @@ O nome da pasta deve ser o nome do aplicativo, e ela deve conter (no mínimo), u
     ├── assets
     └── main.lua
 
-O arquivo `main.lua` contém o código do cartridge utilizando `Inicialização e Game Loop`_ e as funções da `Niblib`_. Dentro da pasta `assets` encontram-se os arquivos gráficos, de áudio, de mapas e todos os outros dados do aplicativo.
+O arquivo `main.lua` contém o código do cartridge utilizando :ref:`game_loop` e as funções da :ref:`niblib` . Dentro da pasta `assets` encontram-se os arquivos gráficos, de áudio, de mapas e todos os outros dados do aplicativo.
 
 O Nibble carrega automaticamente uma spritesheet de até 4096x1024 pixels para a memória de sprites se encontrada em `assets/sheet.png`::
 
@@ -35,4 +27,9 @@ O Nibble carrega automaticamente uma spritesheet de até 4096x1024 pixels para a
 
 .. note::
 
-    Caso `sheet.png` seja menor que 4096x1024, ela será copiada para o canto superior esquerdo da spritesheet do Nibble.
+    Para publicar um cartridge em um só arquivo, basta comprimir a pasta como .zip e renomear para .nib.
+
+.. warning::
+
+    Ao publicar um arquivo .nib, `main.lua` e `assets` precisam estar na *raiz* do arquivo comprimido.
+

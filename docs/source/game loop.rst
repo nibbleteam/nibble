@@ -1,3 +1,5 @@
+.. _game_loop:
+
 Inicialização e Game Loop
 =========================
 
