@@ -51,10 +51,11 @@ public:
     Kernel();
     ~Kernel();
 
-    // Controles de power
+    // Controles de power e botões de hardware
     void startup();
     void shutdown();
     void reset();
+    void menu();
 
     // Loop principal do console. Atualiza o processo em execução e desenha a tela.
     void loop();
@@ -71,9 +72,12 @@ public:
     uint64_t write(uint64_t, const uint8_t*, uint64_t);
     string read(uint64_t, uint64_t);
     // Gerenciamento de processos
-    int64_t exec(const string&, vector<string>);
-    bool yield(const uint64_t, const uint64_t);
+    int64_t exec(const string&, map<string, string>);
+    bool yield(const uint64_t);
     void exit(const uint64_t);
+    // Environment de processos
+    void setenv(const string, const string);
+    string getenv(const string);
 private:
     // Mapeia dispositivos para a memória, essencialmente
     // adicionando dispositivos ao vetor ram. Chamada pelo
@@ -88,9 +92,12 @@ private:
 extern Kernel *KernelSingleton;
 
 // API estática para o acesso via Lua
-unsigned long kernel_api_write(const unsigned long, const string);
 string kernel_api_read(const unsigned long, const unsigned long);
+unsigned long kernel_api_write(const unsigned long, const string);
 unsigned long kernel_api_exec(const string, luabridge::LuaRef);
 bool kernel_api_yield(unsigned long);
+void kernel_api_exit(unsigned long);
+void kernel_api_setenv(const string, const string);
+string kernel_api_getenv(const string);
 
 #endif /* KERNEL_H */

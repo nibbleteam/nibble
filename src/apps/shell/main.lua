@@ -70,14 +70,19 @@ function update()
       end
     -- Enter
     elseif keys == "\13" then
-        local child = kernel.exec(input_line:sub(3, #input_line), {})
-        add_line(input_line)
-        input_line = "] "
-        
-        if child > 0 then
-            kernel.yield(child)
+        local cmd = input_line:sub(3, #input_line)
+        if cmd == "exit" then
+            kernel.exit(0)
         else
-            add_line("ERROR: invalid cartridge!")
+            local child = kernel.exec(cmd, {})
+            add_line(input_line)
+            input_line = "] "
+            
+            if child > 0 then
+                kernel.yield(child)
+            else
+                add_line("ERROR: invalid cartridge!")
+            end
         end
     else
       input_line = input_line..keys

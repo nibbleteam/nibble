@@ -15,7 +15,7 @@ RandomMemory::~RandomMemory() {
 }
 
 string RandomMemory::name() {
-	return "RAM";
+	return "RANDOM";
 }
 
 // Apenas leitura

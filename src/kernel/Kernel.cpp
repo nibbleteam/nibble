@@ -29,6 +29,16 @@ Kernel::Kernel():
 	createMemoryMap();
 }
 
+void Kernel::menu() {
+    if (processes.back()) {
+        auto environment = processes.back()->getEnv();
+        environment["app.pid"] = environment["pid"];
+
+        auto pid = exec("apps/menu", environment);
+        yield(pid);
+    }
+}
+
 void Kernel::reset() {
 	audio->stop();
     shutdown();
@@ -51,7 +61,7 @@ void Kernel::startup() {
     // talvez um pequeno processo codificado em C++ diretamente
     // apenas para mostrar mensagens de erro e coisas parecidas?
     // e.g.: um processo "system"
-    if (exec("apps/shell", vector<string>()) > 0) {
+    if (exec("apps/shell", map<string, string>()) > 0) {
         cout << "[kernel] " << "process started" << endl;
     }
 }
@@ -93,7 +103,7 @@ void Kernel::createMemoryMap() {
     audio = new Audio(lastUsedMemByte);
     addMemoryDevice(audio);
     // RAM
-    //addMemoryDevice(new RAM(lastUsedMemByte, 32*1024));
+    addMemoryDevice(new RAM(lastUsedMemByte, 32*1024));
 }
 
 void Kernel::destroyMemoryMap() {
@@ -103,12 +113,15 @@ void Kernel::destroyMemoryMap() {
     for (auto memory: ram) {
         bool rm = true;
 
-        for (auto process : processes) {
-            if (process->getMemory() == memory ||
-				memory == gpu->getCommandMemory() ||
-				memory == gpu->getPaletteMemory() ||
-				memory == gpu->getVideoMemory()) {
-                rm = false;
+        if (memory == gpu->getCommandMemory() ||
+			memory == gpu->getPaletteMemory() ||
+			memory == gpu->getVideoMemory()) {
+            rm = false;
+        } else {
+            for (auto process : processes) {
+                if (process->getMemory() == memory) {
+                    rm = false;
+                }
             }
         }
 
@@ -160,6 +173,9 @@ void Kernel::loop() {
                 if (event.key.code == sf::Keyboard::R &&
                     event.key.control) {
 					reset();
+                } else if (event.key.code == sf::Keyboard::X &&
+                    event.key.control) {
+                    menu();
                 } else {
                     controller->kbdPressed(event);
                 }
@@ -214,8 +230,14 @@ void Kernel::loop() {
 
             // Traz o cart do processo pra RAM se já não estiver
             if (!p->isMapped()) {
-                // TODO: unmap o processo que estava mapeado
-                // anteriormente se existir
+                // Retira RAM do processo anterior
+                for (auto q :processes) {
+                    if (ram.back() == q->getMemory()) {
+                        ram.pop_back();
+                        q->unmap();
+                        break;
+                    }
+                }
                 ram.push_back(p->getMemory());
 
                 audioMutex.lock();
@@ -240,7 +262,7 @@ void Kernel::loop() {
 // <cart-name>/
 //	- assets/
 //  - main.lua
-int64_t Kernel::exec(const string& executable, vector<string> environment) {
+int64_t Kernel::exec(const string& executable, map<string, string> environment) {
     cout << "[kernel] exec " << executable << endl;
 
     Path executablePath(executable);
@@ -273,7 +295,7 @@ int64_t Kernel::exec(const string& executable, vector<string> environment) {
 }
 
 // Libera o fluxo de controle para "to"
-bool Kernel::yield(const uint64_t pid, const uint64_t to) {
+bool Kernel::yield(const uint64_t to) {
     for (auto process : processes) {
         if (process->getPid() == to) {
             processes.remove(process);
@@ -285,30 +307,59 @@ bool Kernel::yield(const uint64_t pid, const uint64_t to) {
     return false;
 }
 
-void Kernel::exit(const uint64_t pid) {
-    for (auto process : processes) {
-        if (process->getPid() == pid) {
-            processes.remove(process);
-            break;
+void Kernel::exit(unsigned long pid) {
+    if (pid == 0) {
+        if (processes.back()->getPid() != 1)
+            processes.pop_back();
+    } else if (pid > 1) {
+        for (auto process : processes) {
+            if (process->getPid() == pid) {
+                processes.remove(process);
+                break;
+            }
         }
     }
 }
 
+string Kernel::getenv(const string key) {
+    return processes.back()->getEnvVar(key);
+}
+
+void Kernel::setenv(const string key, const string value) {
+    processes.back()->setEnvVar(key, value);
+}
+
 void Kernel::audio_tick(uint8_t channel) {
+    bool unmap = false;
+
     // Roda o processo no topo da lista de processos
     if (processes.size() > 0) {
         Process *p = processes.back();
 
         // Traz o cart do processo pra RAM se já não estiver
         if (!p->isMapped()) {
-            // TODO: unmap o processo que estava mapeado
-            // anteriormente se existir
+            // Retira RAM do processo anterior
+            for (auto q :processes) {
+                if (ram.back() == q->getMemory()) {
+                    ram.pop_back();
+                    q->unmap();
+                    break;
+                }
+            }
             ram.push_back(p->getMemory());
+
+            unmap = true;
         }
 
         audioMutex.lock();
         p->audio_tick(channel);
         audioMutex.unlock();
+
+        // Retira a ram do processo
+        if (unmap) {
+            ram.pop_back();
+            p->unmap();
+        }
     }
 }
 
@@ -445,13 +496,22 @@ string kernel_api_read(const unsigned long from, const unsigned long amount) {
     return KernelSingleton->read(from, amount);
 }
 
-// TODO: Environment está vazio, adicionar possibilidade de passar um environment real
 unsigned long kernel_api_exec(const string executable, luabridge::LuaRef lEnvironment) {
     if (lEnvironment.isTable()) {
-        vector <string> environment;
-        for (int i=0;i<lEnvironment.length();i++) {
-            environment.push_back(lEnvironment[i]);
+        map <string, string> environment;
+
+        auto L = lEnvironment.state();
+        push(L, lEnvironment);         
+        lua_pushnil(L);
+
+        while (lua_next(L, -2) != 0) {
+            if (lua_isstring(L, -2)) {
+                environment.emplace(lua_tostring(L, -2), lua_tostring(L, -1));
+            }
+            lua_pop(L, 1);
         }
+     
+        lua_pop(L, 1);
 
         return KernelSingleton->exec(executable, environment);
     } else {
@@ -461,5 +521,17 @@ unsigned long kernel_api_exec(const string executable, luabridge::LuaRef lEnviro
 }
 
 bool kernel_api_yield(unsigned long pid) {
-    return KernelSingleton->yield(0, pid);
+    return KernelSingleton->yield(pid);
+}
+
+void kernel_api_exit(unsigned long pid) {
+    return KernelSingleton->exit(pid);
+}
+
+void kernel_api_setenv(const string key, const string value) {
+    KernelSingleton->setenv(key, value);
+}
+
+string kernel_api_getenv(const string key) {
+    return KernelSingleton->getenv(key);
 }

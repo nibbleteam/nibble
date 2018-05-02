@@ -24,17 +24,18 @@ class Process {
     // principal do kernel quando o cartucho está em execução
     CartridgeMemory *cartridgeMemory;
     // Variáveis ambiente
-    vector<string> environment;
+    map<string, string> environment;
     // ID
     const uint64_t pid;
     bool mapped;
+    bool initialized;
     bool ok;
 public:
     const static string LuaEntryPoint;
     const static string AssetsEntryPoint;
     const static string NiblibEntryPoint;
 
-    Process(Path&, vector<string>, const uint64_t, const uint64_t, VideoMemory*);
+    Process(Path&, map<string, string>, const uint64_t, const uint64_t, VideoMemory*);
     ~Process();
 
     // Verifica se não há erros no código
@@ -60,6 +61,11 @@ public:
     const uint64_t getPid();
 
     void addSyscalls();
+
+    // Controle de environment
+    void setEnvVar(const string&, const string&);
+    string getEnvVar(const string&);
+    map<string, string> getEnv();
 };
 
 #endif /* PROCESS_H */

@@ -11,6 +11,10 @@ RAM::~RAM() {
 	delete[] data;
 }
 
+string RAM::name() {
+    return "RAM";
+}
+
 uint64_t RAM::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
 	memcpy(this->data + pos, data, (size_t)amount);
 

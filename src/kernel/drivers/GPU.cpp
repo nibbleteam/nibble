@@ -3,6 +3,9 @@
 #include <kernel/drivers/PaletteMemory.hpp>
 #include <kernel/drivers/GPUCommandMemory.hpp>
 
+#include <iostream>
+using namespace std;
+
 const uint64_t GPU::paletteLength = 16;
 const uint64_t GPU::paletteAmount = 8;
 
@@ -19,7 +22,7 @@ GPU::GPU(sf::RenderWindow& window,
 
 GPU::~GPU() {
 	delete paletteMemory;
-	delete commandMemory;
+    delete commandMemory;
 	delete videoMemory;
 }
 

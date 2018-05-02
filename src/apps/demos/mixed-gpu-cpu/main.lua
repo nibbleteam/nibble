@@ -20,7 +20,6 @@ direction = 1
 counter = 0
 
 function init()
-    newpalette()
 end
 
 function set_new_direction()
