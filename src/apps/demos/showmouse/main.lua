@@ -8,10 +8,9 @@ end
 function draw()
     clr()
     print(tostring(x)..","..tostring(y), 0, 0)
-    pspr(x, y, 56, 80, 8, 8)
 
     for i=#clicks,1,-1 do
-        circ(clicks[i][1], clicks[i][2], clicks[i][3], 9)
+        circ(clicks[i][1], clicks[i][2], clicks[i][3], i+2)
 
         clicks[i][3] = clicks[i][3]+5
 
@@ -19,6 +18,8 @@ function draw()
             table.remove(clicks, i)
         end
     end
+
+    pspr(x, y, 56, 80, 8, 8)
 end
 
 function update()

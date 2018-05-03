@@ -17,7 +17,7 @@ local DEFAULT_FT_W = 10
 local DEFAULT_FT_H = 10
 local DEFAULT_CH_W = 8
 local DEFAULT_CH_H = 8
-local DEFAULT_FT_CHARS = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?abcdefghijklmnopqrstuvwxyz()[]<>{}\"\"'-_=\\/|&~*%@$#:;+"..string.char(1)..string.char(2)..string.char(3)..string.char(4)..string.char(5)..string.char(6)..string.char(7)..string.char(8)..string.char(9)..string.char(10)..string.char(11)..string.char(12)..string.char(13).." "
+local DEFAULT_FT_CHARS = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?abcdefghijklmnopqrstuvwxyz()[]<>{}\"\"'-_=\\/|&~*%@$#:;+"..string.char(1)..string.char(2)..string.char(3)..string.char(4)..string.char(5)..string.char(6)..string.char(7)..string.char(8)..string.char(9)..string.char(10)..string.char(11)..string.char(12)..string.char(13)..string.char(14)..string.char(15).." "
 
 -- Comandos
 local GPU_CLEAR = string.char(0x00)
