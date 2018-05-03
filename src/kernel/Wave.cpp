@@ -32,9 +32,6 @@ void Wave::changeParameters() {
 }
 
 int16_t* Wave::fill(const unsigned int sampleCount) {
-	//previousAmplitude = amplitude;
-	//targetAmplitude = double(rand()%100)/100.0;
-
     for (unsigned int i=0;i<sampleCount;i++) {
 		// Gera ponto da onda
         if (period != 0) {

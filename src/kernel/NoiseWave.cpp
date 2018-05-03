@@ -30,6 +30,17 @@ int16_t* NoiseWave::fill(const unsigned int sampleCount) {
 			val = rand();
 		}
 		samples[i] = val*amplitude;
+
+		// Ajusta amplitude
+		double deltaAmplitude = (targetAmplitude-previousAmplitude)/period;
+		double amplitudeDistance = abs(targetAmplitude-amplitude);
+
+		if (amplitudeDistance > abs(deltaAmplitude) &&
+			amplitudeDistance > amplitudeError) {
+			amplitude += deltaAmplitude;
+		} else {
+			amplitude = targetAmplitude;
+		}
 	}
 
 	return samples;
