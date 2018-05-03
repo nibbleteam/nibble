@@ -15,7 +15,7 @@ Kernel::Kernel():
     lastPid(1),
     lastUsedMemByte(0) {
     // FPS Máximo 
-    window.setFramerateLimit(50);
+    window.setFramerateLimit(30);
     // O tamanho virtual da janela é sempre 320x240
     window.setView(sf::View(sf::FloatRect(0, 0, 320, 240)));
     // Não gera múltiplos keypresses se a tecla ficar apertada
@@ -323,7 +323,7 @@ bool Kernel::yield(const uint64_t to) {
     return false;
 }
 
-void Kernel::exit(unsigned long pid) {
+void Kernel::exit(const uint64_t pid) {
     if (pid == 0) {
         if (processes.back()->getPid() != 1) {
             // Se for o processo do menu, passa para o processo anterior
