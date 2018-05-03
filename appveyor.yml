@@ -1,6 +1,25 @@
 on_success:
-  - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
-  - ps: ./send.ps1 success $env:WEBHOOK_URL
+    - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
+    - ps: ./send.ps1 success $env:WEBHOOK_URL
 on_failure:
-  - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
-  - ps: ./send.ps1 failure $env:WEBHOOK_URL
+    - ps: Invoke-RestMethod https://raw.githubusercontent.com/k2rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
+    - ps: ./send.ps1 failure $env:WEBHOOK_URL
+install:
+    - cd C:\projects\nibble
+    - git submodule update --init --recursive
+    - mkdir C:\deps
+    - cd C:\deps
+    - set CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.1-win64-x64.zip"
+    - appveyor DownloadFile %CMAKE_URL% -FileName cmake.zip
+    - 7z x cmake.zip > nul
+    - move cmake-* cmake
+    - set PATH=C:\deps\cmake\bin;%PATH%
+    - cmake --version
+    - cd C:\projects\nibble
+    - mkdir build
+    - cd build
+    - cmake ..
+after_build:
+    - cd C:\projects\nibble
+    - copy build\bin\openal32.dll bin\
+    - 7z a nibble.zip bin
