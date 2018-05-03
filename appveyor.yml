@@ -23,3 +23,5 @@ after_build:
     - cd C:\projects\nibble
     - copy build\bin\openal32.dll bin\
     - 7z a nibble.zip bin
+artifacts:
+    - path: nibble.zip
