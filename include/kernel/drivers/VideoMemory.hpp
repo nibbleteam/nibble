@@ -58,6 +58,9 @@ class VideoMemory : public Memory {
     GifFileType *gif;
     // Paleta do gif
     ColorMapObject *colormap;
+    // Transformadas da tela (para normalizar mouse)
+    double screenScale;
+    double screenOffsetX, screenOffsetY;
 public:
     const static uint64_t nibblesPerPixel;
     const static uint64_t bytesPerPixel;
@@ -74,6 +77,7 @@ public:
     // Ajust escala e aspect ratio para a
     // a janela atual
     void resize();
+    void transformMouse(uint16_t&, uint16_t&);
 
     // Fecha arquivos abertos
     void close();

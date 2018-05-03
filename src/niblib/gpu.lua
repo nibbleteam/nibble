@@ -215,6 +215,20 @@ function gpu.circf(x1, y1, r, color)
                  gpu3(x1, y1, r))
 end
 
+-- Circle
+function gpu.circ(x1, y1, r, color)
+  assert(x1, "circf() needs a x1 value")
+  assert(y1, "circf() needs a y1 value")
+  assert(r, "circf() needs a r value")
+
+  color = color or DEFAULT_COLOR
+
+  kernel.write(GPU_CMD,
+               GPU_CIRC..
+                 string.char(color)..
+                 gpu3(x1, y1, r))
+end
+
 -- Line 
 function gpu.line(x1, y1, x2, y2, color)
   assert(x1, "line() needs a x1 value")
@@ -310,7 +324,7 @@ function gpu.print(str, dstx, dsty, pal)
       local px = math.floor((index-1)%DEFAULT_FT_W)*DEFAULT_CH_W
       local py = math.floor((index-1)/DEFAULT_FT_W)*DEFAULT_CH_H
 
-      gpu.pspr(dstx, dsty, px, py, DEFAULT_CH_W, DEFAULT_CH_H)
+      gpu.pspr(dstx, dsty, px, py, DEFAULT_CH_W, DEFAULT_CH_H, pal)
     end
 
     dstx = dstx+DEFAULT_CH_W

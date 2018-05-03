@@ -19,7 +19,8 @@ Process::Process(Path& executable,
     pid(pid),
     mapped(false),
     initialized(false),
-    ok(true) {
+    ok(true),
+    executable(executable) {
     // Pontos de entrada no sistema de arquivos para código
     // e dados do cart
     Path lua = executable.resolve(LuaEntryPoint);

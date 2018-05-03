@@ -1,6 +1,7 @@
 ﻿local beep = 0 
-local input_line = "] "
 local lines = {}
+local prompt = ": "
+local input_line = prompt
 
 function audio_tick(channel)
     local channel_conf = "\00\00\00\00"
@@ -13,7 +14,7 @@ function audio_tick(channel)
         end
     end
 
-    kernel.write(154186+channel*4, channel_conf)
+    kernel.write(154190+channel*4, channel_conf)
 end
 
 function init()
@@ -58,6 +59,11 @@ function add_line(line)
 end
 
 function update()
+  if kernel.getenv("menu.entry") == "back" then
+      add_line("NOTE: menu was called")
+      kernel.setenv("menu.entry", "")
+  end
+
   local keys = kernel.read(0x25A2a, 1)
 
   if #keys > 0 then
@@ -65,18 +71,19 @@ function update()
 
     -- Backspace
     if keys == "\8" then
-      if #input_line > 2 then
+      if #input_line > prompt:len() then
         input_line = input_line:sub(1, #input_line-1)
       end
     -- Enter
     elseif keys == "\13" then
-        local cmd = input_line:sub(3, #input_line)
+        local cmd = input_line:sub(prompt:len()+1, #input_line)
+
         if cmd == "exit" then
             kernel.exit(0)
         else
             local child = kernel.exec(cmd, {})
             add_line(input_line)
-            input_line = "] "
+            input_line = prompt
             
             if child > 0 then
                 kernel.yield(child)

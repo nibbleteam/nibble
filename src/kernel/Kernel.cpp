@@ -15,11 +15,13 @@ Kernel::Kernel():
     lastPid(1),
     lastUsedMemByte(0) {
     // FPS Máximo 
-    window.setFramerateLimit(30);
+    window.setFramerateLimit(50);
     // O tamanho virtual da janela é sempre 320x240
     window.setView(sf::View(sf::FloatRect(0, 0, 320, 240)));
     // Não gera múltiplos keypresses se a tecla ficar apertada
     window.setKeyRepeatEnabled(false);
+    // Não mostra o cursor
+    window.setMouseCursorVisible(false);
     // Coloca o ícone
     sf::Image Icon;
 	if (Icon.loadFromMemory(icon_png, icon_png_len))
@@ -30,7 +32,9 @@ Kernel::Kernel():
 }
 
 void Kernel::menu() {
-    if (processes.back()) {
+    // Não abre menu no menu
+    if (processes.back() &&
+        processes.back()->executable.getOriginalPath() != "apps/menu") {
         auto environment = processes.back()->getEnv();
         environment["app.pid"] = environment["pid"];
 
@@ -97,8 +101,8 @@ void Kernel::createMemoryMap() {
     addMemoryDevice((Memory*)controller);
     keyboard = new Keyboard(lastUsedMemByte);
     addMemoryDevice((Memory*)keyboard);
-    //mouse = new Mouse(lastUsedMemByte);
-    //addMemoryDevice((Memory*)mouse);
+    mouse = new Mouse(lastUsedMemByte);
+    addMemoryDevice((Memory*)mouse);
     // Audio
     audio = new Audio(lastUsedMemByte);
     addMemoryDevice(audio);
@@ -144,8 +148,8 @@ void Kernel::loop() {
         sf::Event event;
 
         // Event handling
-        // TODO: passar os eventos correspondentes para seus controladores
         controller->update();
+        mouse->update();
         while (window.pollEvent(event)) {
             switch (event.type) {
                 // Fecha a janela no "x" ou alt-f4 etc
@@ -153,7 +157,7 @@ void Kernel::loop() {
                 window.close();
             }
                 break;
-                // TODO: Redimensiona e centraliza o vídeo
+                // Redimensiona e centraliza o vídeo
             case sf::Event::Resized: {
                 ((VideoMemory*)gpu->getVideoMemory())->resize();
             }
@@ -166,14 +170,15 @@ void Kernel::loop() {
                 // Controle
             case sf::Event::LostFocus: {
                 controller->allReleased();
-                //mouse->released();
+                mouse->released(0);
+                mouse->released(1);
             }
                 break;
             case sf::Event::KeyPressed: {
                 if (event.key.code == sf::Keyboard::R &&
                     event.key.control) {
 					reset();
-                } else if (event.key.code == sf::Keyboard::X &&
+                } else if (event.key.code == sf::Keyboard::M &&
                     event.key.control) {
                     menu();
                 } else {
@@ -186,7 +191,11 @@ void Kernel::loop() {
             }
                 break;
             case sf::Event::JoystickButtonPressed: {
-                controller->joyPressed(event);
+                if (event.joystickButton.button == 9) {
+                    menu();
+                } else {
+                    controller->joyPressed(event);
+                }
             }
                 break;
             case sf::Event::JoystickButtonReleased: {
@@ -207,16 +216,23 @@ void Kernel::loop() {
                 break;
             // Mouse
             case sf::Event::MouseButtonPressed: {
-                //mouse->pressed();
+                mouse->pressed(event.mouseButton.button != sf::Mouse::Button::Left);
             }
                 break;
-            case sf::Event::MouseButtonReleased:
+            case sf::Event::MouseButtonReleased: {
+                mouse->released(event.mouseButton.button != sf::Mouse::Button::Left);
+            }
+                break;
             case sf::Event::MouseLeft: {
-                //mouse->released();
+                mouse->released(0);
+                mouse->released(1);
             }
                 break;
             case sf::Event::MouseMoved: {
-                //mouse->moved();
+                uint16_t x = event.mouseMove.x;
+                uint16_t y = event.mouseMove.y;
+                ((VideoMemory*)gpu->getVideoMemory())->transformMouse(x, y);
+                mouse->moved(x, y);
             }
                 break;
             default:
@@ -309,8 +325,17 @@ bool Kernel::yield(const uint64_t to) {
 
 void Kernel::exit(unsigned long pid) {
     if (pid == 0) {
-        if (processes.back()->getPid() != 1)
-            processes.pop_back();
+        if (processes.back()->getPid() != 1) {
+            // Se for o processo do menu, passa para o processo anterior
+            // qual foi a opção selecionada no menu
+            if (processes.back()->executable.getOriginalPath() == "apps/menu") {
+                auto menu = processes.back();
+                processes.pop_back();
+                processes.back()->setEnvVar("menu.entry", menu->getEnvVar("menu.entry"));
+            } else {
+                processes.pop_back();
+            }
+        }
     } else if (pid > 1) {
         for (auto process : processes) {
             if (process->getPid() == pid) {

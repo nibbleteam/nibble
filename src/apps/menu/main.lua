@@ -13,7 +13,6 @@ end
 function draw()
     kernel.write(544, prev_screen)
 
-
     if not quit then
         rectf(x, y, 150, 70, 2)
 
@@ -28,7 +27,7 @@ function draw()
 end
 
 function update()
-    if btp(RED) then
+    if btp(RED) and kernel.getenv("app.pid") ~= "1" then
         kernel.read(154154, 32)
         kernel.write(544, prev_screen)
         kernel.exit(tonumber(kernel.getenv("app.pid")))
@@ -36,13 +35,13 @@ function update()
         quit = true
     end
 
-    if btp(BLUE) then
+    if btp(BLUE) or (btp(RED) and kernel.getenv("app.pid") == "1") then
         kernel.read(154154, 32)
         kernel.write(544, prev_screen)
+        kernel.setenv("menu.entry", "back")
         kernel.exit(0)
         quit = true
     end
-
 
     x = x+vx
     y = y+vy

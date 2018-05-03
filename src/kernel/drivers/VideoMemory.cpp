@@ -212,7 +212,8 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     gpuTQuadsBuffer(sf::Quads, 4), gpuQuadsBuffer(sf::Quads, 4),
     gpuTLinesBuffer(sf::Lines, 2), gpuLinesBuffer(sf::Lines, 2),
     gpuTTrisBuffer(sf::Triangles, 3), gpuTrisBuffer(sf::Triangles, 3),
-    currentDraw(1), window(window), colormap(NULL) {
+    currentDraw(1), window(window), colormap(NULL),
+    screenScale(2), screenOffsetX(0), screenOffsetY(0) {
     // Tamanho da textura é 1/4 do tamanho da tela
     // uma vez que um pixel no sfml são quatro bytes
     // e no console é apenas um
@@ -914,18 +915,39 @@ void VideoMemory::draw() {
 void VideoMemory::resize() {
     // Mantém o aspect ratio
     auto windowSize = window.getSize();
-    if (windowSize.x > windowSize.y) {
-        auto ratio = (float)windowSize.y/(float)windowSize.x*(float)w/(float)h;
+    auto screenRatio = float(w)/float(h);
+
+    if (windowSize.x > windowSize.y*screenRatio) {
+        auto ratio = float(w)/float(h)*float(windowSize.y)/float(windowSize.x);
         float spriteWidth = ratio*bytesPerPixel;
+
+        screenScale = float(windowSize.y)/float(h);
+        screenOffsetX = (float)w*(1-ratio)/2.0;
+        screenOffsetY = 0;
+
         framebufferSpr.setScale(spriteWidth, 1.0);
-        framebufferSpr.setPosition((float)w*(1-ratio)/2.0, 0);
+        framebufferSpr.setPosition(screenOffsetX, 0);
     }
     else {
         auto ratio = (float)windowSize.x/(float)windowSize.y*(float)h/(float)w;
         float spriteHeight = ratio;
+
+        screenScale = float(windowSize.x)/float(w);
+        screenOffsetX = 0;
+        screenOffsetY = (float)h*(1-ratio)/2.0;
+
         framebufferSpr.setScale(bytesPerPixel, spriteHeight);
-        framebufferSpr.setPosition(0, (float)h*(1-ratio)/2.0);
+        framebufferSpr.setPosition(0, screenOffsetY);
     }
+}
+
+void VideoMemory::transformMouse(uint16_t &x, uint16_t &y) {
+    auto windowSize = window.getSize();
+
+    x /= screenScale;
+    y /= screenScale;
+    x -= (windowSize.x/screenScale-w)/2;
+    y -= (windowSize.y/screenScale-h)/2;
 }
 
 void VideoMemory::updatePalette(const uint8_t* palette) {

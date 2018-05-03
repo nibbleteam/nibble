@@ -31,6 +31,7 @@ class Process {
     bool initialized;
     bool ok;
 public:
+    Path executable;
     const static string LuaEntryPoint;
     const static string AssetsEntryPoint;
     const static string NiblibEntryPoint;

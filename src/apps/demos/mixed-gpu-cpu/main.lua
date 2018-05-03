@@ -20,6 +20,7 @@ direction = 1
 counter = 0
 
 function init()
+   newpalette() 
 end
 
 function set_new_direction()
@@ -104,8 +105,8 @@ function update()
 end
 
 function newpalette()
-    -- Cria 8 novas paleta aleatória mas com preto no início de todas
-    for j=0,7 do
+    -- Cria 7 novas paleta aleatória mas com preto no início de todas
+    for j=1,7 do
         kernel.write(32+j*4*16, string.char(0x00, 0x00, 0x00, 0xFF))
         for i=1,15 do
             kernel.write(32+i*4+j*4*16, string.char(math.floor(randbyte()/2+128), randbyte(), randbyte(), 0xFF))

@@ -34,6 +34,7 @@ quadf = gpu.quadf
 trif = gpu.trif
 circf = gpu.circf
 line = gpu.line
+circ = gpu.circ
 rect = gpu.rect
 quad = gpu.quad
 tri = gpu.tri
