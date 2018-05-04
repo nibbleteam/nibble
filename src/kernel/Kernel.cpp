@@ -32,14 +32,15 @@ Kernel::Kernel():
 }
 
 void Kernel::menu() {
+    auto p = runningProcess;
     // Não abre menu no menu
-    if (processes.back() &&
-        processes.back()->executable.getOriginalPath() != "apps/menu") {
-        auto environment = processes.back()->getEnv();
+    if (p &&
+        p->executable.getOriginalPath() != "apps/menu") {
+        auto environment = p->getEnv();
         environment["app.pid"] = environment["pid"];
 
         auto pid = exec("apps/menu", environment);
-        yield(pid);
+        wait(pid);
     }
 }
 
@@ -141,9 +142,9 @@ void Kernel::loop() {
     
     while (window.isOpen()) {
         float currentTime = clock.getElapsedTime().asSeconds();
-        float fps = 1.f / (currentTime - lastTime);
+        float delta = currentTime - lastTime;
+        //float fps = 1.f / delta;
         lastTime = currentTime;
-        cerr << fps << "\r";
 
         sf::Event event;
 
@@ -241,31 +242,29 @@ void Kernel::loop() {
         }
 
         // Roda o processo no topo da lista de processos
-        if (processes.size() > 0) {
-            Process *p = processes.back();
+        auto pcopy = processes;
+        for (auto p :pcopy) {
+            if (!p->isRunning())
+                continue;
+
+            runningProcess = p;
+
 
             // Traz o cart do processo pra RAM se já não estiver
-            if (!p->isMapped()) {
-                // Retira RAM do processo anterior
-                for (auto q :processes) {
-                    if (ram.back() == q->getMemory()) {
-                        ram.pop_back();
-                        q->unmap();
-                        break;
-                    }
-                }
-                ram.push_back(p->getMemory());
+            ram.push_back(p->getMemory());
 
-                audioMutex.lock();
-                p->init();
-                audioMutex.unlock();
-            } else {
-                // Chama as callbacks do processo
-                audioMutex.lock();
-                p->update();
+            audioMutex.lock();
+            if (p->isInitialized()) {
+                p->update(delta);
                 p->draw();
-                audioMutex.unlock();
+            } else {
+                p->init();
             }
+            audioMutex.unlock();
+
+            ram.pop_back();
+            p->unmap();
+
         }
 
         gpu->draw();
@@ -297,10 +296,7 @@ int64_t Kernel::exec(const string& executable, map<string, string> environment) 
         // ao ambiente lua do processo
         process->addSyscalls();
 
-        // Adiciona ao início da pilha de execução de forma que não será
-        // executado até que todos os outros saiam ou um yield seja chamado
-        // (ou caso esse seja o único processo na pilha)
-        processes.push_front(process);
+        processes.insert(process);
 
         return process->getPid();
     } else {
@@ -310,82 +306,58 @@ int64_t Kernel::exec(const string& executable, map<string, string> environment) 
     return process->getPid();
 }
 
-// Libera o fluxo de controle para "to"
-bool Kernel::yield(const uint64_t to) {
-    for (auto process : processes) {
-        if (process->getPid() == to) {
-            processes.remove(process);
-            processes.push_back(process);
-            break;
-        }
-    }
-
-    return false;
+// Espera "wait" sair
+void Kernel::wait(const uint64_t wait) {
+    waitlist.emplace(runningProcess->getPid(), wait);
+    runningProcess->setRunning(false);
 }
 
-void Kernel::exit(const uint64_t pid) {
+void Kernel::kill(const uint64_t pid) {
+    auto p = runningProcess;
+
     if (pid == 0) {
-        if (processes.back()->getPid() != 1) {
-            // Se for o processo do menu, passa para o processo anterior
-            // qual foi a opção selecionada no menu
-            if (processes.back()->executable.getOriginalPath() == "apps/menu") {
-                auto menu = processes.back();
-                processes.pop_back();
-                processes.back()->setEnvVar("menu.entry", menu->getEnvVar("menu.entry"));
-            } else {
-                processes.pop_back();
-            }
+        if (p->getPid() != 1) {
+            processes.erase(p);
         }
     } else if (pid > 1) {
         for (auto process : processes) {
             if (process->getPid() == pid) {
-                processes.remove(process);
+                processes.erase(process);
                 break;
             }
         }
     }
+
+    checkWaitlist();
 }
 
 string Kernel::getenv(const string key) {
-    return processes.back()->getEnvVar(key);
+    return runningProcess->getEnvVar(key);
 }
 
 void Kernel::setenv(const string key, const string value) {
-    processes.back()->setEnvVar(key, value);
+    runningProcess->setEnvVar(key, value);
 }
 
 void Kernel::audio_tick(uint8_t channel) {
-    bool unmap = false;
+    audioMutex.lock();
+    auto previousRunningProcess = runningProcess;
 
-    // Roda o processo no topo da lista de processos
-    if (processes.size() > 0) {
-        Process *p = processes.back();
+    auto pcopy = processes;
+    for (auto p :pcopy) {
+        if (!p->isRunning())
+            continue;
+
+        runningProcess = p;
 
         // Traz o cart do processo pra RAM se já não estiver
-        if (!p->isMapped()) {
-            // Retira RAM do processo anterior
-            for (auto q :processes) {
-                if (ram.back() == q->getMemory()) {
-                    ram.pop_back();
-                    q->unmap();
-                    break;
-                }
-            }
-            ram.push_back(p->getMemory());
-
-            unmap = true;
-        }
-
-        audioMutex.lock();
-        p->audio_tick(channel);
-        audioMutex.unlock();
-
-        // Retira a ram do processo
-        if (unmap) {
-            ram.pop_back();
-            p->unmap();
+        if (p->isInitialized()) {
+            p->audio_tick(channel);
         }
     }
+
+    runningProcess = previousRunningProcess;
+    audioMutex.unlock();
 }
 
 // API de acesso à memória
@@ -512,6 +484,32 @@ bool Kernel::checkCartStructure(Path& root) {
         !fs::isDir(lua);
 }
 
+void Kernel::checkWaitlist() {
+    for (auto w=waitlist.begin();w!=waitlist.end();) {
+        auto i = *w;
+        bool exists = false;
+        for (auto p :processes) {
+            if (p->getPid() == i.second) {
+                exists = true;
+                break;
+            }
+        }
+
+        if (!exists) {
+            for (auto p :processes) {
+                if (p->getPid() == i.first) {
+                    p->setRunning(true);
+                    break;
+                }
+            }
+            
+            waitlist.erase(w++); 
+        } else {
+            w++;
+        }
+    }
+}
+
 // Wrapper estático para a API
 unsigned long kernel_api_write(unsigned long to, const string data) {
     return (unsigned long)KernelSingleton->write(to, (uint8_t*)data.data(), data.size());
@@ -545,12 +543,12 @@ unsigned long kernel_api_exec(const string executable, luabridge::LuaRef lEnviro
     }
 }
 
-bool kernel_api_yield(unsigned long pid) {
-    return KernelSingleton->yield(pid);
+void kernel_api_wait(unsigned long pid) {
+    KernelSingleton->wait(pid);
 }
 
-void kernel_api_exit(unsigned long pid) {
-    return KernelSingleton->exit(pid);
+void kernel_api_kill(unsigned long pid) {
+    KernelSingleton->kill(pid);
 }
 
 void kernel_api_setenv(const string key, const string value) {

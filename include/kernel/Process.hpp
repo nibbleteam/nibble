@@ -10,6 +10,8 @@ extern "C" {
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <queue>
+#include <LuaBridge/LuaBridge.h>
 #include <kernel/filesystem.hpp>
 #include <kernel/Memory.hpp>
 #include <kernel/drivers/CartridgeMemory.hpp>
@@ -30,6 +32,10 @@ class Process {
     bool mapped;
     bool initialized;
     bool ok;
+    bool running;
+    // IPC
+    // Através de tabelas Lua
+    queue<luabridge::LuaRef> receivedMessaged;
 public:
     Path executable;
     const static string LuaEntryPoint;
@@ -41,11 +47,15 @@ public:
 
     // Verifica se não há erros no código
     bool isOk();
+    // Verifica se init() já foi chamado
+    bool isInitialized();
+    // Verifica se o processo está rodando ou em pausa
+    bool isRunning();
+    void setRunning(bool);
 
     // Roda o processo
-    // TODO: delta tempo
     void init();
-    void update();
+    void update(float);
     void draw();
 
     // Áudio

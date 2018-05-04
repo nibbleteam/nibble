@@ -22,9 +22,6 @@ CartridgeMemory::CartridgeMemory(Path& assets, const uint64_t addr, VideoMemory*
     } else {
         cout << "cartridge has no spritesheet in " << spriteSheet.getPath() << endl;
     }
-    
-    // Atualiza na video memory
-	load();
 }
 
 CartridgeMemory::~CartridgeMemory() {

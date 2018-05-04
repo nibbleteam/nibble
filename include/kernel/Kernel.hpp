@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <vector>
-#include <list>
+#include <set>
 #include <string>
 #include <mutex>
 #include <SFML/Graphics.hpp>
@@ -30,23 +30,27 @@ class Kernel {
     // da classe Memory
     vector <Memory*> ram;
     // Contém todos os processos carregados em memória
-    // apenas um está em execução a cada instante (o último elemento da lista)
-    list <Process*> processes;
+    set <Process*> processes;
     // Contador de ID para os processos gerados
     uint64_t lastPid;
+    // Usado para saber qual o pid que fez uma chamada de sistema
+    Process* runningProcess;
     // Aponta para o último byte usado de memória
     uint64_t lastUsedMemByte;
     // GPU 
     GPU *gpu;
+    // HID
     Keyboard *keyboard;
     Mouse *mouse;
     Controller *controller;
+    // Placa de áudio
     Audio *audio;
-
-
     // Não deixa a callback de áudio/vídeo serem chamadas ao mesmo
     // tempo
     mutex audioMutex;
+    // Waitlist: processos que estão bloqueados
+    // esperando utros processos
+    map<uint64_t, uint64_t> waitlist;
 public:
     Kernel();
     ~Kernel();
@@ -72,9 +76,12 @@ public:
     uint64_t write(uint64_t, const uint8_t*, uint64_t);
     string read(uint64_t, uint64_t);
     // Gerenciamento de processos
+    // Executa app
     int64_t exec(const string&, map<string, string>);
-    bool yield(const uint64_t);
-    void exit(const uint64_t);
+    // Bloqueia enquanto app não sair
+    void wait(const uint64_t);
+    // Fecha uma app
+    void kill(const uint64_t);
     // Environment de processos
     void setenv(const string, const string);
     string getenv(const string);
@@ -87,6 +94,10 @@ private:
     void addMemoryDevice(Memory*);
     // Verifica estrutura de um cartridge
     bool checkCartStructure(Path&);
+    // Desbloqueia processos se estiverem
+    // na waitlist e o bloqueador já estiver
+    // saído
+    void checkWaitlist();
 };
 
 extern Kernel *KernelSingleton;
@@ -95,8 +106,8 @@ extern Kernel *KernelSingleton;
 string kernel_api_read(const unsigned long, const unsigned long);
 unsigned long kernel_api_write(const unsigned long, const string);
 unsigned long kernel_api_exec(const string, luabridge::LuaRef);
-bool kernel_api_yield(unsigned long);
-void kernel_api_exit(unsigned long);
+void kernel_api_wait(unsigned long);
+void kernel_api_kill(unsigned long);
 void kernel_api_setenv(const string, const string);
 string kernel_api_getenv(const string);
 

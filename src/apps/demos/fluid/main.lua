@@ -9,8 +9,24 @@ local dirs = {
     {0, -1},
     {-1, -1},
 }
-local W = 40
-local H = 30
+local W = 80
+local H = 60
+
+function math.round(x)
+    if x > 0 then
+        return math.ceil(x)
+    else
+        return math.floor(x)
+    end
+end
+
+function iround(x)
+    if x > 0 then
+        return math.floor(x)
+    else
+        return math.ceil(x)
+    end
+end
 
 function genline()
     local line = {}
@@ -49,29 +65,44 @@ local prevx = 0
 local prevy = 0
 
 function update()
-    if #buffer ~= H then
-        return
-    end
-
-    for x=1,W do
+    for x=W,1,-1 do
         for y = 1,H do
             local i = math.sqrt(buffer[y][x][2]*buffer[y][x][2]+buffer[y][x][3]*buffer[y][x][3])
-            buffer[y][x][1] = buffer[y][x][1]-i
 
-            if x+buffer[y][x][2] >= 1 and x+buffer[y][x][2] <= W and
-                y+buffer[y][x][3] >= 1 and y+buffer[y][x][3] <= H then
-                local ax = math.floor(x+buffer[y][x][2])
-                local ay = math.floor(y+buffer[y][x][3])
+            local ax = x+iround(math.round(buffer[y][x][2]/i*4)/2)
+            local ay = y+iround(math.round(buffer[y][x][3]/i*4)/2)
+            if ax >= 1 and ax <= W and
+               ay >= 1 and ay <= H then
+                if buffer[y][x][1] > 0 then
+                    buffer[ay][ax][1] = buffer[ay][ax][1]+i*buffer[y][x][1]
+                    buffer[y][x][1] = buffer[y][x][1]-i*buffer[y][x][1]
+                end
 
-                buffer[ay][ax][1] = buffer[ay][ax][1]+i
-                buffer[ay][ax][2] = buffer[ay][ax][2]+buffer[y][x][2]*0.8
-                buffer[ay][ax][3] = buffer[ay][ax][3]+buffer[y][x][3]*0.8
-                buffer[y][x][2] = buffer[y][x][2]*0.2
-                buffer[y][x][3] = buffer[y][x][3]*0.2
+                buffer[ay][ax][2] = buffer[ay][ax][2]+buffer[y][x][2]*0.1
+                buffer[ay][ax][3] = buffer[ay][ax][3]+buffer[y][x][3]*0.1
+                buffer[y][x][2] = buffer[y][x][2]-buffer[y][x][2]*0.1
+                buffer[y][x][3] = buffer[y][x][3]-buffer[y][x][3]*0.1
+            elseif ax < 1 or ax > W then
+                buffer[y][x][2] = buffer[y][x][2]*-1
+            else
+                buffer[y][x][3] = buffer[y][x][3]*-1
+            end
+
+            if buffer[y][x][3] > 1 then
+                buffer[y][x][3] = 1
+            end
+            if buffer[y][x][3] < -1 then
+                buffer[y][x][3] = -1
+            end
+            if buffer[y][x][2] > 1 then
+                buffer[y][x][2] = 1
+            end
+            if buffer[y][x][2] < -1 then
+                buffer[y][x][2] = -1
             end
 
             if buffer[y][x][1] > 0 then
-                local amount = buffer[y][x][1]*0.2
+                local amount = buffer[y][x][1]*0.05
 
                 if x+1 <= W then
                     local cellTo = get( x+1, y)
@@ -103,11 +134,20 @@ function update()
 
     if read8(154190) == 2 then
         local v = get(mx, my)
-        local dx, dy = (prevx-mx)*0.5, (prevy-my)*0.5
+        local dx, dy = (mx-prevx)*0.5, (my-prevy)*0.5
         local w = 320/W
         local h = 240/H
 
         set(math.floor(mx/w), math.floor(my/h), {v[1]+100, v[2]+dx, v[3]+dy})
+    end
+
+    if read8(154191) == 2 then
+        local v = get(mx, my)
+        local dx, dy = (mx-prevx)*0.5, (my-prevy)*0.5
+        local w = 320/W
+        local h = 240/H
+
+        set(math.floor(mx/w), math.floor(my/h), {v[1], v[2]+dx, v[3]+dy})
     end
 
     prevx = mx
@@ -126,6 +166,11 @@ function draw()
     for y=1,H do
         for x=1,W do
             local v = buffer[y][x][1]
+            local dx = buffer[y][x][2]
+            local dy = buffer[y][x][3]
+
+            local px = x*w-w/2
+            local py = y*h-h/2
 
             if v > 15 then
                 v = 15
@@ -135,7 +180,8 @@ function draw()
                 v = math.floor(v)
             end
 
-            rect(x*w, y*h, w, h, v)
+            circf(px, py, v, v)
+            --line(px, py, px+dx*v, py+dy*v, v) 
         end
     end
 

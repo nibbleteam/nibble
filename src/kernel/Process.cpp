@@ -20,6 +20,7 @@ Process::Process(Path& executable,
     mapped(false),
     initialized(false),
     ok(true),
+    running(true),
     executable(executable) {
     // Pontos de entrada no sistema de arquivos para código
     // e dados do cart
@@ -69,14 +70,18 @@ bool Process::isOk() {
     return ok;
 }
 
+bool Process::isInitialized() {
+    return initialized;
+}
+
 void Process::addSyscalls() {
     getGlobalNamespace(st)
         .beginNamespace("kernel")
         .addFunction("read", &kernel_api_read)
         .addFunction("write", &kernel_api_write)
         .addFunction("exec", &kernel_api_exec)
-        .addFunction("yield", &kernel_api_yield)
-        .addFunction("exit", &kernel_api_exit)
+        .addFunction("wait", &kernel_api_wait)
+        .addFunction("kill", &kernel_api_kill)
         .addFunction("setenv", &kernel_api_setenv)
         .addFunction("getenv", &kernel_api_getenv)
         .endNamespace();
@@ -90,27 +95,28 @@ void Process::init() {
         if (lua_isfunction(st, -1)) {
             if (lua_pcall(st, 0, 0, 0) != 0) {
                 cout << "pid " << pid << " init(): " << lua_tostring(st, -1) << endl;
-                KernelSingleton->exit(pid);
+                KernelSingleton->kill(pid);
             }
         }
         else {
             cout << "pid " << pid << " init() is not defined. exiting." << endl;
-            KernelSingleton->exit(pid);
+            KernelSingleton->kill(pid);
         }
     }
 }
 
-void Process::update() {
+void Process::update(float dt) {
     lua_getglobal(st, "update");
-    if (lua_isfunction(st, -1)) {
-        if (lua_pcall(st, 0, 0, 0) != 0) {
+    lua_pushnumber(st, dt);
+    if (lua_isfunction(st, -2)) {
+        if (lua_pcall(st, 1, 0, 0) != 0) {
             cout << "pid " << pid << " update(): " << lua_tostring(st, -1) << endl;
-            KernelSingleton->exit(pid);
+            KernelSingleton->kill(pid);
         }
     }
     else {
         cout << "pid " << pid << " update() is not defined. exiting." << endl;
-        KernelSingleton->exit(pid);
+        KernelSingleton->kill(pid);
     }
 }
 
@@ -119,12 +125,12 @@ void Process::draw() {
     if (lua_isfunction(st, -1)) {
         if (lua_pcall(st, 0, 0, 0) != 0) {
             cout << "pid " << pid << " draw(): " << lua_tostring(st, -1) << endl;
-            KernelSingleton->exit(pid);
+            KernelSingleton->kill(pid);
         }
     }
     else {
         cout << "pid " << pid << " draw() is not defined. exiting." << endl;
-        KernelSingleton->exit(pid);
+        KernelSingleton->kill(pid);
     }
 }
 
@@ -134,12 +140,12 @@ void Process::audio_tick(uint8_t channel) {
     if (lua_isfunction(st, -2)) {
         if (lua_pcall(st, 1, 0, 0) != 0) {
             cout << "pid " << pid << " audio_tick(): " << lua_tostring(st, -1) << endl;
-            KernelSingleton->exit(pid);
+            KernelSingleton->kill(pid);
         }
     }
     else {
         cout << "pid " << pid << " audio_tick() is not defined. exiting." << endl;
-        KernelSingleton->exit(pid);
+        KernelSingleton->kill(pid);
     }
 }
 
@@ -164,6 +170,14 @@ void Process::unmap() {
 
 bool Process::isMapped() {
     return mapped;
+}
+
+bool Process::isRunning() {
+    return running; 
+}
+
+void Process::setRunning(bool running) {
+    this->running = running;
 }
 
 void Process::setEnvVar(const string& key, const string& value) {

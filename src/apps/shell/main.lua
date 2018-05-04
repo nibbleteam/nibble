@@ -76,17 +76,29 @@ function update()
       end
     -- Enter
     elseif keys == "\13" then
-        local cmd = input_line:sub(prompt:len()+1, #input_line)
+        local cmd = {}
+        
+        for part in input_line:sub(prompt:len()+1, #input_line):gmatch("%S+") do
+            table.insert(cmd, part)
+        end
 
-        if cmd == "exit" then
-            kernel.exit(0)
+        if cmd[1] == "exit" then
+            kernel.kill(0)
+        elseif cmd[1] == "load" then
+            local child = kernel.exec(cmd[2], {})
+            add_line(input_line)
+            input_line = prompt
+            
+            if child <= 0 then
+                add_line("ERROR: invalid cartridge!")
+            end
         else
-            local child = kernel.exec(cmd, {})
+            local child = kernel.exec(cmd[1], {})
             add_line(input_line)
             input_line = prompt
             
             if child > 0 then
-                kernel.yield(child)
+                kernel.wait(child)
             else
                 add_line("ERROR: invalid cartridge!")
             end

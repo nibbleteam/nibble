@@ -5,6 +5,7 @@ local x=0
 local y=0
 local vx=2
 local vy=1
+local dt=1
 
 function init()
     prev_screen = kernel.read(544, 75*1024)
@@ -16,7 +17,8 @@ function draw()
     if not quit then
         rectf(x, y, 150, 70, 2)
 
-        print("Nibble System Menu", x, y)
+        print("FPS: "..tostring(math.floor(1/dt+0.5)), x+94, y)
+        print("Menu", x, y)
         print("v1", x, y+10)
         print("ENV PID: "..kernel.getenv("pid"), x, y+20)
         print("ENV APP.PID: "..kernel.getenv("app.pid"), x, y+30)
@@ -26,12 +28,13 @@ function draw()
     end
 end
 
-function update()
+function update(delta)
+    dt = delta
     if btp(RED) and kernel.getenv("app.pid") ~= "1" then
         kernel.read(154154, 32)
         kernel.write(544, prev_screen)
-        kernel.exit(tonumber(kernel.getenv("app.pid")))
-        kernel.exit(0)
+        kernel.kill(tonumber(kernel.getenv("app.pid")))
+        kernel.kill(0)
         quit = true
     end
 
@@ -39,7 +42,7 @@ function update()
         kernel.read(154154, 32)
         kernel.write(544, prev_screen)
         kernel.setenv("menu.entry", "back")
-        kernel.exit(0)
+        kernel.kill(0)
         quit = true
     end
 
