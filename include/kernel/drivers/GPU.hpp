@@ -32,6 +32,7 @@ public:
         uint64_t);
     ~GPU();
 
+    void render();
     void draw();
 
     Memory* getVideoMemory();

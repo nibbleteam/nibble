@@ -40,7 +40,7 @@ void Kernel::menu() {
         environment["app.pid"] = environment["pid"];
 
         auto pid = exec("apps/menu", environment);
-        wait(pid);
+        //wait(pid);
     }
 }
 
@@ -242,6 +242,7 @@ void Kernel::loop() {
         }
 
         // Roda o processo no topo da lista de processos
+        audioMutex.lock();
         auto pcopy = processes;
         for (auto p :pcopy) {
             if (!p->isRunning())
@@ -249,23 +250,21 @@ void Kernel::loop() {
 
             runningProcess = p;
 
-
             // Traz o cart do processo pra RAM se já não estiver
             ram.push_back(p->getMemory());
 
-            audioMutex.lock();
             if (p->isInitialized()) {
                 p->update(delta);
                 p->draw();
+                gpu->render();
             } else {
                 p->init();
             }
-            audioMutex.unlock();
 
             ram.pop_back();
             p->unmap();
-
         }
+        audioMutex.unlock();
 
         gpu->draw();
         window.display();
@@ -510,6 +509,22 @@ void Kernel::checkWaitlist() {
     }
 }
 
+luabridge::LuaRef Kernel::receive() {
+    return runningProcess->readMessage();
+}
+
+bool Kernel::send(const uint64_t pid, luabridge::LuaRef message) {
+    for (auto p :processes) {
+        if (p->getPid() == pid) {
+            p->writeMessage(message);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // Wrapper estático para a API
 unsigned long kernel_api_write(unsigned long to, const string data) {
     return (unsigned long)KernelSingleton->write(to, (uint8_t*)data.data(), data.size());
@@ -528,7 +543,7 @@ unsigned long kernel_api_exec(const string executable, luabridge::LuaRef lEnviro
         lua_pushnil(L);
 
         while (lua_next(L, -2) != 0) {
-            if (lua_isstring(L, -2)) {
+            if (lua_isstring(L, -2) && lua_isstring(L, -1)) {
                 environment.emplace(lua_tostring(L, -2), lua_tostring(L, -1));
             }
             lua_pop(L, 1);
@@ -557,4 +572,12 @@ void kernel_api_setenv(const string key, const string value) {
 
 string kernel_api_getenv(const string key) {
     return KernelSingleton->getenv(key);
+}
+
+bool kernel_api_send(unsigned long pid, luabridge::LuaRef message) {
+    return KernelSingleton->send(pid, message);
+}
+
+luabridge::LuaRef kernel_api_receive() {
+    return KernelSingleton->receive();
 }

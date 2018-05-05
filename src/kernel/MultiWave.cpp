@@ -8,7 +8,7 @@ using namespace std;
 
 MultiWave::MultiWave(WaveType waveType):
     Wave(), waveType(waveType) {
-	amplitude = 1;
+	amplitude = 0;
 
     fillLUT();
 }

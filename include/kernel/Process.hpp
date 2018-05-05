@@ -35,7 +35,7 @@ class Process {
     bool running;
     // IPC
     // Através de tabelas Lua
-    queue<luabridge::LuaRef> receivedMessaged;
+    queue<luabridge::LuaRef> receivedMessages;
 public:
     Path executable;
     const static string LuaEntryPoint;
@@ -77,6 +77,11 @@ public:
     void setEnvVar(const string&, const string&);
     string getEnvVar(const string&);
     map<string, string> getEnv();
+    // IPC
+    luabridge::LuaRef readMessage();
+    void writeMessage(luabridge::LuaRef);
+private:
+    void copyLuaValue(lua_State*, lua_State*, int);
 };
 
 #endif /* PROCESS_H */

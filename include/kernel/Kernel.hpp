@@ -85,6 +85,9 @@ public:
     // Environment de processos
     void setenv(const string, const string);
     string getenv(const string);
+    // IPC
+    luabridge::LuaRef receive();
+    bool send(const uint64_t, luabridge::LuaRef);
 private:
     // Mapeia dispositivos para a memória, essencialmente
     // adicionando dispositivos ao vetor ram. Chamada pelo
@@ -110,5 +113,8 @@ void kernel_api_wait(unsigned long);
 void kernel_api_kill(unsigned long);
 void kernel_api_setenv(const string, const string);
 string kernel_api_getenv(const string);
+luabridge::LuaRef kernel_api_receive();
+bool kernel_api_send(unsigned long, luabridge::LuaRef);
 
 #endif /* KERNEL_H */
+

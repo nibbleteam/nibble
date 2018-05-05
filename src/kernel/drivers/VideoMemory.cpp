@@ -855,7 +855,7 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
     currentDraw++;
 }
 
-void VideoMemory::draw() {
+void VideoMemory::render() {
     // Renderiza polígonos e seus timings na GPU
     if (gpuTQuadsBuffer.hasContent())
         gpuTQuadsBuffer.draw(gpuRenderTimingQuads);
@@ -870,6 +870,15 @@ void VideoMemory::draw() {
     if (gpuLinesBuffer.hasContent())
         gpuLinesBuffer.draw(gpuRenderTextureLines);
 
+    gpuTQuadsBuffer.clear();
+    gpuQuadsBuffer.clear();
+    gpuTTrisBuffer.clear();
+    gpuTrisBuffer.clear();
+    gpuTLinesBuffer.clear();
+    gpuLinesBuffer.clear();
+}
+
+void VideoMemory::draw() {
     // Atualiza textura de timing da CPU
     cpuTiming.update(timingBuffer, w, h, 0, 0);
     // Atualiza resultado do render da CPU
@@ -900,12 +909,6 @@ void VideoMemory::draw() {
 
     // Zera o timing dos draws
     currentDraw = 1;
-    gpuTQuadsBuffer.clear();
-    gpuQuadsBuffer.clear();
-    gpuTTrisBuffer.clear();
-    gpuTrisBuffer.clear();
-    gpuTLinesBuffer.clear();
-    gpuLinesBuffer.clear();
     gpuRenderTimingQuads.clear(sf::Color::Transparent);
     gpuRenderTimingTris.clear(sf::Color::Transparent);
     gpuRenderTimingLines.clear(sf::Color::Transparent);

@@ -12,7 +12,7 @@ function init()
 end
 
 function draw()
-    kernel.write(544, prev_screen)
+    --kernel.write(544, prev_screen)
 
     if not quit then
         rectf(x, y, 150, 70, 2)

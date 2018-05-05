@@ -63,8 +63,23 @@ bool Audio::onGetData(Audio::Chunk& chunk) {
     int16_t *w7 = N->fill(sampleCount);
 
 	// Mix
+    int16_t max = SHRT_MIN;
+    int16_t min = SHRT_MAX;
     for (unsigned int i=0;i<sampleCount;i++) {
         samples[i] = w1[i]/7 + w2[i]/7 + w3[i]/7 + w4[i]/7 + w5[i]/7 + w6[i]/7 + w7[i]/7;
+
+        if (samples[i] > max)
+            max = samples[i];
+        if (samples[i] < min)
+            min = samples[i];
+    }
+
+    int amplitude = abs(min-max);
+    int max_amplitude = SHRT_MAX;
+    float mult = float(max_amplitude)/float(amplitude);
+
+    for (unsigned int i=0;i<sampleCount;i++) {
+        samples[i] *= mult;
     }
 
     chunk.samples = samples;

@@ -7,7 +7,7 @@ using namespace std;
 
 NoiseWave::NoiseWave():
     Wave() {
-	amplitude = 1;
+	amplitude = 0;
 }
 
 Wave::ChannelType NoiseWave::type() {

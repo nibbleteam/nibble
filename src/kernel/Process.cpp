@@ -84,6 +84,8 @@ void Process::addSyscalls() {
         .addFunction("kill", &kernel_api_kill)
         .addFunction("setenv", &kernel_api_setenv)
         .addFunction("getenv", &kernel_api_getenv)
+        .addFunction("send", &kernel_api_send)
+        .addFunction("receive", &kernel_api_receive)
         .endNamespace();
 }
 
@@ -190,4 +192,82 @@ string Process::getEnvVar(const string& key) {
 
 map<string, string> Process::getEnv() {
     return environment;
+}
+
+luabridge::LuaRef Process::readMessage() {
+    if (!receivedMessages.empty()) {
+        luabridge::LuaRef message = receivedMessages.front();
+        receivedMessages.pop();
+        return message;
+    } else {
+        return luabridge::LuaRef(st);
+    }
+}
+
+void Process::writeMessage(luabridge::LuaRef msg) {
+    // Mensagens são tabelas apenas
+    if (msg.isTable()) {
+        lua_State *msgState = msg.state();
+
+        // Coloca a tabela na stack externa
+        push(msgState, msg);
+        lua_pushnil(msgState);
+
+        // Coloca a nova tabela na nossa stack
+        lua_newtable(st);
+
+        // Itera pela tabela na stack externa
+        if (lua_checkstack(msgState, 8) != 0) {
+            while (lua_next(msgState, -2) != 0) {
+                // Copia a chave para a nossa stack
+                copyLuaValue(msgState, st, -2);
+                // Copia o valor para o nosso stack 
+                copyLuaValue(msgState, st, -1);
+                // Coloca  chave e valor na tabela criada na nossa stack
+                lua_settable(st, -3);
+                // Remove o valor da stack externa
+                lua_pop(msgState, 1);
+            }
+        } else {
+            cout << "NO MORE SPACE ON THE EXTERN STACK" << endl;
+            // Remove a chave "nil"
+            lua_pop(msgState, 1);
+        }
+        // Remove a tabela da stack externa
+        lua_pop(msgState, 1);
+
+        // Cria uma referência para a nossa tabela
+        LuaRef table = Stack<LuaRef>::get(st, -1);
+        // Remove a nossa tabela da stack
+        lua_pop(st, 1);
+
+        // Coloca  tabela convertida na nossa lista de mensagens
+        receivedMessages.push(table);
+    }
+}
+
+// Copia um valor de from para to, que está na posição p de from
+void Process::copyLuaValue(lua_State* from, lua_State* to, int p) {
+    // Verifica o tipo do valor na stack
+    int t = lua_type(from, p);
+
+    switch (t) {
+        // Para tipos simples, copia diretamente
+        case LUA_TSTRING: {
+            string value = string(lua_tostring(from, p));
+
+            lua_pushstring(to, value.c_str());
+        }
+            break;
+        case LUA_TBOOLEAN:
+            lua_pushboolean(to, lua_toboolean(from, p));
+            break;
+        case LUA_TNUMBER:
+            lua_pushnumber(to, lua_tonumber(from, p));
+            break;
+        // Para tabelas, chama a função recursivamente
+        case LUA_TTABLE:
+            // TODO: Tabelas como chaves/valores
+            break;
+    }
 }

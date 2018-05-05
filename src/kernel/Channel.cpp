@@ -87,8 +87,12 @@ void Channel::tick() {
     if (wave->type() == Wave::WAVE_CHANNEL) {
         MultiWave *multi = (MultiWave*)wave;
 
-        if (waveType != multi->waveType)
+        if (waveType != multi->waveType) {
             multi->setType(waveType);
+            wave->previousAmplitude = 0;
+            wave->targetAmplitude = 0;
+            wave->amplitude = 0;
+        }
     }
 }
 

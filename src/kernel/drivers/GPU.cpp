@@ -26,6 +26,10 @@ GPU::~GPU() {
 	delete videoMemory;
 }
 
+void GPU::render() {
+    videoMemory->render();
+}
+
 void GPU::draw() {
     videoMemory->draw();
 }

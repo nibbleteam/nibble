@@ -2,7 +2,9 @@
 local lines = {}
 local prompt = ": "
 local input_line = prompt
+local children = {}
 
+local note = 0
 function audio_tick(channel)
     local channel_conf = "\00\00\00\00"
 
@@ -10,11 +12,15 @@ function audio_tick(channel)
         if beep > 0 then
             beep = beep-1
 
-            channel_conf = "\00\64\03\00"
+            if beep > 5 then
+                note = math.floor((20-beep)/5)*3
+            end
+
+            channel_conf = "\01\255\03"..string.char(note)
         end
     end
 
-    kernel.write(154190+channel*4, channel_conf)
+    kernel.write(154192+channel*4, channel_conf)
 end
 
 function init()
@@ -55,7 +61,7 @@ function add_line(line)
         table.remove(lines, 1)
     end
 
-    beep = 5
+    beep = 20
 end
 
 function update()
@@ -66,6 +72,22 @@ function update()
 
   local keys = kernel.read(0x25A2a, 1)
 
+  local message = kernel.receive()
+
+    if message then
+        if message.print and type(message.print) == "string" then
+          add_line(message.print)
+        end
+
+        if message.app_started then
+            children[message.app_started] = message.app_name
+        end
+
+        if message.app_stopped then
+            children[message.app_stopped] = nil
+        end
+    end
+
   if #keys > 0 then
     blink = 20
 
@@ -74,6 +96,23 @@ function update()
       if #input_line > prompt:len() then
         input_line = input_line:sub(1, #input_line-1)
       end
+    -- CTRL-C
+    elseif keys == "\03" then
+        local highestpid = 0
+        local name = ""
+        for k, v in pairs(children) do
+            if k > highestpid then
+                highestpid = k
+                name = v
+            end
+        end
+
+        if highestpid ~= 0 then
+            kernel.kill(highestpid)
+            children[highestpid] = nil
+
+            add_line("closing "..name)
+        end
     -- Enter
     elseif keys == "\13" then
         local cmd = {}
@@ -82,29 +121,48 @@ function update()
             table.insert(cmd, part)
         end
 
-        if cmd[1] == "exit" then
-            kernel.kill(0)
-        elseif cmd[1] == "load" then
-            local child = kernel.exec(cmd[2], {})
-            add_line(input_line)
-            input_line = prompt
-            
-            if child <= 0 then
-                add_line("ERROR: invalid cartridge!")
-            end
-        else
-            local child = kernel.exec(cmd[1], {})
-            add_line(input_line)
-            input_line = prompt
-            
-            if child > 0 then
-                kernel.wait(child)
+        if #cmd > 0 then
+            if cmd[1] == "exit" then
+                kernel.kill(0)
+            elseif cmd[#cmd] == "&" then
+                local child = kernel.exec("apps/system/monitor", {
+                    shell = kernel.getenv("pid"),
+                    exec = cmd[1]
+                })
+                input_line = prompt
+                
+                if child <= 0 then
+                    add_line("ERROR: invalid cartridge!")
+                else
+                end
             else
-                add_line("ERROR: invalid cartridge!")
+                local child = kernel.exec(cmd[1], {shell = kernel.getenv("pid")})
+                add_line(input_line)
+                input_line = prompt
+                
+                if child > 0 then
+                    kernel.wait(child)
+                else
+                    local child = kernel.exec("apps/system/monitor", {
+                        shell = kernel.getenv("pid"),
+                        exec = system(cmd[1])
+                    })
+                    --add_line(input_line)
+                    input_line = prompt
+                    
+                    if child > 0 then
+                    else
+                        add_line("ERROR: invalid cartridge!")
+                    end
+                end
             end
         end
     else
       input_line = input_line..keys
     end
   end
+end
+
+function system(path)
+    return "apps/system/"..path
 end

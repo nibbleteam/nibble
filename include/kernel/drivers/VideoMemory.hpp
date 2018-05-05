@@ -82,6 +82,7 @@ public:
     // Fecha arquivos abertos
     void close();
 
+    void render();
     void draw();
 
     uint64_t write(const uint64_t, const uint8_t*, const uint64_t);

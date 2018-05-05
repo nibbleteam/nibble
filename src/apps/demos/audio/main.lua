@@ -1,4 +1,3 @@
-local t = 0
 local bass = 0
 local ch = {
     0, 0, 0, 0, 0, 0, 0
@@ -6,7 +5,6 @@ local ch = {
 
 function audio_tick(channel)
     if channel == 0 then
-        t = t+1/60
         bass = bass+1
 
         local base = {0, 3, 0, 2}

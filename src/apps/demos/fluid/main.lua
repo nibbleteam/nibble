@@ -9,8 +9,8 @@ local dirs = {
     {0, -1},
     {-1, -1},
 }
-local W = 80
-local H = 60
+local W = 40
+local H = 30
 
 function math.round(x)
     if x > 0 then
@@ -75,17 +75,17 @@ function update()
                ay >= 1 and ay <= H then
                 if buffer[y][x][1] > 0 then
                     buffer[ay][ax][1] = buffer[ay][ax][1]+i*buffer[y][x][1]
-                    buffer[y][x][1] = buffer[y][x][1]-i*buffer[y][x][1]
+                buffer[y][x][1] = buffer[y][x][1]-i*buffer[y][x][1]
                 end
 
-                buffer[ay][ax][2] = buffer[ay][ax][2]+buffer[y][x][2]*0.1
-                buffer[ay][ax][3] = buffer[ay][ax][3]+buffer[y][x][3]*0.1
-                buffer[y][x][2] = buffer[y][x][2]-buffer[y][x][2]*0.1
-                buffer[y][x][3] = buffer[y][x][3]-buffer[y][x][3]*0.1
-            elseif ax < 1 or ax > W then
-                buffer[y][x][2] = buffer[y][x][2]*-1
-            else
-                buffer[y][x][3] = buffer[y][x][3]*-1
+                buffer[ay][ax][2] = buffer[ay][ax][2]+buffer[y][x][2]*0.3
+                buffer[ay][ax][3] = buffer[ay][ax][3]+buffer[y][x][3]*0.3
+                buffer[y][x][2] = buffer[y][x][2]-buffer[y][x][2]*0.3
+                buffer[y][x][3] = buffer[y][x][3]-buffer[y][x][3]*0.3
+            end
+
+            if buffer[y][x][1] > 0 then
+                --buffer[y][x][1] = buffer[y][x][1]-i*buffer[y][x][1]
             end
 
             if buffer[y][x][3] > 1 then
@@ -102,7 +102,7 @@ function update()
             end
 
             if buffer[y][x][1] > 0 then
-                local amount = buffer[y][x][1]*0.05
+                local amount = buffer[y][x][1]*0.2
 
                 if x+1 <= W then
                     local cellTo = get( x+1, y)
@@ -147,7 +147,7 @@ function update()
         local w = 320/W
         local h = 240/H
 
-        set(math.floor(mx/w), math.floor(my/h), {v[1], v[2]+dx, v[3]+dy})
+        set(math.floor(mx/w), math.floor(my/h), {v[1]-50, v[2]+dx, v[3]+dy})
     end
 
     prevx = mx
@@ -180,7 +180,8 @@ function draw()
                 v = math.floor(v)
             end
 
-            circf(px, py, v, v)
+            --rect(px-v/2, py-v/2, v, v, v)
+            circ(px, py, v/2, v)
             --line(px, py, px+dx*v, py+dy*v, v) 
         end
     end
