@@ -4,6 +4,8 @@
 ** See Copyright Notice in lua.h
 */
 
+/* vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
+
 #define llex_c
 #define LUA_CORE
 
@@ -43,7 +45,7 @@ static const char *const luaX_tokens [] = {
     "in", "local", "nil", "not", "or", "repeat",
     "return", "then", "true", "until", "while",
     "//", "..", "...", "==", ">=", "<=", "~=",
-    "<<", ">>", "::", "<eof>",
+    "<<", ">>", "::", "+=", "-=", "<eof>",
     "<number>", "<integer>", "<name>", "<string>"
 };
 
@@ -438,9 +440,20 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         next(ls);
         break;
       }
+      case '+': {
+        next(ls);
+        if (ls->current != '=') return '+';
+        next(ls);
+        return TK_PLUSEQ;
+        break;
+      }
       case '-': {  /* '-' or '--' (comment) */
         next(ls);
-        if (ls->current != '-') return '-';
+        if (ls->current != '-' && ls->current != '=') return '-';
+        if (ls->current == '=') {
+            next(ls);
+            return TK_MINUSEQ;
+        }
         /* else is a comment */
         next(ls);
         if (ls->current == '[') {  /* long comment? */

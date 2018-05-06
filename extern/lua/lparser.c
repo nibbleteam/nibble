@@ -4,6 +4,8 @@
 ** See Copyright Notice in lua.h
 */
 
+/* vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
+
 #define lparser_c
 #define LUA_CORE
 
@@ -1176,6 +1178,41 @@ static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
                     "C levels");
     assignment(ls, &nv, nvars+1);
   }
+  /* Nibble extensions */
+  else if (testnext(ls, TK_PLUSEQ)) {
+    int nexps = explist(ls, &e);
+    if (nexps != nvars)
+      adjust_assign(ls, nvars, nexps, &e);
+    else {
+      luaK_setoneret(ls->fs, &e);  /* close last expression */
+
+      // Sums the expression with a copy of the variable itself and stores
+      // it back
+      expdesc tmp = lh->v;
+      luaK_infix(ls->fs, OPR_ADD, &tmp);
+      luaK_posfix(ls->fs, OPR_ADD, &tmp, &e, ls->linenumber);
+      luaK_storevar(ls->fs, &lh->v, &tmp);
+
+      return;  /* avoid default */
+    }
+  }
+  else if (testnext(ls, TK_MINUSEQ)) {
+    int nexps = explist(ls, &e);
+    if (nexps != nvars)
+      adjust_assign(ls, nvars, nexps, &e);
+    else {
+      luaK_setoneret(ls->fs, &e);  /* close last expression */
+
+      // Sums the expression with a copy of the variable itself and stores
+      // it back
+      expdesc tmp = lh->v;
+      luaK_infix(ls->fs, OPR_SUB, &tmp);
+      luaK_posfix(ls->fs, OPR_SUB, &tmp, &e, ls->linenumber);
+      luaK_storevar(ls->fs, &lh->v, &tmp);
+
+      return;  /* avoid default */
+    }
+  }
   else {  /* assignment -> '=' explist */
     int nexps;
     checknext(ls, '=');
@@ -1509,7 +1546,10 @@ static void exprstat (LexState *ls) {
   FuncState *fs = ls->fs;
   struct LHS_assign v;
   suffixedexp(ls, &v.v);
-  if (ls->t.token == '=' || ls->t.token == ',') { /* stat -> assignment ? */
+  if (ls->t.token == '=' ||
+      ls->t.token == ',' ||
+      ls->t.token == TK_PLUSEQ ||
+      ls->t.token == TK_MINUSEQ) { /* stat -> assignment ? */
     v.prev = NULL;
     assignment(ls, &v, 1);
   }
