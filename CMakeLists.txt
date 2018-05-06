@@ -126,7 +126,7 @@ endif ( MSVC )
 
 if (WIN32)
     set_target_properties(nibble PROPERTIES WIN32_EXECUTABLE true)
-    target_link_libraries(nibble debug sfml-main-s-d optimized sfml-main-s)
+    target_link_libraries(nibble debug sfml-main-d optimized sfml-main)
 endif (WIN32)
 
 # Linking
