@@ -125,7 +125,7 @@ if ( MSVC )
 endif ( MSVC )
 
 if (WIN32)
-    set_target_properties(nibble PROPERTIES WIN32_EXECUTABLE)
+    set_target_properties(nibble PROPERTIES WIN32_EXECUTABLE true)
 endif (WIN32)
 
 # Linking
