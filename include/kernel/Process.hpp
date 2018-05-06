@@ -69,7 +69,7 @@ public:
     // Verifica se o cart está em ram
     bool isMapped();
 
-    const uint64_t getPid();
+    const uint64_t getPid() const;
 
     void addSyscalls();
 
@@ -80,6 +80,9 @@ public:
     // IPC
     luabridge::LuaRef readMessage();
     void writeMessage(luabridge::LuaRef);
+
+    // Utilizado pelo kernel (com std::set) para ordenar processos
+    bool operator < (const Process&);
 private:
     void copyLuaValue(lua_State*, lua_State*, int);
 };

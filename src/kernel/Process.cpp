@@ -151,7 +151,7 @@ void Process::audio_tick(uint8_t channel) {
     }
 }
 
-const uint64_t Process::getPid() {
+const uint64_t Process::getPid() const {
     return pid;
 }
 
@@ -270,4 +270,8 @@ void Process::copyLuaValue(lua_State* from, lua_State* to, int p) {
             // TODO: Tabelas como chaves/valores
             break;
     }
+}
+
+bool Process::operator < (const Process& p) {
+    return pid < p.getPid();
 }
