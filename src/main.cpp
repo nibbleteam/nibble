@@ -17,12 +17,3 @@ int main() {
 
     return 0;
 }
-
-// Entrypoint para rodar no windows, simplesmente chama
-// o main padrão
-#ifdef WIN32
-#include <windows.h>
-int WinMain(HINSTANCE* i, HINSTANCE* p, LPTSTR c, int n) {
-    return main();
-}
-#endif
