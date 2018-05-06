@@ -11,7 +11,7 @@ void cleanup() {
 // o main padrão
 #ifdef WIN32
 #include <windows.h>
-int WinMain(HINSTANCE* i, HINSTANCE* p, LPSTR c, int n) {
+int WinMain(HINSTANCE* i, HINSTANCE* p, LPTSTR c, int n) {
     return main();
 }
 #endif
