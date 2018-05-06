@@ -124,6 +124,10 @@ if ( MSVC )
 	set_target_properties(nibble PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endif ( MSVC )
 
+if (WIN32)
+    set_target_properties(nibble PROPERTIES WIN32_EXECUTABLE)
+endif (WIN32)
+
 # Linking
 target_link_libraries(nibble debug sfml-window-s-d optimized sfml-window-s)
 target_link_libraries(nibble debug sfml-graphics-s-d optimized sfml-graphics-s)

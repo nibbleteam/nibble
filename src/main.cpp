@@ -7,6 +7,15 @@ void cleanup() {
     delete KernelSingleton;
 }
 
+// Entrypoint para rodar no windows, simplesmente chama
+// o main padrão
+#ifdef WIN32
+#include <windows.h>
+int WinMain(HINSTANCE* i, HINSTANCE* p, LPSTR c, int n) {
+    return main();
+}
+#endif
+
 int main() {
     std::atexit(cleanup);
 
