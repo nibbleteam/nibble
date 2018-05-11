@@ -8,6 +8,16 @@ time = os.clock
 os = nil
 dprint = print
 
+-- Cria esqueleto de funções
+function init()
+end
+
+function update(dt)
+end
+
+function draw()
+end
+
 -- Importa implementação das funções
 local gpu = require('niblib/gpu')
 local input = require('niblib/input')
@@ -38,6 +48,10 @@ circ = gpu.circ
 rect = gpu.rect
 quad = gpu.quad
 tri = gpu.tri
+
+-- GIF
+start_recording = gpu.start_recording
+stop_recording = gpu.stop_recording
 
 -- Print
 print = gpu.print

@@ -1,6 +1,6 @@
 local input = {}
 
-CONTROLLER = 0x25a20
+CONTROLLER = 154400
 
 input.STUP = 0
 input.STPRESSED = 1

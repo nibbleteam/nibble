@@ -61,6 +61,8 @@ class VideoMemory : public Memory {
     // Transformadas da tela (para normalizar mouse)
     double screenScale;
     double screenOffsetX, screenOffsetY;
+
+    const uint8_t *paletteData;
 public:
     const static uint64_t nibblesPerPixel;
     const static uint64_t bytesPerPixel;
@@ -96,6 +98,10 @@ public:
     // Chamado por CartidgeMemory quando algum sprite muda
     void updateSpriteSheet(const uint64_t, const uint8_t*, const uint64_t);
 protected:
+    // Verifica se uma cor é transparente
+    bool checkColor(uint8_t);
+    uint8_t routeColor1(uint8_t);
+    uint8_t routeColor2(uint8_t);
     // Operações nas VertexArrays utilizadas para
     // desenho na GPU
     void gpuLine(RenderBuffer &, sf::Color,
@@ -139,6 +145,7 @@ private:
     // da GPU
     int16_t next16Arg(uint8_t*&);
     uint8_t next8Arg(uint8_t*&);
+    string nextStrArg(uint8_t*&);
     // Gera cores a partir de indices, paletas ou tempo
     sf::Color time2Color(uint32_t);
     sf::Color spriteTime2Color(uint8_t, uint32_t);

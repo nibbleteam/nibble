@@ -8,7 +8,7 @@ using namespace luabridge;
 
 const string Process::LuaEntryPoint = "main.lua";
 const string Process::AssetsEntryPoint = "assets";
-const string Process::NiblibEntryPoint = "niblib/main.lua";
+const string Process::NiblibEntryPoint = "frameworks/niblib/main.lua";
 
 Process::Process(Path& executable,
                  map<string, string> environment,
@@ -48,6 +48,12 @@ Process::Process(Path& executable,
     }
 
     cout << "pid " << pid << " loading cart " << lua.getPath() << endl;
+
+    // Adiciona pasta do executável
+    // ao search path 
+    string loadPath = "package.path = package.path .. ';./"+executable.getPath()+"/?.lua;./frameworks/?/main.lua'";
+    luaL_dostring(st, loadPath.c_str());
+    // Adiciona framworks ao path do executável
 
     // Carrega o código do cart
     if (luaL_loadfile(st, (const char*)lua.getPath().c_str())) {
@@ -91,8 +97,6 @@ void Process::addSyscalls() {
 
 void Process::init() {
     if (!initialized) {
-        initialized = true;
-
         lua_getglobal(st, "init");
         if (lua_isfunction(st, -1)) {
             if (lua_pcall(st, 0, 0, 0) != 0) {
@@ -104,6 +108,8 @@ void Process::init() {
             cout << "pid " << pid << " init() is not defined. exiting." << endl;
             KernelSingleton->kill(pid);
         }
+
+        initialized = true;
     }
 }
 

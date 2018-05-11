@@ -37,6 +37,31 @@ uniform sampler2D sprites;
 // Paleta
 uniform sampler2D palette;
 
+vec4 get_pix(int p) {
+    float fp = float(p)/192.0;
+
+    return texture2D(palette, vec2(fp+0.5/192.0, 0.5));
+}
+
+float color_routing1(float i) {
+    int p = int(i*2.0*128.0);
+    vec4 pix = get_pix(p/4+128);
+    int byte = int(mod(float(p), 4.0));
+    float source = 0.0;
+
+    if (byte == 0) {
+        source = pix.r;
+    } else if (byte == 1) {
+        source = pix.g;
+    } else if (byte == 2) {
+        source = pix.b;
+    } else {
+        source = pix.a;
+    }
+
+    return source;
+}
+
 void main()
 {
     // Sprite desenhado no buffer de cor ou tempo
@@ -67,9 +92,11 @@ void main()
             shade = float(LOW(source))/256.0;
  
         // Aplica a paleta
-        shade = shade + (float(LOW(gl_Color.r))/256.0)*16.0;
+        shade = mod(shade, 16.0/256.0)+(float(LOW(gl_Color.r))*16.0/256.0);
 
-        vec4 color = texture2D(palette, vec2(mod(shade*2.0, 1.0), 0.5));
+        // Roteamento de cores
+        float rt1 = color_routing1(shade);
+        vec4 color = texture2D(palette, vec2(mod(rt1, 1.0)*4.0/3.0, 0.5));
 
         if (color.a == 0.0)
             discard;
@@ -80,11 +107,15 @@ void main()
         }
         // Desenha cor
         else {
-            gl_FragColor = vec4(shade, shade, shade, shade);
+            gl_FragColor = vec4(rt1, rt1, rt1, rt1);
         }
     }
-    // Quad no buffer de cor ou tempo
-    else if (HIGH(gl_Color.r) == 3 || HIGH(gl_Color.r) == 0) {
+    // Quad no buffer de cor
+    else if (HIGH(gl_Color.r) == 3) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, gl_Color.a);
+    }
+    // No buffer de tempo
+    else if (HIGH(gl_Color.r) == 0) {
         gl_FragColor = vec4(0.0, gl_Color.gba);
     }
 }
@@ -174,6 +205,32 @@ uniform sampler2D source;
 // Textura 1xN da paleta
 uniform sampler2D palette;
 
+vec4 get_pix(int p) {
+    float fp = float(p)/192.0;
+
+    return texture2D(palette, vec2(fp+0.5/192.0, 0.5));
+}
+
+float color_routing2(float i) {
+    int p = int(i*2.0*128.0);
+    vec4 pix = get_pix(p/4+160);
+    int byte = int(mod(float(p), 4.0));
+    float source = 0.0;
+
+    if (byte == 0) {
+        source = pix.r;
+    } else if (byte == 1) {
+        source = pix.g;
+    } else if (byte == 2) {
+        source = pix.b;
+    } else {
+        source = pix.a;
+    }
+
+    return source;
+}
+
+
 void main()
 {
     // Coordenadas no espaço da textura
@@ -198,9 +255,10 @@ void main()
     else if (byte == 3)
         source = pixel.a;
 
-    vec4 color = texture2D(palette, vec2(mod(source*2.0, 1.0), 0.0));
-
-    gl_FragColor = vec4(color.r, color.g, color.b, 1.0);
+    float rt2 = color_routing2(mod(source, 0.5));
+    vec4 color = texture2D(palette, vec2(mod(rt2, 1.0)*4.0/3.0, 0.0));
+    
+    gl_FragColor = vec4(color.rgb, 1.0);
 }
 )";
 
@@ -254,7 +312,8 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     combineSpr.setScale(1, 1);
     
     // Cria a textura da palleta
-    paletteTex.create(GPU::paletteLength*GPU::paletteAmount, 1);
+    paletteTex.create(GPU::paletteLength*GPU::paletteAmount+
+                      (2*GPU::paletteLength*GPU::paletteAmount)/bytesPerPixel, 1);
     
     spriteTex.create(1024, 1024);
     
@@ -316,6 +375,8 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
 
     // Inicializa com bytes não inicializados
     cpuTexture.update(buffer);
+
+    paletteData = nullptr;
 }
 
 VideoMemory::~VideoMemory() {
@@ -708,6 +769,23 @@ int16_t VideoMemory::next16Arg(uint8_t *&arg) {
     return value;
 }
 
+string VideoMemory::nextStrArg(uint8_t *&arg) {
+    // Lê no máximo n caracteres
+    static int limit = 31;
+    string value;
+
+    for (int i=0;i<limit;i++,arg++) {
+        char c = (char)*arg;
+
+        if (c == 0)
+            break;
+
+        value += c;
+    }
+
+    return value;
+}
+
 void VideoMemory::execGpuCommand(uint8_t *cmd) {
     enum Commands {
         Clear = 0x00,
@@ -721,13 +799,18 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         Tri,
         Circle,
         Sprite,
+        StartCapture,
+        StopCapture
     };
 
     switch (*cmd++) {
     case Clear: {
         auto color = next8Arg(cmd);
+
+        if (!checkColor(color))
+            break;
         
-        gpuFillRect(gpuQuadsBuffer, index2Color(color),
+        gpuFillRect(gpuQuadsBuffer, index2Color(routeColor1(color)),
                     0, 0, w, h);
         gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
                     0, 0, w, h);
@@ -737,8 +820,11 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         auto color = next8Arg(cmd);
         auto x = next16Arg(cmd), y = next16Arg(cmd);
         auto w = next16Arg(cmd), h = next16Arg(cmd);
+
+        if (!checkColor(color))
+            break;
         
-        gpuFillRect(gpuQuadsBuffer, index2Color(color),
+        gpuFillRect(gpuQuadsBuffer, index2Color(routeColor1(color)),
                     x, y, w, h);
         gpuFillRect(gpuTQuadsBuffer, time2Color(currentDraw),
                     x, y, w, h);
@@ -751,7 +837,10 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
         auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
 
-        gpuFillQuad(gpuQuadsBuffer, index2Color(color),
+        if (!checkColor(color))
+            break;
+
+        gpuFillQuad(gpuQuadsBuffer, index2Color(routeColor1(color)),
                     x1, y1, x2, y2, x3, y3, x4, y4);
         gpuFillQuad(gpuTQuadsBuffer, time2Color(currentDraw),
                     x1, y1, x2, y2, x3, y3, x4, y4);
@@ -763,7 +852,10 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
         auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
 
-        gpuFillTri(gpuTrisBuffer, index2Color(color),
+        if (!checkColor(color))
+            break;
+
+        gpuFillTri(gpuTrisBuffer, index2Color(routeColor1(color)),
                    x1, y1, x2, y2, x3, y3);
         gpuFillTri(gpuTTrisBuffer, time2Color(currentDraw),
                    x1, y1, x2, y2, x3, y3);
@@ -774,7 +866,10 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
         auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
 
-        gpuLine(gpuLinesBuffer, index2Color(color),
+        if (!checkColor(color))
+            break;
+
+        gpuLine(gpuLinesBuffer, index2Color(routeColor1(color)),
                 x1, y1, x2, y2);
         gpuLine(gpuTLinesBuffer, time2Color(currentDraw),
                 x1, y1, x2, y2);
@@ -785,7 +880,10 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         auto x = next16Arg(cmd), y = next16Arg(cmd);
         auto w = next16Arg(cmd), h = next16Arg(cmd);
 
-        gpuRect(gpuLinesBuffer, index2Color(color),
+        if (!checkColor(color))
+            break;
+
+        gpuRect(gpuLinesBuffer, index2Color(routeColor1(color)),
                 x, y, w, h);
         gpuRect(gpuTLinesBuffer, time2Color(currentDraw),
                 x, y, w, h);
@@ -798,7 +896,10 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
         auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
 
-        gpuQuad(gpuLinesBuffer, index2Color(color),
+        if (!checkColor(color))
+            break;
+
+        gpuQuad(gpuLinesBuffer, index2Color(routeColor1(color)),
                 x1, y1, x2, y2, x3, y3, x4, y4);
         gpuQuad(gpuTLinesBuffer, time2Color(currentDraw),
                 x1, y1, x2, y2, x3, y3, x4, y4);
@@ -810,7 +911,10 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
         auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
 
-        gpuTri(gpuLinesBuffer, index2Color(color),
+        if (!checkColor(color))
+            break;
+
+        gpuTri(gpuLinesBuffer, index2Color(routeColor1(color)),
                x1, y1, x2, y2, x3, y3);
         gpuTri(gpuTLinesBuffer, time2Color(currentDraw),
                x1, y1, x2, y2, x3, y3);
@@ -821,7 +925,10 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         auto x = next16Arg(cmd), y = next16Arg(cmd);
         auto r = next16Arg(cmd);
 
-        gpuCircle(gpuLinesBuffer, index2Color(color),
+        if (!checkColor(color))
+            break;
+
+        gpuCircle(gpuLinesBuffer, index2Color(routeColor1(color)),
                   x, y, r);
         gpuCircle(gpuTLinesBuffer, time2Color(currentDraw),
                   x, y, r);
@@ -832,7 +939,10 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
         auto x = next16Arg(cmd), y = next16Arg(cmd);
         auto r = next16Arg(cmd);
 
-        gpuFillCircle(gpuTrisBuffer, index2Color(color),
+        if (!checkColor(color))
+            break;
+
+        gpuFillCircle(gpuTrisBuffer, index2Color(routeColor1(color)),
                       x, y, r);
         gpuFillCircle(gpuTTrisBuffer, time2Color(currentDraw),
                       x, y, r);
@@ -850,7 +960,21 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
                   sx, sy, x, y, w, h);
     }
         break;
+    case StartCapture: {
+        if (colormap == NULL) {
+            string filename = nextStrArg(cmd);
+            startCapturing(filename);
+        }
+        break;
     }
+    case StopCapture: {
+        if (colormap != NULL) {
+            stopCapturing();
+        }
+    }
+    }
+
+    render();
 
     currentDraw++;
 }
@@ -896,9 +1020,7 @@ void VideoMemory::draw() {
     auto img = framebufferSpr.getTexture()->copyToImage();
     memcpy(buffer, img.getPixelsPtr(), w*h);
 
-    if (colormap == NULL) {
-        startCapturing("screencap.gif");
-    } else {
+    if (colormap != NULL) {
         captureFrame();
     }
 
@@ -954,6 +1076,7 @@ void VideoMemory::transformMouse(uint16_t &x, uint16_t &y) {
 }
 
 void VideoMemory::updatePalette(const uint8_t* palette) {
+    paletteData = palette;
     paletteTex.update(palette, paletteTex.getSize().x, paletteTex.getSize().y, 0, 0);
 }
 
@@ -961,6 +1084,44 @@ void VideoMemory::updateSpriteSheet(const uint64_t p, const uint8_t* data, const
     // TODO: Atualizar apenas parte da imagem
     auto spriteSize = spriteTex.getSize();
     spriteTex.update(data, spriteSize.x, spriteSize.y, 0, 0);
+}
+
+uint8_t VideoMemory::routeColor1(uint8_t index) {
+    if (paletteData) {
+        int start = GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel; 
+
+        // Routing Table das cores
+        return paletteData[start+index%128];
+    } else {
+        // Se não há paleta, deixa rolar
+        return index%128;
+    }
+}
+
+uint8_t VideoMemory::routeColor2(uint8_t index) {
+    if (paletteData) {
+        int start = GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel
+                    +GPU::paletteLength*GPU::paletteAmount; 
+
+        // Routing Table das cores
+        return paletteData[start+index%128];
+    } else {
+        // Se não há paleta, deixa rolar
+        return index%128;
+    }
+}
+
+bool VideoMemory::checkColor(uint8_t index) {
+    if (paletteData) {
+        int start = GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel; 
+        // Routing Table das cores
+        int rt1 = paletteData[start+index];
+        // Cor
+        return (bool)paletteData[rt1*bytesPerPixel+3];
+    } else {
+        // Se não há paleta, deixa rolar
+        return true;
+    }
 }
 
 // Escreve data (que tem size bytes) na posição p na memória de vídeo

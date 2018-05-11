@@ -64,11 +64,11 @@ link_directories("${PROJECT_BUILD_DIR}/lib")
 # Copy lua carts
 add_custom_target(LuaCartsBin
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/apps ${CMAKE_BINARY_DIR}/apps
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/niblib ${CMAKE_BINARY_DIR}/niblib
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/frameworks ${CMAKE_BINARY_DIR}/frameworks
 )
 add_custom_target(LuaCartsBuild
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/apps ${PROJECT_BUILD_DIR}/apps
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/niblib ${PROJECT_BUILD_DIR}/niblib
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/frameworks ${PROJECT_BUILD_DIR}/frameworks
 )
 
 # Exe

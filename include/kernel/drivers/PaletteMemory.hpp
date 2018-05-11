@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <kernel/Memory.hpp>
 
+#define LOW_PALETTE_ACCESS_TIME 100
+
 class VideoMemory;
 
 class PaletteMemory : public Memory {

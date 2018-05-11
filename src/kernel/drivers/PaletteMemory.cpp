@@ -1,12 +1,15 @@
 #include <kernel/drivers/PaletteMemory.hpp>
 #include <kernel/drivers/VideoMemory.hpp>
 #include <kernel/drivers/GPU.hpp>
+#include <chrono>
+#include <thread>
 #include <iostream>
 #include <cstring>
 
 PaletteMemory::PaletteMemory(VideoMemory* video, const uint64_t addr) :
 	address(addr),
-    length(GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel),
+    length(GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel+ // Cores RGBA 
+           2*GPU::paletteAmount*GPU::paletteLength),                         // Mapas Índice -> Índice e Índice -> COr 
     videoMemory(video) {
 	data = new uint8_t[(size_t)length] {
         0x14, 0x0c, 0x1c, 0xFF,
@@ -27,6 +30,20 @@ PaletteMemory::PaletteMemory(VideoMemory* video, const uint64_t addr) :
         0xde, 0xee, 0xd6, 0xFF,
     };
 
+    int start = GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel; 
+    int len = GPU::paletteLength*GPU::paletteAmount;
+
+    // Preenche routing tables com mapeamentos 1:1
+    // ou seja, sem efeito nenhum
+    // Preenche a routing table 1
+    for (int i=start;i<start+len;i++) {
+        data[i] = i-start;
+    }
+    // E a 2
+    for (int i=start+len;i<start+len*2;i++) {
+        data[i] = i-start-len;
+    }
+
     videoMemory->updatePalette(this->data);
 }
 
@@ -39,6 +56,13 @@ string PaletteMemory::name() {
 }
 
 uint64_t PaletteMemory::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
+    // Acesso direto as cores é lento
+    // de forma que não pode ser usado
+    // para efeitos intensos
+    if (pos < GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(LOW_PALETTE_ACCESS_TIME));
+    }
+
 	memcpy(this->data + pos, data, (size_t)amount);
 
     videoMemory->updatePalette(this->data);

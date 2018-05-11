@@ -20,7 +20,7 @@ function audio_tick(channel)
         end
     end
 
-    kernel.write(154192+channel*4, channel_conf)
+    kernel.write(154448+channel*4, channel_conf)
 end
 
 function init()
@@ -35,16 +35,16 @@ end
 local blink = 0
 
 function draw()
-  clr(0)
+  rectf(4, 4, 312, 232, 1)
 
   for l=#lines,1,-1 do
-      print(lines[l], 0, (l-1)*10)
+      print(lines[l], 4, (l-1)*10+4)
   end
 
-  print(input_line, 0, (#lines)*10)
+  print(input_line, 4, (#lines)*10+4)
 
   if blink > 0 then
-      rectf(#input_line*8, (#lines)*10+1, 2, 8, 15)
+      rectf(#input_line*8+4, (#lines)*10+5, 2, 8, 15)
   end
 
   if blink < -20 then
@@ -57,7 +57,7 @@ end
 function add_line(line)
     table.insert(lines, line)
 
-    if #lines > 23 then
+    if #lines > 22 then
         table.remove(lines, 1)
     end
 
@@ -70,7 +70,7 @@ function update()
       kernel.setenv("menu.entry", "")
   end
 
-  local keys = kernel.read(0x25A2a, 1)
+  local keys = kernel.read(154410, 1)
 
   local message = kernel.receive()
 

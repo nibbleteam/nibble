@@ -31,6 +31,8 @@ local GPU_QUAD = string.char(0x07)
 local GPU_TRI = string.char(0x08)
 local GPU_CIRC = string.char(0x09)
 local GPU_SPRITE = string.char(0x0a)
+local GPU_START_CAPTURE = string.char(0x0b)
+local GPU_STOP_CAPTURE = string.char(0x0c)
 
 function round(x)
   return math.floor(x)
@@ -329,6 +331,19 @@ function gpu.print(str, dstx, dsty, pal)
 
     dstx = dstx+DEFAULT_CH_W
   end
+end
+
+-- Capture to gif
+function gpu.start_recording(file)
+    assert(file, "start_recording() needs a file name")
+
+    kernel.write(GPU_CMD,
+                 GPU_START_CAPTURE..file)
+end
+
+function gpu.stop_recording()
+    kernel.write(GPU_CMD,
+                 GPU_START_CAPTURE);
 end
 
 return gpu

@@ -35,12 +35,11 @@ void Kernel::menu() {
     auto p = runningProcess;
     // Não abre menu no menu
     if (p &&
-        p->executable.getOriginalPath() != "apps/menu") {
+        p->executable.getOriginalPath() != "apps/system/core/menu.nib") {
         auto environment = p->getEnv();
         environment["app.pid"] = environment["pid"];
 
-        auto pid = exec("apps/menu", environment);
-        //wait(pid);
+        exec("apps/system/core/menu.nib", environment);
     }
 }
 
@@ -66,7 +65,7 @@ void Kernel::startup() {
     // talvez um pequeno processo codificado em C++ diretamente
     // apenas para mostrar mensagens de erro e coisas parecidas?
     // e.g.: um processo "system"
-    if (exec("apps/shell", map<string, string>()) > 0) {
+    if (exec("apps/system/core/init.nib", map<string, string>()) > 0) {
         cout << "[kernel] " << "process started" << endl;
     }
 }
@@ -274,7 +273,6 @@ void Kernel::loop() {
 // Executa "executable" passando "environment"
 // executable é um diretório que deve seguir a seguinte organização:
 // <cart-name>/
-//	- assets/
 //  - main.lua
 int64_t Kernel::exec(const string& executable, map<string, string> environment) {
     cout << "[kernel] exec " << executable << endl;
@@ -473,13 +471,10 @@ bool Kernel::checkCartStructure(Path& root) {
     cout << "[kernel] " << "checking cart " << root.getPath() << endl;
 
     Path lua = root.resolve(Process::LuaEntryPoint);
-    Path assets = root.resolve(Process::AssetsEntryPoint);
 
-    cout << "	" << " checking if dir " << assets.getPath() << endl;
     cout << "	" << " checking if file " << lua.getPath() << endl;
 
     return fs::isDir(root) &&
-        fs::isDir(assets) &&
         !fs::isDir(lua);
 }
 
@@ -553,7 +548,7 @@ unsigned long kernel_api_exec(const string executable, luabridge::LuaRef lEnviro
 
         return KernelSingleton->exec(executable, environment);
     } else {
-        cout << "ERROR" << endl;
+        cout << "ERROR: environment is not a table" << endl;
         return 0;
     }
 }

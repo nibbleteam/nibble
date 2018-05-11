@@ -1,6 +1,10 @@
 Niblib - Video
 ==============
 
+.. todo::
+
+    Exemplo de código e imagem para cada função
+
 Cores
 -----
 
@@ -85,6 +89,9 @@ A paleta padrão (ao ser iniciado) do nibble é a seguinte:
 
 Essa paleta pode ser modificada escrevendo-se na área de memória reservada
 para paletas.
+
+Funções
+-------
 
 .. note::
 

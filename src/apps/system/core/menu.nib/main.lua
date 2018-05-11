@@ -8,7 +8,7 @@ local vy=1
 local dt=1
 
 function init()
-    prev_screen = kernel.read(544, 75*1024)
+    prev_screen = kernel.read(800, 75*1024)
 end
 
 function draw()
@@ -32,7 +32,6 @@ function update(delta)
     dt = delta
     if btp(RED) and kernel.getenv("app.pid") ~= "1" then
         kernel.read(154154, 32)
-        kernel.write(544, prev_screen)
         kernel.kill(tonumber(kernel.getenv("app.pid")))
         kernel.kill(0)
         quit = true
@@ -40,7 +39,6 @@ function update(delta)
 
     if btp(BLUE) or (btp(RED) and kernel.getenv("app.pid") == "1") then
         kernel.read(154154, 32)
-        kernel.write(544, prev_screen)
         kernel.setenv("menu.entry", "back")
         kernel.kill(0)
         quit = true
