@@ -5,7 +5,7 @@
 Console Fantasia feito para funcionar em hardware real.
 
 <p align="center">
-        <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/boot-demo.gif" width="640" height="480"/>
+        <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.gif" width="640" height="480"/>
 </p>
 
 # Hierarquia do código
