@@ -51,7 +51,7 @@ Process::Process(Path& executable,
 
     // Adiciona pasta do executável
     // ao search path 
-    string loadPath = "package.path = package.path .. ';./"+executable.getPath()+"/?.lua;./frameworks/?/main.lua'";
+    string loadPath = "package.path = package.path .. ';./"+executable.getPath()+"/?.lua;./frameworks/?/main.lua;./frameworks/?.lua'";
     luaL_dostring(st, loadPath.c_str());
     // Adiciona framworks ao path do executável
 

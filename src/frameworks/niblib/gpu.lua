@@ -338,12 +338,40 @@ function gpu.start_recording(file)
     assert(file, "start_recording() needs a file name")
 
     kernel.write(GPU_CMD,
-                 GPU_START_CAPTURE..file)
+                 GPU_START_CAPTURE..file..'\00')
 end
 
 function gpu.stop_recording()
     kernel.write(GPU_CMD,
                  GPU_START_CAPTURE);
+end
+
+function gpu.mask(index)
+    kernel.write(32+index*4+3, "\00")
+end
+
+function gpu.setcol(index, color)
+    kernel.write(32+index*4, color)
+end
+
+function gpu.cppal(a, b)
+    kernel.write(32+b*4*16, kernel.read(32+a*4*16, 4*16))
+end
+
+function gpu.col(a, b)
+    if b == nil then
+        b = a
+    end
+
+    kernel.write(544+a, string.char(b));
+end
+
+function gpu.screen(a, b)
+    if b == nil then
+        b = a
+    end
+
+    kernel.write(544+128+a, string.char(b))
 end
 
 return gpu

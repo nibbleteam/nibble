@@ -19,10 +19,13 @@ function draw()
 end
 
 -- Importa implementação das funções
-local gpu = require('niblib/gpu')
-local input = require('niblib/input')
-local vid = require('niblib/vid')
-local audio = require('niblib/audio')
+local gpu = require('frameworks/niblib/gpu')
+local input = require('frameworks/niblib/input')
+local vid = require('frameworks/niblib/vid')
+local audio = require('frameworks/niblib/audio')
+-- Helpers da linguagem
+lang = require('frameworks/niblib/lang')
+
 
 -- Exporta a API gráfica
 
@@ -48,6 +51,11 @@ circ = gpu.circ
 rect = gpu.rect
 quad = gpu.quad
 tri = gpu.tri
+mask = gpu.mask
+setcol = gpu.setcol
+cppal = gpu.cppal
+col = gpu.col
+screen = gpu.screen
 
 -- GIF
 start_recording = gpu.start_recording
@@ -86,3 +94,4 @@ rep = audio.rep
 loop = audio.loop
 stop = audio.stop
 adsr = audio.adsr
+

@@ -11,9 +11,17 @@ function copypalette(a, b)
 end
 
 function route_draw_color(a, b)
+    if b == nil then
+        b = a
+    end
+
     kernel.write(544+a, string.char(b));
 end
 
 function route_screen_color(a, b)
+    if b == nil then
+        b = a
+    end
+
     kernel.write(544+128+a, string.char(b))
 end

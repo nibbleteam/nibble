@@ -12,5 +12,7 @@ function makeaudio(w, v, o, n)
 end
 
 function audio_tick(c)
-    kernel.write(154448+c*4, makeaudio(SQUARE, 0, 0, 0))
+    if audio_enable then
+        kernel.write(154448+c*4, makeaudio(SQUARE, 0, 0, 0))
+    end
 end

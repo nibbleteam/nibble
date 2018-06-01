@@ -974,8 +974,6 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
     }
     }
 
-    render();
-
     currentDraw++;
 }
 

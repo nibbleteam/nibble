@@ -4,41 +4,41 @@ local ch = {
 }
 
 function audio_tick(channel)
-    if channel == 0 then
+    if channel < 6 then
         bass = bass+1
 
         local base = {0, 3, 0, 2}
         base = base[math.floor(bass/30)%#base+1]
 
         if bass%30 < 20 then
-            kernel.write(154192, makeaudio(1, 128, 2, base))
+            kernel.write(154448, makeaudio(1, 128, 2, base))
             ch[1] = ch[1]+1
         else
-            kernel.write(154192, makeaudio(0, 0, 0, 0))
+            kernel.write(154448, makeaudio(0, 0, 0, 0))
         end
 
         if bass%30 > 25 then
-            kernel.write(154192+20, makeaudio(0, 64, 2, 0))
+            kernel.write(154448+20, makeaudio(0, 64, 2, 0))
             ch[5] = ch[5]+1
         elseif bass%30 > 20 then
-            kernel.write(154192+20, makeaudio(0, 64, 2, 0))
+            kernel.write(154448+20, makeaudio(0, 64, 2, 0))
             ch[5] = ch[5]+1
         else
-            kernel.write(154192+20, makeaudio(0, 0, 0, 0))
+            kernel.write(154448+20, makeaudio(0, 0, 0, 0))
         end
 
         if bass%120 < 30 then
-            kernel.write(154192+4, makeaudio(3, 128, 3, 0))
+            kernel.write(154448+4, makeaudio(3, 128, 3, 0))
             ch[2] = ch[2]+1
         else
-            kernel.write(154192+4, makeaudio(0, 0, 0, 0))
+            kernel.write(154448+4, makeaudio(0, 0, 0, 0))
         end
 
         base = {0, 0, 3, 0, 0, 3, 2, 0, 0, 5, 3, 5, 3, 8, 5, 3, 0, 0}
         base = base[math.floor(bass/30)%#base+1]
 
-        kernel.write(154192+8, makeaudio(1, 32, 4, base))
-        kernel.write(154192+12, makeaudio(2, 32, 3, base))
+        kernel.write(154448+8, makeaudio(1, 32, 4, base))
+        kernel.write(154448+12, makeaudio(2, 32, 3, base))
         ch[3] = 8+bass%8
         ch[4] = 8+bass%8
     end

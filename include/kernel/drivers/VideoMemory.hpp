@@ -63,6 +63,8 @@ class VideoMemory : public Memory {
     double screenOffsetX, screenOffsetY;
 
     const uint8_t *paletteData;
+
+    bool redrawOnSprite;
 public:
     const static uint64_t nibblesPerPixel;
     const static uint64_t bytesPerPixel;

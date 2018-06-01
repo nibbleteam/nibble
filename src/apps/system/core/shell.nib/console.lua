@@ -1,3 +1,3 @@
 function console(t)
-    clr(1)
+    clr(16)
 end
