@@ -537,67 +537,67 @@ void VideoMemory::drawCpuTiming(uint32_t time, uint64_t p, uint64_t size) {
 sf::Color VideoMemory::pal2Color(uint8_t pal) {
     return sf::Color {
         uint8_t('\x10'+pal),
-            0,
-            0,
-            0
-            };
+        0,
+        0,
+        0
+    };
 }
 
 sf::Color VideoMemory::index2Color(uint8_t color) {
     return sf::Color {
         '\x30'+8,
-            0,
-            0,
-            color
-            };
+        0,
+        0,
+        color
+    };
 }
 
 sf::Color VideoMemory::time2Color(uint32_t time) {
     return sf::Color {
         0,
-            (uint8_t)(time>>16),
-            (uint8_t)(time>>8),
-            (uint8_t)time
-            };
+        (uint8_t)(time>>16),
+        (uint8_t)(time>>8),
+        (uint8_t)time
+    };
 }
 
 sf::Color VideoMemory::spriteTime2Color(uint8_t pal, uint32_t time) {
     return sf::Color {
         uint8_t('\x20'+pal),
-            (uint8_t)(time>>16),
-            (uint8_t)(time>>8),
-            (uint8_t)time
-            };
+        (uint8_t)(time>>16),
+        (uint8_t)(time>>8),
+        (uint8_t)time
+    };
 }
 
 void VideoMemory::gpuLine(RenderBuffer &buffer, sf::Color color,
                           const int16_t x1, const int16_t y1,
                           const int16_t x2, const int16_t y2) {
     buffer.add({
-            sf::Vertex(sf::Vector2f(x1, y1), color),
-                sf::Vertex(sf::Vector2f(x2, y2), color),
-                });
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+    });
 }
 
 void VideoMemory::gpuRect(RenderBuffer &buffer, sf::Color color,
                           const int16_t x, const int16_t y,
                           const int16_t w, const int16_t h) {
     buffer.add({
-            sf::Vertex(sf::Vector2f(x, y), color),
-                sf::Vertex(sf::Vector2f(x+w, y), color),
-                });
+        sf::Vertex(sf::Vector2f(x, y), color),
+        sf::Vertex(sf::Vector2f(x+w, y), color),
+    });
     buffer.add({
-            sf::Vertex(sf::Vector2f(x+w, y), color),
-                sf::Vertex(sf::Vector2f(x+w, y+h), color),
-                });
+        sf::Vertex(sf::Vector2f(x+w, y), color),
+        sf::Vertex(sf::Vector2f(x+w, y+h), color),
+    });
     buffer.add({
-            sf::Vertex(sf::Vector2f(x+w, y+h), color),
-                sf::Vertex(sf::Vector2f(x, y+h), color),
-                });
+        sf::Vertex(sf::Vector2f(x+w, y+h), color),
+        sf::Vertex(sf::Vector2f(x, y+h), color),
+    });
     buffer.add({
-            sf::Vertex(sf::Vector2f(x, y+h+1), color),
-                sf::Vertex(sf::Vector2f(x, y), color),
-                });
+        sf::Vertex(sf::Vector2f(x, y+h+1), color),
+        sf::Vertex(sf::Vector2f(x, y), color),
+    });
 }
 
 void VideoMemory::gpuQuad(RenderBuffer &buffer, sf::Color color,
@@ -606,21 +606,21 @@ void VideoMemory::gpuQuad(RenderBuffer &buffer, sf::Color color,
                           const int16_t x3, const int16_t y3,
                           const int16_t x4, const int16_t y4) {
     buffer.add({
-            sf::Vertex(sf::Vector2f(x1, y1), color),
-                sf::Vertex(sf::Vector2f(x2, y2), color),
-                });
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+    });
     buffer.add({
-            sf::Vertex(sf::Vector2f(x2, y2), color),
-                sf::Vertex(sf::Vector2f(x3, y3), color),
-                });
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+        sf::Vertex(sf::Vector2f(x3, y3), color),
+    });
     buffer.add({
-            sf::Vertex(sf::Vector2f(x3, y3), color),
-                sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
-                });
+        sf::Vertex(sf::Vector2f(x3, y3), color),
+        sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
+    });
     buffer.add({
-            sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
-                sf::Vertex(sf::Vector2f(x1, y1), color),
-                });
+        sf::Vertex(sf::Vector2f(x4-0.5, y4), color),
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+    });
 }
 
 void VideoMemory::gpuTri(RenderBuffer &buffer, sf::Color color,
@@ -628,17 +628,17 @@ void VideoMemory::gpuTri(RenderBuffer &buffer, sf::Color color,
                          const int16_t x2, const int16_t y2,
                          const int16_t x3, const int16_t y3) {
     buffer.add({
-            sf::Vertex(sf::Vector2f(0.5+x1, 0.5+y1), color),
-                sf::Vertex(sf::Vector2f(0.5+x2, 0.5+y2), color),
-                });
+        sf::Vertex(sf::Vector2f(0.5+x1, 0.5+y1), color),
+        sf::Vertex(sf::Vector2f(0.5+x2, 0.5+y2), color),
+    });
     buffer.add({
-            sf::Vertex(sf::Vector2f(0.5+x2, 0.5+y2), color),
-                sf::Vertex(sf::Vector2f(0.5+x3, 0.5+y3), color),
-                });
+        sf::Vertex(sf::Vector2f(0.5+x2, 0.5+y2), color),
+        sf::Vertex(sf::Vector2f(0.5+x3, 0.5+y3), color),
+    });
     buffer.add({
-            sf::Vertex(sf::Vector2f(0.5+x3, 0.5+y3), color),
-                sf::Vertex(sf::Vector2f(0.5+x1, 0.5+y1), color),
-                });
+        sf::Vertex(sf::Vector2f(0.5+x3, 0.5+y3), color),
+        sf::Vertex(sf::Vector2f(0.5+x1, 0.5+y1), color),
+    });
 }
 
 void VideoMemory::gpuCircle(RenderBuffer &buffer, sf::Color color,
@@ -666,9 +666,9 @@ void VideoMemory::gpuCircle(RenderBuffer &buffer, sf::Color color,
         y = s * tmp + c * y;
 
         buffer.add({
-                sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
-                    sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
-                    });
+            sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
+            sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
+        });
     }
 }
 
@@ -697,10 +697,10 @@ void VideoMemory::gpuFillCircle(RenderBuffer &buffer, sf::Color color,
         y = s * tmp + c * y;
 
         buffer.add({
-                sf::Vertex(sf::Vector2f(destX, destY), color),
-                    sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
-                    sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
-                    });
+            sf::Vertex(sf::Vector2f(destX, destY), color),
+            sf::Vertex(sf::Vector2f(px+destX, py+destY), color),
+            sf::Vertex(sf::Vector2f(x+destX, y+destY), color),
+        });
     }
 }
 
@@ -708,11 +708,11 @@ void VideoMemory::gpuFillRect(RenderBuffer &buffer, sf::Color color,
                               const int16_t x, const int16_t y,
                               const int16_t w, const int16_t h) {
     buffer.add({
-            sf::Vertex(sf::Vector2f(x, y), color),
-                sf::Vertex(sf::Vector2f(x+w, y), color),
-                sf::Vertex(sf::Vector2f(x+w, y+h), color),
-                sf::Vertex(sf::Vector2f(x, y+h), color)
-                });
+        sf::Vertex(sf::Vector2f(x, y), color),
+        sf::Vertex(sf::Vector2f(x+w, y), color),
+        sf::Vertex(sf::Vector2f(x+w, y+h), color),
+        sf::Vertex(sf::Vector2f(x, y+h), color)
+    });
 }
 
 void VideoMemory::gpuSprite(RenderBuffer &buffer, sf::Color color,
@@ -728,11 +728,11 @@ void VideoMemory::gpuSprite(RenderBuffer &buffer, sf::Color color,
     d = float(sy+h)/size.y;
 
     buffer.add({
-            sf::Vertex(sf::Vector2f(x, y), color, sf::Vector2f(a, b)),
-                sf::Vertex(sf::Vector2f(x+w, y), color, sf::Vector2f(c, b)),
-                sf::Vertex(sf::Vector2f(x+w, y+h), color, sf::Vector2f(c, d)),
-                sf::Vertex(sf::Vector2f(x, y+h), color, sf::Vector2f(a, d))
-                });
+        sf::Vertex(sf::Vector2f(x, y), color, sf::Vector2f(a, b)),
+        sf::Vertex(sf::Vector2f(x+w, y), color, sf::Vector2f(c, b)),
+        sf::Vertex(sf::Vector2f(x+w, y+h), color, sf::Vector2f(c, d)),
+        sf::Vertex(sf::Vector2f(x, y+h), color, sf::Vector2f(a, d))
+    });
 }
 
 void VideoMemory::gpuFillTri(RenderBuffer &buffer, sf::Color color,
@@ -740,10 +740,10 @@ void VideoMemory::gpuFillTri(RenderBuffer &buffer, sf::Color color,
                              const int16_t x2, const int16_t y2,
                              const int16_t x3, const int16_t y3) {
     buffer.add({
-                sf::Vertex(sf::Vector2f(x1, y1), color),
-                sf::Vertex(sf::Vector2f(x2, y2), color),
-                sf::Vertex(sf::Vector2f(x3, y3), color)
-                });
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+        sf::Vertex(sf::Vector2f(x3, y3), color)
+    });
 }
 
 void VideoMemory::gpuFillQuad(RenderBuffer &buffer, sf::Color color,
@@ -752,11 +752,11 @@ void VideoMemory::gpuFillQuad(RenderBuffer &buffer, sf::Color color,
                               const int16_t x3, const int16_t y3,
                               const int16_t x4, const int16_t y4) {
     buffer.add({
-            sf::Vertex(sf::Vector2f(x1, y1), color),
-                sf::Vertex(sf::Vector2f(x2, y2), color),
-                sf::Vertex(sf::Vector2f(x3, y3), color),
-                sf::Vertex(sf::Vector2f(x4, y4), color)
-                });
+        sf::Vertex(sf::Vector2f(x1, y1), color),
+        sf::Vertex(sf::Vector2f(x2, y2), color),
+        sf::Vertex(sf::Vector2f(x3, y3), color),
+        sf::Vertex(sf::Vector2f(x4, y4), color)
+    });
 }
 
 uint8_t VideoMemory::next8Arg(uint8_t *&arg) {
