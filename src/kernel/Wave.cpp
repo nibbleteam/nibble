@@ -1,67 +1,64 @@
 #include <kernel/Wave.hpp>
+#include <algorithm>
+#include <numeric>
 #include <cmath>
-#include <climits>
+
 #include <iostream>
 using namespace std;
 
-// Encontra o período para uma frequência dada
-double Wave::fromFrequency(double f) {
-    return 44100.0/f;
-}
-
-// Encontra a frequência para uma nota dada
-// Argumentos: oitava, nota
-double Wave::fromNote(uint8_t o, uint8_t n) {
-    uint16_t p = uint16_t(o)*12+uint16_t(n);
-    // Distância para A4
-    int16_t d = p - 48;
-
-    return 440.0*pow(1.059463094359, double(d));
-}
-
-Wave::Wave():
-    phase(0), amplitude(0), period(fromFrequency(fromNote(3, 0))), duty(0.5) {
-	previousAmplitude = 0;
-	targetAmplitude = 1;
-}
-
-Wave::~Wave() {
-}
-
-void Wave::changeParameters() {
-}
-
-int16_t* Wave::fill(const unsigned int sampleCount) {
-    for (unsigned int i=0;i<sampleCount;i++) {
-		// Gera ponto da onda
-        if (period != 0) {
-            auto index = fmod(phase, 1);
-            samples[i] = valueAt(index)*amplitude;
-        }
-
-		// Avança tempo
-		phase += 1.0/period;
-
-		// Ajusta amplitude
-		double deltaAmplitude = (targetAmplitude-previousAmplitude)/period;
-		double amplitudeDistance = abs(targetAmplitude-amplitude);
-
-		if (amplitudeDistance > abs(deltaAmplitude) &&
-			amplitudeDistance > amplitudeError) {
-			amplitude += deltaAmplitude;
-		} else {
-			amplitude = targetAmplitude;
-		}
+Wave::Wave() {
+    // Fill a quarter sine wave
+    for (size_t i=0;i<NIBBLE_WAVETABLE_SIZE;i++) {
+        float t = float(i)/float(NIBBLE_WAVETABLE_SIZE)*M_PI/2;
+        table[i] = sin(t) * INT16_MAX;
     }
-
-    return samples;
 }
 
-double Wave::valueAt(double i) {
-    auto a = lut[(int)ceil(i*WAVE_LUT_SIZE)%WAVE_LUT_SIZE];
-    auto b = lut[(int)floor(i*WAVE_LUT_SIZE)];
+const int16_t Wave::valueAt(uint8_t t) const {
+    int it = t;
+    int f = 256;
+    int h = 128;
+    int q = 64;
 
-    auto p = i*WAVE_LUT_SIZE-floor(i*WAVE_LUT_SIZE);
-
-    return (a*p+b*(1.0-p));
+    if (it < q) {
+        return table[it];
+    } else if (it < h) {
+        return table[h-it-1];
+    } else if (it < 3*q) {
+        return -table[it-h-1];
+    } else {
+        return -table[f-it-1];
+    }
 }
+
+const int16_t Wave::operator[](uint16_t t) const {
+    uint8_t t0 = t >> 8;
+    uint8_t t1 = t0+1;
+
+    int16_t a = valueAt(t0);
+    int16_t b = valueAt(t1);
+
+    float d0 = float(t-(t0<<8))/256.0;
+
+    return b*d0+a*(1-d0);
+}
+
+//const int16_t Wave::operator[](float t) const {
+//    float t0 = floor(t);
+//    float t1 = t0+1;
+//
+//    float d0 = t-t0;
+//
+//    float ya = _at(t0-1);
+//    float yb = _at(t0);
+//    float yc = _at(t1);
+//    float yd = _at(t1+1);
+//    // Linear
+//    return yc*d0+yb*(1.0-d0);
+//    // Hermite
+//    //float c0 = yb;
+//    //float c1 = .5F * (yc - ya);
+//    //float c2 = ya - (2.5F * yb) + (2 * yc) - (.5F * yd);
+//    //float c3 = (.5F * (yd - ya)) + (1.5F * (yb - yc));
+//    //return (((((c3 * d0) + c2) * d0) + c1) * d0) + c0;
+//}

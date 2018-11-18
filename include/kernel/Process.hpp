@@ -59,7 +59,7 @@ public:
     void draw();
 
     // Áudio
-    void audio_tick(uint8_t);
+    void audio_tick();
 
     // Usado para colocar o cart na ram principal quando
     // esse processo entrar em execução

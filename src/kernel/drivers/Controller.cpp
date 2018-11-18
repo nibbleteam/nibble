@@ -37,7 +37,7 @@ uint64_t Controller::addr() {
 }
 
 uint8_t Controller::get(uint8_t c, uint8_t b) {
-    uint8_t state;
+    uint8_t state = 0;
 
     switch (b) {
     case 0:
@@ -73,6 +73,7 @@ uint8_t Controller::get(uint8_t c, uint8_t b) {
             state = controllers.pauses.c;
         else if (c == 3)
             state = controllers.pauses.d;
+        break;
     }
 
     return state;

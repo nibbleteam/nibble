@@ -13,7 +13,7 @@ if(MSVC)
   endif()
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   # Update if necessary
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -O3")
 endif()
 
 # Use C++14
@@ -90,10 +90,10 @@ add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/kernel/drivers/Audio.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Wave.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Wave.cpp
-                ${PROJECT_HEADER_DIR}/kernel/MultiWave.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/MultiWave.cpp
-                ${PROJECT_HEADER_DIR}/kernel/NoiseWave.hpp
-				${PROJECT_SOURCE_DIR}/kernel/NoiseWave.cpp
+                ${PROJECT_HEADER_DIR}/kernel/FMSynthesizer.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/FMSynthesizer.cpp
+                ${PROJECT_HEADER_DIR}/kernel/Envelope.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/Envelope.cpp
 				${PROJECT_HEADER_DIR}/kernel/Channel.hpp
 				${PROJECT_SOURCE_DIR}/kernel/Channel.cpp
                 ${PROJECT_HEADER_DIR}/kernel/drivers/Controller.hpp

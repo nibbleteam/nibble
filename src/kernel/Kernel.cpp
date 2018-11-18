@@ -154,6 +154,7 @@ void Kernel::loop() {
             switch (event.type) {
                 // Fecha a janela no "x" ou alt-f4 etc
             case sf::Event::Closed: {
+                audio->exit();
                 window.close();
             }
                 break;
@@ -336,7 +337,7 @@ void Kernel::setenv(const string key, const string value) {
     runningProcess->setEnvVar(key, value);
 }
 
-void Kernel::audio_tick(uint8_t channel) {
+void Kernel::audio_tick() {
     audioMutex.lock();
     auto previousRunningProcess = runningProcess;
 
@@ -349,7 +350,7 @@ void Kernel::audio_tick(uint8_t channel) {
 
         // Traz o cart do processo pra RAM se já não estiver
         if (p->isInitialized()) {
-            p->audio_tick(channel);
+            p->audio_tick();
         }
     }
 

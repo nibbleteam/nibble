@@ -1,36 +1,26 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
+#include <kernel/FMSynthesizer.hpp>
 #include <kernel/Wave.hpp>
+#include <map>
+using namespace std;
 
 class Channel {
-    const static uint16_t bytesPerChannel;
-
-    int16_t samples[MAX_WAVE_SAMPLES];
-	unsigned int nextTick, tickPeriod;
-	unsigned int t;
-
 	uint8_t *mem;
 	unsigned int channelNumber;
 
-	Wave *wave;
+    map<uint8_t, FMSynthesizer*> synthesizers;
 public:
+    const static uint16_t bytesPerChannel;
+
 	Channel(uint8_t*, unsigned int);
 	~Channel();
 
-	int16_t *fill(const unsigned int); 
-private:
-	// Sinal de clock para mudar os parâmetros da onda
-    // chama uma callback no cart atual
-	void tick();
-	void calculateTickPeriod(const double);
-	void calculateNextTick();
+	void fill(int16_t*, const unsigned int); 
 
-    uint8_t read8(uint16_t);
-    void write8(uint16_t, uint8_t);
-    
-    uint16_t read16(uint16_t);
-    void write16(uint16_t, uint16_t);
+    void press(uint8_t);
+    void release(uint8_t);
 };
 
 #endif /* CHANNEL_H */

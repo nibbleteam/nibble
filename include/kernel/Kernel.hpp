@@ -64,7 +64,7 @@ public:
     // Loop principal do console. Atualiza o processo em execução e desenha a tela.
     void loop();
     // Tick do audio
-    void audio_tick(uint8_t);
+    void audio_tick();
 
     // API do kernel
     // Acesso direto a memória

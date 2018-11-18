@@ -1,3 +1,4 @@
+#include <kernel/Kernel.hpp>
 #include <kernel/drivers/Audio.hpp>
 #include <climits>
 #include <cstring>
@@ -8,34 +9,34 @@ using namespace std;
 const unsigned int Audio::sampleCount = 1024;
 
 Audio::Audio(const uint64_t addr):
-    address(addr) {
+    address(addr), nextTick(0), t(0), playing(true) {
     samples = new int16_t[sampleCount];
 
-    sndMemory = new uint8_t[SND_MEMORY_LENGTH];
-    memset(sndMemory, 0, SND_MEMORY_LENGTH);
+    // Área de memória acessável para programas Lua
+    const auto sndMemorySize = SND_CHANNELS*Channel::bytesPerChannel;
+    sndMemory = new uint8_t[sndMemorySize];
+    memset(sndMemory, 0, sndMemorySize);
 
-	CA = new Channel(sndMemory, 0);
-	CE = new Channel(sndMemory, 1);
-	CI = new Channel(sndMemory, 2);
-	CO = new Channel(sndMemory, 3);
-	CU = new Channel(sndMemory, 4);
+    // Cria canais
+    for (unsigned int i=0;i<SND_CHANNELS;i++) {
+        channels[i] = new Channel(sndMemory+i*Channel::bytesPerChannel, i);
+    }
 
-	S = new Channel(sndMemory, 5); 
-	N = new Channel(sndMemory, 6);
-
+    // Inicializa a placa de áudio
     initialize(1, 44100);
+
+    calculateTickPeriod(60.0);
 }
 
 Audio::~Audio() {
-	delete CA;
-	delete CE;
-	delete CI;
-	delete CO;
-	delete CU;
-	delete S;
-	delete N;
+    delete samples;
 
-    delete[] samples;
+    // Libera memória dos canais
+    for (unsigned int i=0;i<SND_CHANNELS;i++) {
+        delete channels[i];
+    }
+
+    // Libera memória dos registradores/mapa de memória
     delete[] sndMemory;
 }
 
@@ -48,47 +49,81 @@ uint64_t Audio::write(const uint64_t p, const uint8_t* data, const uint64_t size
     return size;
 }
 
-uint64_t Audio::read(const uint64_t, uint8_t*, const uint64_t) {
+uint64_t Audio::read(const uint64_t p, uint8_t* data, const uint64_t size) {
+    memcpy(data, sndMemory+p, size);
     return 0;
 }
 
 bool Audio::onGetData(Audio::Chunk& chunk) {
-	// Generate
-    int16_t *w1 = CA->fill(sampleCount);
-    int16_t *w2 = CE->fill(sampleCount);
-    int16_t *w3 = CI->fill(sampleCount);
-    int16_t *w4 = CO->fill(sampleCount);
-    int16_t *w5 = CU->fill(sampleCount);
-    int16_t *w6 = S->fill(sampleCount);
-    int16_t *w7 = N->fill(sampleCount);
+	unsigned int missingSampleCount = sampleCount;
+	unsigned int initialT = t;
 
-	// Mix
-    int16_t max = SHRT_MIN;
-    int16_t min = SHRT_MAX;
-    for (unsigned int i=0;i<sampleCount;i++) {
-        samples[i] = w1[i]/7 + w2[i]/7 + w3[i]/7 + w4[i]/7 + w5[i]/7 + w6[i]/7 + w7[i]/7;
+    memset(samples, 0, sizeof(int16_t)*sampleCount);
 
-        if (samples[i] > max)
-            max = samples[i];
-        if (samples[i] < min)
-            min = samples[i];
-    }
+    // Preenche o buffer "samples"
+	do {
+        // Caso o tick precise ser rodado antes
+        // de completar todos os samples
+		if (t+missingSampleCount > nextTick) {
+			unsigned int finalSampleCount = nextTick-t;
 
-    int amplitude = abs(min-max);
-    int max_amplitude = SHRT_MAX;
-    float mult = float(max_amplitude)/float(amplitude);
+            mix(samples+(t-initialT), finalSampleCount);
 
-    for (unsigned int i=0;i<sampleCount;i++) {
-        samples[i] *= mult;
-    }
+			t = nextTick;
+			missingSampleCount -= finalSampleCount;
 
+			tick();
+			calculateNextTick();
+		} else {
+            mix(samples+(t-initialT), missingSampleCount);
+
+			t += missingSampleCount;
+			missingSampleCount = 0;
+            break;
+		}
+	} while (missingSampleCount > 0);
+    
+    // TODO: Slides
+
+    // TODO: Arppegiator
+    
+    // TODO: Efeitos
+
+    // Passa informações sobre os samples para a placa de áudio
     chunk.samples = samples;
     chunk.sampleCount = sampleCount;
 
-    return true;
+    return playing;
+}
+
+void Audio::exit() {
+    playing = false;
+}
+
+void Audio::mix(int16_t* samples, unsigned int sampleCount) {
+    // Preenche samples de cada canal
+    for (unsigned int c=0;c<SND_CHANNELS;c++) {
+        channels[c]->fill(samples, sampleCount);
+    }
 }
 
 void Audio::onSeek(sf::Time) {
+}
+
+void Audio::calculateTickPeriod(const double frequency) {
+	// Período em segundos
+	const double period = 1/frequency;
+	
+	// Período em samples
+	tickPeriod = (unsigned int) (period*44100);
+}
+
+void Audio::calculateNextTick() {
+	nextTick += tickPeriod;
+}
+
+void Audio::tick() {
+    KernelSingleton->audio_tick();
 }
 
 uint64_t Audio::addr() {

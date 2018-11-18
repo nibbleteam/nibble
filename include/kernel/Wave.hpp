@@ -1,42 +1,22 @@
 #ifndef WAVE_H
 #define WAVE_H
 
-#include <cstdint>
+#define NIBBLE_WAVETABLE_SIZE 64
 
-#define MAX_WAVE_SAMPLES 4096
-#define WAVE_LUT_SIZE 128
+#include <cstdint>
+#include <vector>
+
+using namespace std;
 
 class Wave {
 public:
-    int16_t samples[MAX_WAVE_SAMPLES];
-    int16_t lut[WAVE_LUT_SIZE];
+    int16_t table[NIBBLE_WAVETABLE_SIZE];
 
-	double phase;
-
-	const double amplitudeError = 0.05;
-
-    double amplitude, targetAmplitude, previousAmplitude;
-    double period;
-    double duty;
-
-    enum ChannelType {
-        WAVE_CHANNEL,
-        SAMPLE_CHANNEL,
-        NOISE_CHANNEL
-    };
-public:
     Wave();
-    virtual ~Wave();
 
-    virtual int16_t* fill(const unsigned int);
-
-    virtual ChannelType type() = 0;
-
-    static double fromNote(uint8_t, uint8_t);
-    static double fromFrequency(double);
-protected:
-    void changeParameters();
-    double valueAt(double);
+    const int16_t operator[](uint16_t) const;
+private:
+    const int16_t valueAt(uint8_t) const; 
 };
 
 #endif /* WAVE_H */
