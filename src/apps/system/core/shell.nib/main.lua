@@ -44,7 +44,7 @@ function init()
     text:newline()
     text:add(prompt:copy()):add(space)
 
-    start_recording("Shell.gif")
+    --start_recording("Shell.gif")
 end
 
 function draw()
@@ -140,6 +140,8 @@ function execute(cmd)
 
     if not found then
         text:add(DecoratedText:new("No such file"):swap_colors())
+        text:newline()
+        text:add(prompt:copy()):add(space)
     end
 end
 
