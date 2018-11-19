@@ -22,10 +22,10 @@ function draw()
 end
 
 function update()
-    x = read16(154186)
-    y = read16(154188)
+    x = read16(154442)
+    y = read16(154444)
 
-    if read8(154190) == 2 then
+    if read8(154446) == 2 then
         table.insert(clicks, {x+4, y, 0})
     end
 end
