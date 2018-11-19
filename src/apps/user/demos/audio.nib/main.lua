@@ -1,51 +1,73 @@
 local bass = 0
 local ch = {
-    0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0
 }
+local t = 0
 
-function audio_tick(channel)
-    if channel < 6 then
-        bass = bass+1
+local c0a0 = 64
+local c0 = {48, 51, 50, 53, 55, 53, 50, 48, 50}
+local p0 = 30
 
-        local base = {0, 3, 0, 2}
-        base = base[math.floor(bass/30)%#base+1]
+local c1a0 = 255
+local c1 = {24, 26, 24, 27, 24, 26}
+local p1 = 60
 
-        if bass%30 < 20 then
-            kernel.write(154448, makeaudio(1, 128, 2, base))
-            ch[1] = ch[1]+1
-        else
-            kernel.write(154448, makeaudio(0, 0, 0, 0))
-        end
+function audio_tick()
+    if t%30 == 0 then
+        -- Frequencies
+        kernel.write(154448, '\xff\x80')
+        -- No sustain + envelopes
+        kernel.write(154448+4, '\x00\xc0\x01\x01\x60\x01')
+        kernel.write(154448+10, '\x00\xc0\x01\x01\x60\x01')
+        -- Routing table
+        kernel.write(154448+4+4*6+0*5+1, string.char(60))
+        kernel.write(154448+4+4*6+1*5+4, string.char(64))
 
-        if bass%30 > 25 then
-            kernel.write(154448+20, makeaudio(0, 64, 2, 0))
-            ch[5] = ch[5]+1
-        elseif bass%30 > 20 then
-            kernel.write(154448+20, makeaudio(0, 64, 2, 0))
-            ch[5] = ch[5]+1
-        else
-            kernel.write(154448+20, makeaudio(0, 0, 0, 0))
-        end
+        -- A4, note on
+        kernel.write(154448+48, '\x01\x30');
 
-        if bass%120 < 30 then
-            kernel.write(154448+4, makeaudio(3, 128, 3, 0))
-            ch[2] = ch[2]+1
-        else
-            kernel.write(154448+4, makeaudio(0, 0, 0, 0))
-        end
-
-        base = {0, 0, 3, 0, 0, 3, 2, 0, 0, 5, 3, 5, 3, 8, 5, 3, 0, 0}
-        base = base[math.floor(bass/30)%#base+1]
-
-        kernel.write(154448+8, makeaudio(1, 32, 4, base))
-        kernel.write(154448+12, makeaudio(2, 32, 3, base))
-        ch[3] = 8+bass%8
-        ch[4] = 8+bass%8
+        ch[1] = ch[1] + 1
     end
-end
 
-function makeaudio(w, v, o, n)
-    return string.char(w)..string.char(v)..string.char(o)..string.char(n)
+    if t%p0 == 0 and t > 60 then
+        -- Frequencies
+        kernel.write(154448+64, '\x80'..string.char(c0a0))
+        -- No sustain + envelopes
+        kernel.write(154448+4+64, '\x00\x10\x20\x01\x05\x20')
+        kernel.write(154448+10+64, '\x00\xff\x80\x20\x80\x20')
+        -- Routing table
+        kernel.write(154448+4+4*6+0*5+1+64, string.char(60))
+        kernel.write(154448+4+4*6+1*5+4+64, string.char(128))
+
+        local p = math.floor(t/p0)%#c0+1
+
+        -- note on
+        kernel.write(154448+64+48, '\x01'..string.char(c0[p]));
+
+        ch[2] = ch[2] + 1
+    end
+
+    if t%p1 == 0 and t > 120 then
+        -- Frequencies
+        kernel.write(154448+2*64, '\x80'..string.char(c1a0)..'\xff')
+        -- No sustain + envelopes
+        kernel.write(154448+4+2*64, '\x00\xff\x05\x50\x80\x80')
+        kernel.write(154448+10+2*64, '\x00\xff\x01\x01\xb0\xff')
+        kernel.write(154448+16+2*64, '\x00\xff\x01\x01\xb0\x80')
+        -- Routing table
+        kernel.write(154448+4+4*6+0*5+1+2*64, string.char(60))
+        kernel.write(154448+4+4*6+1*5+4+2*64, string.char(40))
+        kernel.write(154448+4+4*6+2*5+4+2*64, string.char(50))
+
+        local p = math.floor(t/p1)%#c1+1
+
+        -- note on
+        kernel.write(154448+2*64+48, '\x01'..string.char(c1[p]));
+
+        ch[3] = ch[3] + 1
+    end
+
+    t += 1
 end
 
 function init()
