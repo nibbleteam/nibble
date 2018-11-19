@@ -1,7 +1,8 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <kernel/Wave.hpp>
 #include <algorithm>
 #include <numeric>
-#include <cmath>
 
 #include <iostream>
 using namespace std;
