@@ -21,8 +21,7 @@ local prompt = DecoratedText:new("[~]")
                :set("color", 6):swap_colors()
 local space = DecoratedText:new(" ")
 
--- TODO: reverto to true
-audio_enable = false 
+audio_enable = true
 
 function init()
     -- Copia a paleta padrão
@@ -111,11 +110,6 @@ function update(dt)
 end
 
 function execute(cmd)
-    if true then
-        audio_enable = true
-        return
-    end
-
     local search_paths = {
         "apps/system/utilities/",
         "apps/user/demos/"
@@ -159,8 +153,7 @@ function receive_messages()
         end
 
         if message.app_started then
-            -- TODO invert
-            audio_enable = true
+            audio_enable = false
         end
 
         if message.app_stopped then
