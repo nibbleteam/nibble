@@ -112,7 +112,7 @@ int16_t FMSynthesizer::synthesize() {
             overflow = result <= 0;
         }
 
-        samples[s] = result;
+        output = result;
 #else
         bool overflow = __builtin_add_overflow(delta, output, &output);
 #endif
