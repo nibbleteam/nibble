@@ -16,7 +16,6 @@ function init()
     else
         kernel.kill(0)
     end
-
 end
 
 function update()

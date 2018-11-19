@@ -92,9 +92,11 @@ function update(dt)
                     user_input = user_input:sub(0, #user_input-1)
                 end
             elseif input == "\13" then
-                text:newline()
-                execute(user_input)
-                user_input = "" 
+                if #user_input > 0 then
+                    text:newline()
+                    execute(user_input)
+                    user_input = "" 
+                end
             else
                 text:add(DecoratedText:new(input))
                 user_input = user_input..input 
@@ -127,11 +129,11 @@ function execute(cmd)
         if child > 0 then
             kernel.kill(child)
 
-            kernel.exec("apps/system/core/monitor", {
+            local monitor = kernel.exec("apps/system/core/monitor.nib", {
                 shell = kernel.getenv("pid"),
                 exec = path
             })
-
+            
             found = true
 
             break
