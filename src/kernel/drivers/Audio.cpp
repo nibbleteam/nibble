@@ -6,7 +6,7 @@
 #include <iostream>
 using namespace std;
 
-const unsigned int Audio::sampleCount = 1024;
+const unsigned int Audio::sampleCount = 2048;
 
 Audio::Audio(const uint64_t addr):
     address(addr), nextTick(0), t(0), playing(true) {
