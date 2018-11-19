@@ -209,6 +209,12 @@ luabridge::LuaRef Process::readMessage() {
     }
 }
 
+void Process::clearMessages() {
+    while (!receivedMessages.empty()) {
+        receivedMessages.pop();
+    }
+}
+
 void Process::writeMessage(luabridge::LuaRef msg) {
     // Mensagens são tabelas apenas
     if (msg.isTable()) {

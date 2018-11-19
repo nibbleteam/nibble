@@ -80,6 +80,7 @@ public:
     // IPC
     luabridge::LuaRef readMessage();
     void writeMessage(luabridge::LuaRef);
+    void clearMessages();
 
     // Utilizado pelo kernel (com std::set) para ordenar processos
     bool operator < (const Process&);

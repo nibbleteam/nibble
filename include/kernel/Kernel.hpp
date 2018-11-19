@@ -51,6 +51,8 @@ class Kernel {
     // Waitlist: processos que estão bloqueados
     // esperando utros processos
     map<uint64_t, uint64_t> waitlist;
+    // Saindo
+    bool exiting;
 public:
     Kernel();
     ~Kernel();

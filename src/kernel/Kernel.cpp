@@ -7,13 +7,15 @@
 #include <kernel/drivers/RandomMemory.hpp>
 #include <algorithm>
 #include <iostream>
+#include <thread>
 
 using namespace std;
 
 Kernel::Kernel():
     window(sf::VideoMode(640, 480), "Nibble"),
     lastPid(1),
-    lastUsedMemByte(0) {
+    lastUsedMemByte(0),
+    exiting(false) {
     // FPS Máximo 
     window.setFramerateLimit(30);
     // O tamanho virtual da janela é sempre 320x240
@@ -50,14 +52,27 @@ void Kernel::reset() {
 }
 
 void Kernel::shutdown() {
+    // Limpamos a waitlist para novos runs
+    waitlist.clear();
+
+    // Mensagens na queue de um processo enquanto
+    // outro está sendo deletado causam SEGFAULT,
+    // por isso limpamos primeiro
+    for (auto process : processes) {
+        process->clearMessages();
+    }
+
+    // depois deletamos
     for (auto process : processes) {
         delete process;
     }
+
     processes.clear();
 }
 
 void Kernel::startup() {
     lastPid = 1;
+    exiting = false;
 
     audio->play();
 
@@ -154,6 +169,7 @@ void Kernel::loop() {
             switch (event.type) {
                 // Fecha a janela no "x" ou alt-f4 etc
             case sf::Event::Closed: {
+                exiting = true;
                 audio->exit();
                 window.close();
             }
@@ -338,24 +354,26 @@ void Kernel::setenv(const string key, const string value) {
 }
 
 void Kernel::audio_tick() {
-    audioMutex.lock();
-    auto previousRunningProcess = runningProcess;
+    if (!exiting) {
+        audioMutex.lock();
+        auto previousRunningProcess = runningProcess;
 
-    auto pcopy = processes;
-    for (auto p :pcopy) {
-        if (!p->isRunning())
-            continue;
+        auto pcopy = processes;
+        for (auto p :pcopy) {
+            if (!p->isRunning())
+                continue;
 
-        runningProcess = p;
+            runningProcess = p;
 
-        // Traz o cart do processo pra RAM se já não estiver
-        if (p->isInitialized()) {
-            p->audio_tick();
+            // Traz o cart do processo pra RAM se já não estiver
+            if (p->isInitialized()) {
+                p->audio_tick();
+            }
         }
-    }
 
-    runningProcess = previousRunningProcess;
-    audioMutex.unlock();
+        runningProcess = previousRunningProcess;
+        audioMutex.unlock();
+    }
 }
 
 // API de acesso à memória
