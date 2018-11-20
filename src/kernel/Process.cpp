@@ -49,11 +49,13 @@ Process::Process(Path& executable,
 
     cout << "pid " << pid << " loading cart " << lua.getPath() << endl;
 
-    // Adiciona pasta do executável
+    // Adiciona pasta do executável & frameworks
     // ao search path 
-    string loadPath = "package.path = package.path .. ';./"+executable.getPath()+"/?.lua;./frameworks/?/main.lua;./frameworks/?.lua'";
-    luaL_dostring(st, loadPath.c_str());
-    // Adiciona framworks ao path do executável
+    string loadPath = "package.path = package.path .. ';./"+executable.getOriginalPath()+"/?.lua;./frameworks/?/main.lua;./frameworks/?.lua'";
+    if (luaL_dostring(st, loadPath.c_str())) {
+        cout << "error when setting search path " << lua_tostring(st, -1) << endl;
+        ok = false;
+    }
 
     // Carrega o código do cart
     if (luaL_loadfile(st, (const char*)lua.getPath().c_str())) {
