@@ -85,15 +85,15 @@ function FormattedText:advance_cursor(text)
     local by = text.text
     local texts = {}
 
-    self.cursor += #by
+    self.cursor = self.cursor + #by
 
-    self.cursor_x += #by*CHAR_W
+    self.cursor_x = self.cursor_x + #by*CHAR_W
     
     if self.cursor_x > self.x+self.w then
         local overflow = (self.cursor_x-(self.x+self.w))/CHAR_W
 
         self.cursor_x = self.x
-        self.cursor_y += CHAR_H
+        self.cursor_y = self.cursor_y + CHAR_H
 
         local before, after = text:sub(0, #by-overflow), text:sub(#by-overflow, #by)
 

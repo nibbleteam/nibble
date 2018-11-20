@@ -29,6 +29,7 @@
 #include "lstring.h"
 #include "ltable.h"
 
+#include <stdio.h>
 
 
 /* maximum number of local variables per function (must be smaller
@@ -1054,6 +1055,7 @@ static const struct {
 #define UNARY_PRIORITY	12  /* priority for unary operators */
 
 
+
 /*
 ** subexpr -> (simpleexp | unop subexpr) { binop subexpr }
 ** where 'binop' is any binary operator with a priority higher than 'limit'
@@ -1168,6 +1170,7 @@ static void check_conflict (LexState *ls, struct LHS_assign *lh, expdesc *v) {
 static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
   expdesc e;
   check_condition(ls, vkisvar(lh->v.k), "syntax error");
+
   if (testnext(ls, ',')) {  /* assignment -> ',' suffixedexp assignment */
     struct LHS_assign nv;
     nv.prev = lh;
@@ -1180,21 +1183,12 @@ static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
   }
   /* Nibble extensions */
   else if (testnext(ls, TK_PLUSEQ)) {
-    int nexps = explist(ls, &e);
-    if (nexps != nvars)
-      adjust_assign(ls, nvars, nexps, &e);
-    else {
-      luaK_setoneret(ls->fs, &e);  /* close last expression */
-
-      // Sums the expression with a copy of the variable itself and stores
-      // it back
-      expdesc tmp = lh->v;
-      luaK_infix(ls->fs, OPR_ADD, &tmp);
-      luaK_posfix(ls->fs, OPR_ADD, &tmp, &e, ls->linenumber);
-      luaK_storevar(ls->fs, &lh->v, &tmp);
-
-      return;  /* avoid default */
-    }
+    // Get the expression 
+    expr(ls, &e);
+    luaK_infix(ls->fs, OPR_ADD, &e);
+    luaK_posfix(ls->fs, OPR_ADD, &e, &lh->v, ls->linenumber);
+    luaK_storevar(ls->fs, &lh->v, &e);
+    return;  /* avoid default */
   }
   else if (testnext(ls, TK_MINUSEQ)) {
     int nexps = explist(ls, &e);
@@ -1203,9 +1197,7 @@ static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
     else {
       luaK_setoneret(ls->fs, &e);  /* close last expression */
 
-      // Sums the expression with a copy of the variable itself and stores
-      // it back
-      expdesc tmp = lh->v;
+      struct expdesc tmp = lh->v;
       luaK_infix(ls->fs, OPR_SUB, &tmp);
       luaK_posfix(ls->fs, OPR_SUB, &tmp, &e, ls->linenumber);
       luaK_storevar(ls->fs, &lh->v, &tmp);

@@ -44,6 +44,24 @@ function init()
     text:newline()
     text:add(prompt:copy()):add(space)
 
+    local x = {
+        x = {
+            x = 0
+        }
+    }
+
+    local y = 0
+
+    x.x.x = 8
+    x.x.x += 1
+    
+    y += 2+2
+    
+    text:add(DecoratedText:new("x: "..tostring(x.x.x)))
+    text:newline()
+    text:add(DecoratedText:new("y: "..tostring(y)))
+    text:newline()
+
     --start_recording("Shell.gif")
 end
 
