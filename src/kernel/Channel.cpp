@@ -1,20 +1,29 @@
+#include <kernel/drivers/Audio.hpp>
 #include <kernel/Channel.hpp>
 #include <cstring>
+#include <cmath>
 #include <iostream>
 using namespace std;
 
-// Envelope por operador + matriz de operadores + frequências + note stream memory + extra padding
+// Envelope por operador + matriz de operadores + frequências + note samples memory + extra padding
 const uint16_t Channel::bytesPerChannel = 64;
 
 Channel::Channel(uint8_t *mem, unsigned int channelNumber):
     mem(mem),
-    channelNumber(channelNumber) {
+    channelNumber(channelNumber),
+    reverbPosition(0) {
+    buffer = new int16_t[Audio::sampleCount*SND_POSTPROCESS_LENGTH];
+    samples = new int16_t[Audio::sampleCount];
+
+    memset(buffer, 0, Audio::sampleCount*SND_POSTPROCESS_LENGTH*sizeof(int16_t));
 }
 
 Channel::~Channel() {
+    delete buffer;
+    delete samples;
 }
 
-void Channel::fill(int16_t* samples, const unsigned int sampleCount) {
+void Channel::fill(int16_t* output, const unsigned int sampleCount) {
     if (mem[48] == 1) {
         press(mem[49]);
         mem[48] = 0;
@@ -23,13 +32,68 @@ void Channel::fill(int16_t* samples, const unsigned int sampleCount) {
         mem[48] = 0;
     }
 
+    memset(samples, 0, Audio::sampleCount*sizeof(int16_t));
+
     for (auto it=synthesizers.cbegin(); it != synthesizers.cend();) {
         if (it->second->done()) {
             delete it->second;
             synthesizers.erase(it++);
         } else {
-            it->second->fill(samples, sampleCount);
+            it->second->fill(output, samples, sampleCount);
             it++;
+        }
+    }
+
+    reverb(output, samples, sampleCount);
+}
+
+void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
+    int reverbDistance = max(min(SND_POSTPROCESS_LENGTH, int(mem[50])), 1)*Audio::sampleCount;
+
+    for (int i=0;i<int(length);i++) {
+        int reverbSample = reverbPosition-reverbDistance;
+
+        if (reverbSample < 0) {
+            reverbSample += SND_POSTPROCESS_LENGTH*Audio::sampleCount;
+        }
+
+        int delta = buffer[reverbSample]*Audio::tof(mem[51]);
+
+#ifdef _WIN32
+        // TODO: Apenas usar um tipo maior para checar overflow nesse caso
+        bool overflow;
+        int16_t result = delta + output[i];
+
+        if (delta < 0 && output[i] < 0) {
+            overflow = result >= 0;
+        } else if (delta > 0 && output[i] > 0) {
+            overflow = result <= 0;
+        }
+
+        output[i] = result;
+#else
+        bool overflow = __builtin_add_overflow(delta, output[i], &output[i]);
+#endif
+
+        // Corta overflow
+        if (overflow) {
+            output[i] = (delta < 0) ? INT16_MIN : INT16_MAX;
+        }
+
+        int out = in[i]+delta;
+
+        if (out < INT16_MIN) {
+            out = INT16_MIN;
+        } else if (out > INT16_MAX) {
+            out = INT16_MAX;
+        }
+
+        buffer[reverbPosition] = out;
+
+        reverbPosition += 1;
+
+        if (reverbPosition >= int(SND_POSTPROCESS_LENGTH*Audio::sampleCount)) {
+            reverbPosition = 0;
         }
     }
 }

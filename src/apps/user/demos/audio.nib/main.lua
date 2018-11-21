@@ -13,15 +13,20 @@ local c1 = {24, 26, 24, 27, 24, 26}
 local p1 = 60
 
 function audio_tick()
+    -- Reverb delay 
+    kernel.write(154448+50, string.char(8));
+    -- Reverb feedback
+    kernel.write(154448+51, string.char(200));
+
     if t%30 == 0 then
         -- Frequencies
         kernel.write(154448, '\xff\x80')
         -- No sustain + envelopes
         kernel.write(154448+4, '\x00\xc0\x01\x01\x60\x01')
-        kernel.write(154448+10, '\x00\xc0\x01\x01\x60\x01')
+        kernel.write(154448+10, '\x00\xc0\x09\x01\x60\x01')
         -- Routing table
         kernel.write(154448+4+4*6+0*5+1, string.char(60))
-        kernel.write(154448+4+4*6+1*5+4, string.char(64))
+        kernel.write(154448+4+4*6+1*5+4, string.char(32))
 
         -- A4, note on
         kernel.write(154448+48, '\x01\x30');
@@ -29,40 +34,49 @@ function audio_tick()
         ch[1] = ch[1] + 1
     end
 
-    if t%p0 == 0 and t > 60 then
-        -- Frequencies
-        kernel.write(154448+64, '\x80'..string.char(c0a0))
-        -- No sustain + envelopes
-        kernel.write(154448+4+64, '\x00\x10\x20\x01\x05\x20')
-        kernel.write(154448+10+64, '\x00\xff\x80\x20\x80\x20')
-        -- Routing table
-        kernel.write(154448+4+4*6+0*5+1+64, string.char(60))
-        kernel.write(154448+4+4*6+1*5+4+64, string.char(128))
+    --if t%p0 == 0 and t > 60 then
+    --    -- Frequencies
+    --    kernel.write(154448+64, '\x30'..string.char(c0a0)..'\x01')
+    --    -- No sustain + envelopes
+    --    kernel.write(154448+4+64, '\x00\x10\x20\x01\x05\x20')
+    --    kernel.write(154448+10+64, '\x00\xff\x80\x20\x80\x20')
+    --    kernel.write(154448+16+64, '\x01\xff\x80\x20\x80\x80')
+    --    -- Routing table
+    --    kernel.write(154448+4+4*6+0*5+1+64, string.char(60))
+    --    kernel.write(154448+4+4*6+1*5+4+64, string.char(100))
+    --    kernel.write(154448+4+4*6+2*5+1+64, string.char(10))
 
-        local p = math.floor(t/p0)%#c0+1
+    --    local p = math.floor(t/p0)%#c0+1
 
-        -- note on
-        kernel.write(154448+64+48, '\x01'..string.char(c0[p]));
+    --    -- note on
+    --    kernel.write(154448+48+64, '\x01'..string.char(c0[p]+12));
 
-        ch[2] = ch[2] + 1
-    end
+    --    ch[2] = ch[2] + 1
+    --end
+
+    -- Reverb delay 
+    kernel.write(154448+50+64*2, string.char(8));
+    -- Reverb feedback
+    kernel.write(154448+51+64*2, string.char(200));
 
     if t%p1 == 0 and t > 120 then
         -- Frequencies
-        kernel.write(154448+2*64, '\x80'..string.char(c1a0)..'\xff')
+        kernel.write(154448+2*64, '\x04'..string.char(c1a0)..'\xff')
         -- No sustain + envelopes
         kernel.write(154448+4+2*64, '\x00\xff\x05\x50\x80\x80')
         kernel.write(154448+10+2*64, '\x00\xff\x01\x01\xb0\xff')
         kernel.write(154448+16+2*64, '\x00\xff\x01\x01\xb0\x80')
         -- Routing table
-        kernel.write(154448+4+4*6+0*5+1+2*64, string.char(60))
-        kernel.write(154448+4+4*6+1*5+4+2*64, string.char(40))
-        kernel.write(154448+4+4*6+2*5+4+2*64, string.char(50))
+        kernel.write(154448+4+4*6+0*5+1+2*64, string.char(20))
+        kernel.write(154448+4+4*6+1*5+4+2*64, string.char(160))
+        kernel.write(154448+4+4*6+2*5+4+2*64, string.char(120))
 
         local p = math.floor(t/p1)%#c1+1
 
         -- note on
         kernel.write(154448+2*64+48, '\x01'..string.char(c1[p]));
+
+        c1a0 = math.floor(math.sin(t/100)*127+127)
 
         ch[3] = ch[3] + 1
     end
