@@ -10,8 +10,8 @@
 
 class Audio : public Memory, public sf::SoundStream {
     // Samples
-    const static unsigned int sampleCount;
     int16_t* samples;
+
     // Posição no layout de memória
     const uint64_t address;
 
@@ -27,6 +27,8 @@ class Audio : public Memory, public sf::SoundStream {
 
     bool playing;
 public:
+    const static unsigned int sampleCount;
+
     Audio(const uint64_t);
     ~Audio();
 
@@ -51,6 +53,9 @@ private:
 
     bool onGetData(Chunk&);
     void onSeek(sf::Time);
+public:
+    static float tof(uint8_t);
+
 };
 
 #endif /* AUDIO_H */

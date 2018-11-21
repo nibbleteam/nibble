@@ -32,7 +32,7 @@ public:
     FMSynthesizer(uint8_t*, uint8_t);
     ~FMSynthesizer();
 
-    void fill(int16_t*, unsigned int);
+    void fill(int16_t*, int16_t*, unsigned int);
 
     bool done();
 

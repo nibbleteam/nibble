@@ -17,7 +17,7 @@ local user_input = ""
 
 local text = FormattedText:new(8, 8, 320-16, 240-16)
 
-local prompt = DecoratedText:new("[~]")
+local prompt = DecoratedText:new("~")
                :set("color", 6):swap_colors()
 local space = DecoratedText:new(" ")
 
