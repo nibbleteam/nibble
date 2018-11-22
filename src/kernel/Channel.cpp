@@ -27,9 +27,11 @@ void Channel::fill(int16_t* output, const unsigned int sampleCount) {
     if (mem[48] == 1) {
         press(mem[49]);
         mem[48] = 0;
-    } else if (mem[48] == 2) {
-        release(mem[49]);
-        mem[48] = 0;
+    }
+    
+    if (mem[50] == 1) {
+        release(mem[51]);
+        mem[50] = 0;
     }
 
     memset(samples, 0, Audio::sampleCount*sizeof(int16_t));
@@ -48,7 +50,7 @@ void Channel::fill(int16_t* output, const unsigned int sampleCount) {
 }
 
 void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
-    int reverbDistance = max(min(SND_POSTPROCESS_LENGTH, int(mem[50])), 1)*Audio::sampleCount;
+    int reverbDistance = max(min(SND_POSTPROCESS_LENGTH, int(mem[52])), 1)*Audio::sampleCount;
 
     for (int i=0;i<int(length);i++) {
         int reverbSample = reverbPosition-reverbDistance;
@@ -57,7 +59,7 @@ void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
             reverbSample += SND_POSTPROCESS_LENGTH*Audio::sampleCount;
         }
 
-        int delta = buffer[reverbSample]*Audio::tof(mem[51]);
+        int delta = buffer[reverbSample]*Audio::tof(mem[53]);
 
 #ifdef _WIN32
         // TODO: Apenas usar um tipo maior para checar overflow nesse caso

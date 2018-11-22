@@ -114,7 +114,8 @@ end
 function execute(cmd)
     local search_paths = {
         "apps/system/utilities/",
-        "apps/user/demos/"
+        "apps/user/demos/",
+        "apps/user/creator/"
     }
 
     local found = false
@@ -133,6 +134,8 @@ function execute(cmd)
                 shell = kernel.getenv("pid"),
                 exec = path
             })
+
+            kernel.wait(monitor)
             
             found = true
 
