@@ -106,10 +106,6 @@ void Process::init() {
                 KernelSingleton->kill(pid);
             }
         }
-        else {
-            cout << "pid " << pid << " init() is not defined. exiting." << endl;
-            KernelSingleton->kill(pid);
-        }
 
         initialized = true;
     }
@@ -117,16 +113,12 @@ void Process::init() {
 
 void Process::update(float dt) {
     lua_getglobal(st, "update");
-    lua_pushnumber(st, dt);
-    if (lua_isfunction(st, -2)) {
+    if (lua_isfunction(st, -1)) {
+        lua_pushnumber(st, dt);
         if (lua_pcall(st, 1, 0, 0) != 0) {
             cout << "pid " << pid << " update(): " << lua_tostring(st, -1) << endl;
             KernelSingleton->kill(pid);
         }
-    }
-    else {
-        cout << "pid " << pid << " update() is not defined. exiting." << endl;
-        KernelSingleton->kill(pid);
     }
 }
 
@@ -138,10 +130,6 @@ void Process::draw() {
             KernelSingleton->kill(pid);
         }
     }
-    else {
-        cout << "pid " << pid << " draw() is not defined. exiting." << endl;
-        KernelSingleton->kill(pid);
-    }
 }
 
 void Process::audio_tick() {
@@ -151,10 +139,6 @@ void Process::audio_tick() {
             cout << "pid " << pid << " audio_tick(): " << lua_tostring(st, -1) << endl;
             KernelSingleton->kill(pid);
         }
-    }
-    else {
-        cout << "pid " << pid << " audio_tick() is not defined. exiting." << endl;
-        KernelSingleton->kill(pid);
     }
 }
 
