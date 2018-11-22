@@ -4,7 +4,7 @@
 ** See Copyright Notice in lua.h
 */
 
-/* vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
+// vim: softtabstop=2 shiftwidth=2 tabstop=2 expandtab
 
 #define lparser_c
 #define LUA_CORE
@@ -28,9 +28,6 @@
 #include "lstate.h"
 #include "lstring.h"
 #include "ltable.h"
-
-#include <stdio.h>
-
 
 /* maximum number of local variables per function (must be smaller
    than 250, due to the bytecode format) */
@@ -889,7 +886,7 @@ static void primaryexp (LexState *ls, expdesc *v) {
       luaX_next(ls);
       expr(ls, v);
       check_match(ls, ')', '(', line);
-      luaK_dischargevars(ls->fs, v);
+      luaK_dischargevars(ls->fs, v, 1);
       return;
     }
     case TK_NAME: {
@@ -1082,7 +1079,7 @@ static BinOpr subexpr (LexState *ls, expdesc *v, int limit) {
     luaK_infix(ls->fs, op, v);
     /* read sub-expression with higher priority */
     nextop = subexpr(ls, &v2, priority[op].right);
-    luaK_posfix(ls->fs, op, v, &v2, line);
+    luaK_posfix(ls->fs, op, v, &v2, line, 1);
     op = nextop;
   }
   leavelevel(ls);
@@ -1183,27 +1180,40 @@ static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
   }
   /* Nibble extensions */
   else if (testnext(ls, TK_PLUSEQ)) {
-    // Get the expression 
+    /* Save the current references to keep then when
+     * luaK_posfix mutates lh->v */
+    expdesc tmp = lh->v;
+
+    /* Read the right hand expression */
     expr(ls, &e);
+    /* Start the evaluation code for the expression */
     luaK_infix(ls->fs, OPR_ADD, &e);
-    luaK_posfix(ls->fs, OPR_ADD, &e, &lh->v, ls->linenumber);
-    luaK_storevar(ls->fs, &lh->v, &e);
+    /* Run posfix but doesn't free regs if indexed */
+    luaK_posfix(ls->fs, OPR_ADD, &e, &lh->v, ls->linenumber, 0);
+    /* Store */
+    luaK_storevar(ls->fs, &tmp, &e);
+    /* Free the registers */
+    freereg(ls->fs, lh->v.u.ind.t);
+
     return;  /* avoid default */
   }
   else if (testnext(ls, TK_MINUSEQ)) {
-    int nexps = explist(ls, &e);
-    if (nexps != nvars)
-      adjust_assign(ls, nvars, nexps, &e);
-    else {
-      luaK_setoneret(ls->fs, &e);  /* close last expression */
+    /* Save the current references to keep then when
+     * luaK_posfix mutates lh->v */
+    expdesc tmp = lh->v;
 
-      struct expdesc tmp = lh->v;
-      luaK_infix(ls->fs, OPR_SUB, &tmp);
-      luaK_posfix(ls->fs, OPR_SUB, &tmp, &e, ls->linenumber);
-      luaK_storevar(ls->fs, &lh->v, &tmp);
+    /* Read the right hand expression */
+    expr(ls, &e);
+    /* Start the evaluation code for the expression */
+    luaK_infix(ls->fs, OPR_SUB, &e);
+    /* Run posfix but doesn't free regs if indexed */
+    luaK_posfix(ls->fs, OPR_SUB, &e, &lh->v, ls->linenumber, 0);
+    /* Store */
+    luaK_storevar(ls->fs, &tmp, &e);
+    /* Free the registers */
+    freereg(ls->fs, lh->v.u.ind.t);
 
-      return;  /* avoid default */
-    }
+    return;  /* avoid default */
   }
   else {  /* assignment -> '=' explist */
     int nexps;
@@ -1572,7 +1582,7 @@ static void retstat (LexState *ls) {
     }
     else {
       if (nret == 1)  /* only one single value? */
-        first = luaK_exp2anyreg(fs, &e);
+        first = luaK_exp2anyreg(fs, &e, 1);
       else {
         luaK_exp2nextreg(fs, &e);  /* values must go to the stack */
         first = fs->nactvar;  /* return all active values */
