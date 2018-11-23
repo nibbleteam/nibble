@@ -133,3 +133,7 @@ uint64_t Audio::addr() {
 uint64_t Audio::size() {
     return SND_MEMORY_LENGTH;
 }
+
+float Audio::tof(uint8_t n) {
+    return float(n)/255.0;
+}

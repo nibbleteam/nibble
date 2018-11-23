@@ -53,7 +53,7 @@ void FMSynthesizer::off() {
     }
 }
 
-void FMSynthesizer::fill(int16_t* samples, unsigned int sampleCount) {
+void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCount) {
     for (size_t s=0;s<sampleCount;s++) {
         int16_t delta = synthesize();
 
@@ -76,6 +76,16 @@ void FMSynthesizer::fill(int16_t* samples, unsigned int sampleCount) {
         // Corta overflow
         if (overflow) {
             samples[s] = (delta < 0) ? INT16_MIN : INT16_MAX;
+        }
+
+        int out = int(delta) + int(clean[s]);
+
+        if (out < INT16_MIN) {
+            clean[s] = INT16_MIN;
+        } else if (out > INT16_MAX) {
+            clean[s] = INT16_MAX;
+        } else {
+            clean[s] = out;
         }
     }
 }
