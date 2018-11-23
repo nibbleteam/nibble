@@ -612,7 +612,9 @@ void luaK_dischargevars (FuncState *fs, expdesc *e, int freeindexed) {
       break;
     }
     case VINDEXI: {
-      freereg(fs, e->u.ind.t);
+      if (freeindexed) {
+        freereg(fs, e->u.ind.t);
+      }
       e->u.info = luaK_codeABC(fs, OP_GETI, 0, e->u.ind.t, e->u.ind.idx);
       e->k = VRELOCABLE;
       break;
@@ -626,7 +628,9 @@ void luaK_dischargevars (FuncState *fs, expdesc *e, int freeindexed) {
       break;
     }
     case VINDEXED: {
-      freeregs(fs, e->u.ind.t, e->u.ind.idx);
+      if (freeindexed) {
+        freeregs(fs, e->u.ind.t, e->u.ind.idx);
+      }
       e->u.info = luaK_codeABC(fs, OP_GETTABLE, 0, e->u.ind.t, e->u.ind.idx);
       e->k = VRELOCABLE;
       break;
