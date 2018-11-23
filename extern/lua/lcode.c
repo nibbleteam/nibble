@@ -4,6 +4,8 @@
 ** See Copyright Notice in lua.h
 */
 
+// vim: softtabstop=2 shiftwidth=2 tabstop=2 expandtab
+
 #define lcode_c
 #define LUA_CORE
 
@@ -28,7 +30,6 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "lvm.h"
-
 
 /* Maximum number of registers in a Lua function (must fit in 8 bits) */
 #define MAXREGS		255
@@ -408,7 +409,7 @@ void luaK_reserveregs (FuncState *fs, int n) {
 ** a local variable.
 )
 */
-static void freereg (FuncState *fs, int reg) {
+void freereg (FuncState *fs, int reg) {
   if (!ISK(reg) && reg >= fs->nactvar) {
     fs->freereg--;
     lua_assert(reg == fs->freereg);
@@ -594,7 +595,7 @@ void luaK_setoneret (FuncState *fs, expdesc *e) {
 /*
 ** Ensure that expression 'e' is not a variable.
 */
-void luaK_dischargevars (FuncState *fs, expdesc *e) {
+void luaK_dischargevars (FuncState *fs, expdesc *e, int freeindexed) {
   switch (e->k) {
     case VLOCAL: {  /* already in a register */
       e->k = VNONRELOC;  /* becomes a non-relocatable value */
@@ -611,19 +612,25 @@ void luaK_dischargevars (FuncState *fs, expdesc *e) {
       break;
     }
     case VINDEXI: {
-      freereg(fs, e->u.ind.t);
+      if (freeindexed) {
+        freereg(fs, e->u.ind.t);
+      }
       e->u.info = luaK_codeABC(fs, OP_GETI, 0, e->u.ind.t, e->u.ind.idx);
       e->k = VRELOCABLE;
       break;
     }
     case VINDEXSTR: {
-      freereg(fs, e->u.ind.t);
+      if (freeindexed) {
+        freereg(fs, e->u.ind.t);
+      }
       e->u.info = luaK_codeABC(fs, OP_GETFIELD, 0, e->u.ind.t, e->u.ind.idx);
       e->k = VRELOCABLE;
       break;
     }
     case VINDEXED: {
-      freeregs(fs, e->u.ind.t, e->u.ind.idx);
+      if (freeindexed) {
+        freeregs(fs, e->u.ind.t, e->u.ind.idx);
+      }
       e->u.info = luaK_codeABC(fs, OP_GETTABLE, 0, e->u.ind.t, e->u.ind.idx);
       e->k = VRELOCABLE;
       break;
@@ -642,7 +649,7 @@ void luaK_dischargevars (FuncState *fs, expdesc *e) {
 ** 'e' will become a non-relocatable expression).
 */
 static void discharge2reg (FuncState *fs, expdesc *e, int reg) {
-  luaK_dischargevars(fs, e);
+  luaK_dischargevars(fs, e, 1);
   switch (e->k) {
     case VNIL: {
       luaK_nil(fs, reg, 1);
@@ -750,7 +757,7 @@ static void exp2reg (FuncState *fs, expdesc *e, int reg) {
 ** lists) is in next available register.
 */
 void luaK_exp2nextreg (FuncState *fs, expdesc *e) {
-  luaK_dischargevars(fs, e);
+  luaK_dischargevars(fs, e, 1);
   freeexp(fs, e);
   luaK_reserveregs(fs, 1);
   exp2reg(fs, e, fs->freereg - 1);
@@ -761,8 +768,8 @@ void luaK_exp2nextreg (FuncState *fs, expdesc *e) {
 ** Ensures final expression result (including results from its jump
 ** lists) is in some (any) register and return that register.
 */
-int luaK_exp2anyreg (FuncState *fs, expdesc *e) {
-  luaK_dischargevars(fs, e);
+int luaK_exp2anyreg (FuncState *fs, expdesc *e, int freeindexed) {
+  luaK_dischargevars(fs, e, freeindexed);
   if (e->k == VNONRELOC) {  /* expression already has a register? */
     if (!hasjumps(e))  /* no jumps? */
       return e->u.info;  /* result is already in a register */
@@ -782,7 +789,7 @@ int luaK_exp2anyreg (FuncState *fs, expdesc *e) {
 */
 void luaK_exp2anyregup (FuncState *fs, expdesc *e) {
   if (e->k != VUPVAL || hasjumps(e))
-    luaK_exp2anyreg(fs, e);
+    luaK_exp2anyreg(fs, e, 1);
 }
 
 
@@ -792,9 +799,9 @@ void luaK_exp2anyregup (FuncState *fs, expdesc *e) {
 */
 void luaK_exp2val (FuncState *fs, expdesc *e) {
   if (hasjumps(e))
-    luaK_exp2anyreg(fs, e);
+    luaK_exp2anyreg(fs, e, 1);
   else
-    luaK_dischargevars(fs, e);
+    luaK_dischargevars(fs, e, 1);
 }
 
 
@@ -821,7 +828,7 @@ int luaK_exp2RK (FuncState *fs, expdesc *e) {
     default: break;
   }
   /* not a constant in the right range: put it in a register */
-  return luaK_exp2anyreg(fs, e);
+  return luaK_exp2anyreg(fs, e, 1);
 }
 
 
@@ -836,7 +843,7 @@ void luaK_storevar (FuncState *fs, expdesc *var, expdesc *ex) {
       return;
     }
     case VUPVAL: {
-      int e = luaK_exp2anyreg(fs, ex);
+      int e = luaK_exp2anyreg(fs, ex, 1);
       luaK_codeABC(fs, OP_SETUPVAL, e, var->u.info, 0);
       break;
     }
@@ -871,7 +878,7 @@ void luaK_storevar (FuncState *fs, expdesc *var, expdesc *ex) {
 */
 void luaK_self (FuncState *fs, expdesc *e, expdesc *key) {
   int ereg;
-  luaK_exp2anyreg(fs, e);
+  luaK_exp2anyreg(fs, e, 1);
   ereg = e->u.info;  /* register where 'e' was placed */
   freeexp(fs, e);
   e->u.info = fs->freereg;  /* base register for op_self */
@@ -919,7 +926,7 @@ static int jumponcond (FuncState *fs, expdesc *e, int cond) {
 */
 void luaK_goiftrue (FuncState *fs, expdesc *e) {
   int pc;  /* pc of new jump */
-  luaK_dischargevars(fs, e);
+  luaK_dischargevars(fs, e, 1);
   switch (e->k) {
     case VJMP: {  /* condition? */
       negatecondition(fs, e);  /* jump when it is false */
@@ -946,7 +953,7 @@ void luaK_goiftrue (FuncState *fs, expdesc *e) {
 */
 void luaK_goiffalse (FuncState *fs, expdesc *e) {
   int pc;  /* pc of new jump */
-  luaK_dischargevars(fs, e);
+  luaK_dischargevars(fs, e, 1);
   switch (e->k) {
     case VJMP: {
       pc = e->u.info;  /* already jump if true */
@@ -971,7 +978,7 @@ void luaK_goiffalse (FuncState *fs, expdesc *e) {
 ** Code 'not e', doing constant folding.
 */
 static void codenot (FuncState *fs, expdesc *e) {
-  luaK_dischargevars(fs, e);
+  luaK_dischargevars(fs, e, 1);
   switch (e->k) {
     case VNIL: case VFALSE: {
       e->k = VTRUE;  /* true == not nil == not false */
@@ -1030,7 +1037,7 @@ static int isKint (expdesc *e) {
 void luaK_indexed (FuncState *fs, expdesc *t, expdesc *k) {
   lua_assert(!hasjumps(t) && (vkisinreg(t->k) || t->k == VUPVAL));
   if (t->k == VUPVAL && !isKstr(fs, k))  /* upvalue indexed by non string? */
-    luaK_exp2anyreg(fs, t);  /* put it in a register */
+    luaK_exp2anyreg(fs, t, 1);  /* put it in a register */
   t->u.ind.t = t->u.info;  /* register or upvalue index */
   if (t->k == VUPVAL) {
     t->u.ind.idx = k->u.info;  /* literal string */
@@ -1045,7 +1052,7 @@ void luaK_indexed (FuncState *fs, expdesc *t, expdesc *k) {
     t->k = VINDEXI;
   }
   else {
-    t->u.ind.idx = luaK_exp2anyreg(fs, k);  /* register */
+    t->u.ind.idx = luaK_exp2anyreg(fs, k, 1);  /* register */
     t->k = VINDEXED;
   }
 }
@@ -1101,7 +1108,7 @@ static int constfolding (FuncState *fs, int op, expdesc *e1,
 ** Expression to produce final result will be encoded in 'e'.
 */
 static void codeunexpval (FuncState *fs, OpCode op, expdesc *e, int line) {
-  int r = luaK_exp2anyreg(fs, e);  /* opcodes operate only on registers */
+  int r = luaK_exp2anyreg(fs, e, 1);  /* opcodes operate only on registers */
   freeexp(fs, e);
   e->u.info = luaK_codeABC(fs, op, 0, r, 0);  /* generate opcode */
   e->k = VRELOCABLE;  /* all those operations are relocatable */
@@ -1119,16 +1126,16 @@ static void codeunexpval (FuncState *fs, OpCode op, expdesc *e, int line) {
 ** recent registers to be released).
 */
 static void codebinexpval (FuncState *fs, OpCode op,
-                           expdesc *e1, expdesc *e2, int line) {
+                           expdesc *e1, expdesc *e2, int line, int freeindexed) {
   int v1, v2;
   if (op == OP_ADD && (isKint(e1) || isKint(e2))) {
     if (isKint(e2)) {
       v2 = cast_int(e2->u.ival);
-      v1 = luaK_exp2anyreg(fs, e1);
+      v1 = luaK_exp2anyreg(fs, e1, 1);
     }
     else {  /* exchange operands to make 2nd one a constant */
       v2 = cast_int(e1->u.ival);
-      v1 = luaK_exp2anyreg(fs, e2) | BITRK;  /* K bit signal the exchange */
+      v1 = luaK_exp2anyreg(fs, e2, freeindexed) | BITRK;  /* K bit signal the exchange */
     }
     op = OP_ADDI;
   }
@@ -1235,18 +1242,18 @@ void luaK_infix (FuncState *fs, BinOpr op, expdesc *v) {
 ** one.
 */
 void luaK_posfix (FuncState *fs, BinOpr op,
-                  expdesc *e1, expdesc *e2, int line) {
+                  expdesc *e1, expdesc *e2, int line, int freeindexed) {
   switch (op) {
     case OPR_AND: {
       lua_assert(e1->t == NO_JUMP);  /* list closed by 'luK_infix' */
-      luaK_dischargevars(fs, e2);
+      luaK_dischargevars(fs, e2, 1);
       luaK_concat(fs, &e2->f, e1->f);
       *e1 = *e2;
       break;
     }
     case OPR_OR: {
       lua_assert(e1->f == NO_JUMP);  /* list closed by 'luK_infix' */
-      luaK_dischargevars(fs, e2);
+      luaK_dischargevars(fs, e2, 1);
       luaK_concat(fs, &e2->t, e1->t);
       *e1 = *e2;
       break;
@@ -1262,7 +1269,7 @@ void luaK_posfix (FuncState *fs, BinOpr op,
       }
       else {
         luaK_exp2nextreg(fs, e2);  /* operand must be on the 'stack' */
-        codebinexpval(fs, OP_CONCAT, e1, e2, line);
+        codebinexpval(fs, OP_CONCAT, e1, e2, line, 1);
       }
       break;
     }
@@ -1271,7 +1278,7 @@ void luaK_posfix (FuncState *fs, BinOpr op,
     case OPR_BAND: case OPR_BOR: case OPR_BXOR:
     case OPR_SHL: case OPR_SHR: {
       if (!constfolding(fs, op + LUA_OPADD, e1, e2))
-        codebinexpval(fs, cast(OpCode, op + OP_ADD), e1, e2, line);
+        codebinexpval(fs, cast(OpCode, op + OP_ADD), e1, e2, line, freeindexed);
       break;
     }
     case OPR_EQ: case OPR_LT: case OPR_LE:

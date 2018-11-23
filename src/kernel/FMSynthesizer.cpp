@@ -58,7 +58,20 @@ void FMSynthesizer::fill(int16_t* samples, unsigned int sampleCount) {
         int16_t delta = synthesize();
 
         // Mixa o canal anterior e o novo
+#ifdef _WIN32
+        bool overflow;
+        int16_t result = delta + samples[s];
+
+        if (delta < 0 && samples[s] < 0) {
+            overflow = result >= 0;
+        } else if (delta > 0 && samples[s] > 0) {
+            overflow = result <= 0;
+        }
+
+        samples[s] = result;
+#else
         bool overflow = __builtin_add_overflow(delta, samples[s], &samples[s]);
+#endif
 
         // Corta overflow
         if (overflow) {
@@ -89,7 +102,20 @@ int16_t FMSynthesizer::synthesize() {
         int16_t delta = outputs[o] * tof(amplitudes[o*(SND_FM_OPERATORS+1)+SND_FM_OPERATORS]);
 
         // Mixa o operador anterior e o novo
+#ifdef _WIN32
+        bool overflow;
+        int16_t result = delta + output;
+
+        if (delta < 0 && output < 0) {
+            overflow = result >= 0;
+        } else if (delta > 0 && output > 0) {
+            overflow = result <= 0;
+        }
+
+        output = result;
+#else
         bool overflow = __builtin_add_overflow(delta, output, &output);
+#endif
 
         // Corta overflow
         if (overflow) {
