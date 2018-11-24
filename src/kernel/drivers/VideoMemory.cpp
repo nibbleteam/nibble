@@ -377,6 +377,9 @@ VideoMemory::VideoMemory(sf::RenderWindow &window,
     cpuTexture.update(buffer);
 
     paletteData = nullptr;
+
+    // Correct aspect ratio
+    resize();
 }
 
 VideoMemory::~VideoMemory() {

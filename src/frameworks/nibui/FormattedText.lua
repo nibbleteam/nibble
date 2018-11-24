@@ -26,13 +26,12 @@ function FormattedText:new(x, y, w, h)
 
     lang.instanceof(instance, self)
 
-
     return instance
 end
 
 function FormattedText:delete(n)
     while n > 0 do
-        local deleted = self:tryDelete(n)
+        local deleted = self:try_delete(n)
         n -= deleted
         self.cursor -= deleted
     end
@@ -43,7 +42,7 @@ function FormattedText:delete(n)
     self.cursor_y = last.y
 end
 
-function FormattedText:tryDelete(n)
+function FormattedText:try_delete(n)
     local deleted = 0
     local from = self.text[#self.text]
     

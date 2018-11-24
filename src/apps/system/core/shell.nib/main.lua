@@ -3,8 +3,8 @@ require("colors")
 require("opening")
 require("console")
 
-local DecoratedText = require("nibui/DecoratedText")
-local FormattedText = require("nibui/FormattedText")
+local DecoratedText = require("nibui.DecoratedText")
+local FormattedText = require("nibui.FormattedText")
 
 local OPENING = 0
 local READY = 1
@@ -26,11 +26,11 @@ audio_enable = true
 function init()
     -- Copia a paleta padrão
     for i=1,7 do
-        copypalette(0, i)
+        cppal(0, i)
     end
 
     -- Cor 0 transparente
-    transparent(0)
+    mask(0)
     
     shell_state = OPENING
     t = 0
@@ -114,7 +114,8 @@ end
 function execute(cmd)
     local search_paths = {
         "apps/system/utilities/",
-        "apps/user/demos/"
+        "apps/user/demos/",
+        "apps/user/creator/",
     }
 
     local found = false

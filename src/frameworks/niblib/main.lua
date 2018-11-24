@@ -74,6 +74,18 @@ btr = function (b) return input.bt(b) == input.STRELEASED; end
 putp = vid.putp
 getp = vid.getp
 
+-- Acesso a memória
+function read16(p)
+    local data = kernel.read(p, 2)
+    local value = data:byte(2)
+    value = value+data:byte(1)*256
+    return value
+end
+
+function read8(p)
+    return kernel.read(p, 1):byte()
+end
+
 UP = input.UP
 DOWN = input.DOWN
 LEFT = input.LEFT

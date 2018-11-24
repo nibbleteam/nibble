@@ -48,9 +48,15 @@ void Mouse::pressed(uint8_t bt) {
 
 void Mouse::released(uint8_t bt) {
     if (bt) {
-        mem[5] = BUTTON_ON_OFF;
+        if (mem[5] == BUTTON_OFF_ON ||
+            mem[5] == BUTTON_ON) {
+            mem[5] = BUTTON_ON_OFF;
+        }
     } else {
-        mem[4] = BUTTON_ON_OFF;
+        if (mem[4] == BUTTON_OFF_ON ||
+            mem[4] == BUTTON_ON) {
+            mem[4] = BUTTON_ON_OFF;
+        }
     }
 }
 

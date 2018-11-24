@@ -28,9 +28,6 @@ Kernel::Kernel():
     sf::Image Icon;
 	if (Icon.loadFromMemory(icon_png, icon_png_len))
         window.setIcon(320, 320, Icon.getPixelsPtr());
-
-	lastUsedMemByte = 0;
-	createMemoryMap();
 }
 
 void Kernel::menu() {
@@ -59,6 +56,7 @@ void Kernel::shutdown() {
     // outro está sendo deletado causam SEGFAULT,
     // por isso limpamos primeiro
     for (auto process : processes) {
+        process->unmap();
         process->clearMessages();
     }
 
@@ -68,11 +66,18 @@ void Kernel::shutdown() {
     }
 
     processes.clear();
+
+    runningProcess = NULL;
+
+    // Deleta a memória
+	destroyMemoryMap();
 }
 
 void Kernel::startup() {
     lastPid = 1;
     exiting = false;
+	lastUsedMemByte = 0;
+	createMemoryMap();
 
     audio->play();
 
@@ -87,7 +92,6 @@ void Kernel::startup() {
 
 Kernel::~Kernel() {
     audio->stop();
-	destroyMemoryMap();
 	shutdown();
 	delete gpu;
 }
