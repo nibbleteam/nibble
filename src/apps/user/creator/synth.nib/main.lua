@@ -54,7 +54,7 @@ function init()
 end
 
 -- C3
-local base = 39
+local base = 39-24
 local octs = 'zsxdcvgbhnjmq2w3er5t6y7ui9o0p'
 local prevnote = nil
 
@@ -84,15 +84,27 @@ function audio_tick()
             -- Primeiro canal
             channel(CH1)
             -- Frequência = nota para o primeiro operador
-            freqs(253, 130, 0, 0)
+            freqs(250, 130, 20, 200)
             -- Envelope do primeiro operador
-            envelope(OP1, 0, 255, 1, 10, 128, 128)
-            envelope(OP2, 0, 255, 1, 10, 128, 128)
+            envelope(OP1, 0, 255, 8, 10, 128, 255)
+            envelope(OP2, 0, 255, 1, 1, 128, 255)
+            envelope(OP3, 0, 255, 2, 30, 240, 255)
+            envelope(OP4, 0, 255, 1, 1, 254, 255)
             -- Roteia o primeiro operador para a saída
-            route(OP1, OUT, 255)
+            route(OP1, OUT, 100)
             route(OP2, OP1, 30)
+            route(OP2, OP2, 20)
+            route(OP2, OUT, 128)
+            route(OP3, OP2, 128)
+            route(OP3, OP1, 60)
+            route(OP3, OUT, 128)
+            route(OP4, OUT, 255)
+            route(OP4, OP4, 10)
+            route(OP4, OP3, 20)
+            route(OP4, OP2, 50)
+            route(OP4, OP1, 40)
             -- Reverb
-            reverb(16, 128)
+            reverb(8, 64)
 
             if prevnote and prevnote ~= n then
                 noteoff(prevnote)
@@ -100,7 +112,7 @@ function audio_tick()
 
             -- Toca
             noteon(n)
-            shownote = 5
+            shownote = 120
 
             prevnote = n
         end
