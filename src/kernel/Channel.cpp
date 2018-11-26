@@ -6,7 +6,7 @@
 using namespace std;
 
 // Envelope por operador + matriz de operadores + frequências + note samples memory + extra padding
-const uint16_t Channel::bytesPerChannel = 64;
+const uint16_t Channel::bytesPerChannel = 256;
 
 Channel::Channel(uint8_t *mem, unsigned int channelNumber):
     mem(mem),
@@ -24,15 +24,21 @@ Channel::~Channel() {
 }
 
 void Channel::fill(int16_t* output, const unsigned int sampleCount) {
-    if (mem[48] == 1) {
-        press(mem[49]);
-        mem[48] = 0;
-    } else if (mem[48] == 2) {
-        release(mem[49]);
-        mem[48] = 0;
+    // Toca notas, máximo de 16 notas on/off
+    for (size_t i=0;i<16*sizeof(int16_t);i+=sizeof(int16_t)) {
+        switch (mem[96+i]) {
+            case 1:
+                press(mem[96+i+1]);
+                mem[96+i] = 0;
+                break;
+            case 2:
+                release(mem[96+i+1]);
+                mem[96+i] = 0;
+                break;
+        }
     }
 
-    memset(samples, 0, Audio::sampleCount*sizeof(int16_t));
+    memset(samples, 0, sampleCount*sizeof(int16_t));
 
     for (auto it=synthesizers.cbegin(); it != synthesizers.cend();) {
         if (it->second->done()) {
@@ -48,7 +54,7 @@ void Channel::fill(int16_t* output, const unsigned int sampleCount) {
 }
 
 void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
-    int reverbDistance = max(min(SND_POSTPROCESS_LENGTH, int(mem[50])), 1)*Audio::sampleCount;
+    int reverbDistance = max(min(SND_POSTPROCESS_LENGTH, int(mem[128])), 1)*1024;
 
     for (int i=0;i<int(length);i++) {
         int reverbSample = reverbPosition-reverbDistance;
@@ -57,7 +63,7 @@ void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
             reverbSample += SND_POSTPROCESS_LENGTH*Audio::sampleCount;
         }
 
-        int delta = buffer[reverbSample]*Audio::tof(mem[51]);
+        int delta = buffer[reverbSample]*Audio::tof16(mem+129);
 
 #ifdef _WIN32
         // TODO: Apenas usar um tipo maior para checar overflow nesse caso

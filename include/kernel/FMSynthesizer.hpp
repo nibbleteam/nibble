@@ -25,9 +25,6 @@ class FMSynthesizer {
 
     // Frequência base
     float base;
-
-    // TODO: detune
-    // TODO: envelopes
 public:
     FMSynthesizer(uint8_t*, uint8_t);
     ~FMSynthesizer();
@@ -43,6 +40,7 @@ private:
     int16_t synthesize();
 
     uint8_t* argptr8(const size_t);
+    int16_t* argptr16(const size_t);
     float tof(uint8_t);
 };
 

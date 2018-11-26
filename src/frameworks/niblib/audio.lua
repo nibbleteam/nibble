@@ -21,7 +21,7 @@ local WRITE_POS = MEM_OFFSET
 local CMD_LENGTH = 2
 local CONF_LENGTH = 2
 
-function u16(x)
+local function u16(x)
   return string.char(math.floor(x/256)%256, math.floor(math.floor(x)%256))
 end
 

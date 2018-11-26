@@ -1,17 +1,17 @@
 #include <kernel/Envelope.hpp>
+#include <kernel/drivers/Audio.hpp>
 
 #include <iostream>
 using namespace std;
 
-Envelope::Envelope(uint8_t* sustained,
-                   uint8_t* level,
-                   uint8_t* attack, uint8_t* decay,
-                   uint8_t* sustain,
-                   uint8_t* release):
+Envelope::Envelope(int16_t* sustained,
+                   int16_t* level,
+                   int16_t* attack, int16_t* decay,
+                   int16_t* sustain,
+                   int16_t* release):
         sustained(sustained),
         status(ATTACK),
-        level(level), sustain(sustain),
-        attack(attack), decay(decay), release(release),
+        level(level), sustain(sustain), attack(attack), decay(decay), release(release),
         amplitude(0), done(false) {
 }
 
@@ -19,28 +19,31 @@ float Envelope::getAmplitude() {
     switch (status) {
         case ATTACK:
             if (*attack == 0) {
-                amplitude = tof(level);
+                amplitude = Audio::tof16(level);
             } else {
-                amplitude += tof(level)/tof(attack)/44100.0;
+                amplitude += Audio::tof16(level)/Audio::tof16(attack)/44100.0;
             }
 
-            if (amplitude >= tof(level)) {
+            if (amplitude >= Audio::tof16(level)) {
+                amplitude = Audio::tof16(level);
                 status = DECAY;
             }
             break;
         case DECAY:
             if (*decay == 0) {
-                amplitude = tof(sustain);
+                amplitude = Audio::tof16(sustain);
             } else {
-                amplitude -= (tof(level)-tof(sustain))/tof(decay)/44100;
+                amplitude -= (Audio::tof16(level)-Audio::tof16(sustain))/Audio::tof16(decay)/44100;
             }
 
-            if (amplitude <= tof(sustain)) {
+            if (amplitude <= Audio::tof16(sustain)) {
+                amplitude = Audio::tof16(sustain);
                 status = SUSTAIN;
             }
             break;
         case SUSTAIN:
             if (! (*sustained) ) {
+                amplitude = Audio::tof16(sustain);
                 status = RELEASE;
             }
             break;
@@ -48,7 +51,7 @@ float Envelope::getAmplitude() {
             if (*release == 0) {
                 amplitude = 0;
             } else {
-                amplitude -= tof(sustain)/tof(release)/44100;
+                amplitude -= Audio::tof16(sustain)/Audio::tof16(release)/44100;
             }
 
             if (amplitude <= 0) {
@@ -67,8 +70,4 @@ void Envelope::on() {
 
 void Envelope::off() {
     status = RELEASE;
-}
-
-float Envelope::tof(uint8_t* n) {
-    return float(*n)/255.0;
 }

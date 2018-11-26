@@ -6,7 +6,7 @@
 #include <SFML/Audio.hpp>
 
 #define SND_CHANNELS        8
-#define SND_MEMORY_LENGTH   512
+#define SND_MEMORY_LENGTH   4096
 
 class Audio : public Memory, public sf::SoundStream {
     // Samples
@@ -44,7 +44,6 @@ public:
 private:
 	// Sinal de clock para mudar os parâmetros da onda
     // chama uma callback no cart atual
-	void tick();
 	void calculateTickPeriod(const double);
 	void calculateNextTick();
 
@@ -55,6 +54,8 @@ private:
     void onSeek(sf::Time);
 public:
     static float tof(uint8_t);
+    static float tof16(const uint8_t*);
+    static float tof16(const int16_t*);
 
 };
 

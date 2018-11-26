@@ -13,22 +13,20 @@ class Envelope {
         RELEASE
     };
 
-    uint8_t *sustained;
+    int16_t *sustained;
     Status status;
-    uint8_t *level, *sustain;
-    uint8_t *attack, *decay, *release;
+    int16_t *level, *sustain;
+    int16_t *attack, *decay, *release;
 public:
     float amplitude;
     bool done;
 
-    Envelope(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*);
+    Envelope(int16_t*, int16_t*, int16_t*, int16_t*, int16_t*, int16_t*);
 
     void on();
     void off();
 
     float getAmplitude();
-private:
-    float tof(uint8_t*);
 };
 
 #endif /* NIBBLE_ENVELOPE */
