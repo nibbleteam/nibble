@@ -731,7 +731,7 @@ void VideoMemory::gpuSprite(RenderBuffer &buffer, sf::Color color,
     d = float(sy+h)/size.y;
 
     buffer.add({
-            sf::Vertex(sf::Vector2f(x, y), color, sf::Vector2f(a, b)),
+                sf::Vertex(sf::Vector2f(x, y), color, sf::Vector2f(a, b)),
                 sf::Vertex(sf::Vector2f(x+w, y), color, sf::Vector2f(c, b)),
                 sf::Vertex(sf::Vector2f(x+w, y+h), color, sf::Vector2f(c, d)),
                 sf::Vertex(sf::Vector2f(x, y+h), color, sf::Vector2f(a, d))
@@ -767,7 +767,7 @@ uint8_t VideoMemory::next8Arg(uint8_t *&arg) {
 }
 
 int16_t VideoMemory::next16Arg(uint8_t *&arg) {
-    int16_t value = (int16_t)arg[0]<<8 | (uint16_t)arg[1];
+    int16_t value = int16_t(uint16_t(arg[0]&0b01111111)<<8 | uint16_t(arg[1])) * (arg[0]&0x80 ? -1 : 1);
     arg+=sizeof(int16_t);
     return value;
 }
