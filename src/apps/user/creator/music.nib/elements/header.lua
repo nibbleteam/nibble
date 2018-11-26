@@ -1,5 +1,3 @@
--- [ icons ]             [ hamburguer ]
-
 return {
     x = top(), y = left(),
     w = parent('w'), h = 12,
@@ -11,17 +9,12 @@ return {
         x = calc(right(), -12), y = parent('y'),
         w = 12, h = 12,
         radius = 6,
-        background = 8,
-        content = ' ',
-        onclick = function (self, event)
-            self.content = string.char(self.content:byte()+1)
-            return true
-        end,
+        content = '\17',
         onenter = function (self, event)
-            self.background = 12
+            self.color = 1
         end,
         onleave = function (self, event)
-            self.background = 0
-        end
+            self.color = 15
+        end,
     }
 }
