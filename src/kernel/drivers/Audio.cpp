@@ -6,7 +6,7 @@
 #include <iostream>
 using namespace std;
 
-const unsigned int Audio::sampleCount = 2048;
+const unsigned int Audio::sampleCount = 1470;
 
 Audio::Audio(const uint64_t addr):
     address(addr), nextTick(0), t(0), playing(true) {
@@ -25,6 +25,7 @@ Audio::Audio(const uint64_t addr):
     // Inicializa a placa de áudio
     initialize(1, 44100);
 
+    // Calcula velocidade da sincronização
     calculateTickPeriod(60.0);
 }
 
@@ -55,39 +56,17 @@ uint64_t Audio::read(const uint64_t p, uint8_t* data, const uint64_t size) {
 }
 
 bool Audio::onGetData(Audio::Chunk& chunk) {
-	unsigned int missingSampleCount = sampleCount;
-	unsigned int initialT = t;
+    while (t >= nextTick) {
+        // Envia sinal de sincronização com o vídeo
+        KernelSingleton->syncAudio();
+        // Calcula quando enviar o próximo sinal
+        calculateNextTick();
+    }
+
+    t += sampleCount;
 
     memset(samples, 0, sizeof(int16_t)*sampleCount);
-
-    // Preenche o buffer "samples"
-	do {
-        // Caso o tick precise ser rodado antes
-        // de completar todos os samples
-		if (t+missingSampleCount > nextTick) {
-			unsigned int finalSampleCount = nextTick-t;
-
-            mix(samples+(t-initialT), finalSampleCount);
-
-			t = nextTick;
-			missingSampleCount -= finalSampleCount;
-
-			tick();
-			calculateNextTick();
-		} else {
-            mix(samples+(t-initialT), missingSampleCount);
-
-			t += missingSampleCount;
-			missingSampleCount = 0;
-            break;
-		}
-	} while (missingSampleCount > 0);
-    
-    // TODO: Slides
-
-    // TODO: Arppegiator
-    
-    // TODO: Efeitos
+    mix(samples, sampleCount);
 
     // Passa informações sobre os samples para a placa de áudio
     chunk.samples = samples;
@@ -122,10 +101,6 @@ void Audio::calculateNextTick() {
 	nextTick += tickPeriod;
 }
 
-void Audio::tick() {
-    KernelSingleton->audio_tick();
-}
-
 uint64_t Audio::addr() {
     return address;
 }
@@ -136,4 +111,16 @@ uint64_t Audio::size() {
 
 float Audio::tof(uint8_t n) {
     return float(n)/255.0;
+}
+
+float Audio::tof16(const uint8_t *buffer) {
+    return float(
+                int16_t(
+                    uint16_t(buffer[0]&0b01111111)<<8 | uint16_t(buffer[1])
+                ) * (buffer[0]&0x80 ? -1 : 1)
+           )/float(0xFF);
+}
+
+float Audio::tof16(const int16_t *buffer) {
+    return tof16((uint8_t*)buffer);
 }

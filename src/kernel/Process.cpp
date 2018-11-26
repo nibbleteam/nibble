@@ -132,16 +132,6 @@ void Process::draw() {
     }
 }
 
-void Process::audio_tick() {
-    lua_getglobal(st, "audio_tick");
-    if (lua_isfunction(st, -1)) {
-        if (lua_pcall(st, 0, 0, 0) != 0) {
-            cout << "pid " << pid << " audio_tick(): " << lua_tostring(st, -1) << endl;
-            KernelSingleton->kill(pid);
-        }
-    }
-}
-
 const uint64_t Process::getPid() const {
     return pid;
 }

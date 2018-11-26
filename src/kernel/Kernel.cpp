@@ -15,9 +15,10 @@ Kernel::Kernel():
     window(sf::VideoMode(640, 480), "Nibble"),
     lastPid(1),
     lastUsedMemByte(0),
-    exiting(false) {
+    exiting(false), audioSyncCounter(0) {
     // FPS Máximo 
-    window.setFramerateLimit(30);
+    // Sincronizado através da thread de áudio
+    //window.setFramerateLimit(30);
     // O tamanho virtual da janela é sempre 320x240
     window.setView(sf::View(sf::FloatRect(0, 0, 320, 240)));
     // Não gera múltiplos keypresses se a tecla ficar apertada
@@ -55,7 +56,7 @@ void Kernel::shutdown() {
     // Mensagens na queue de um processo enquanto
     // outro está sendo deletado causam SEGFAULT,
     // por isso limpamos primeiro
-    for (auto process : processes) {
+    for (auto process :processes) {
         process->unmap();
         process->clearMessages();
     }
@@ -157,6 +158,7 @@ void Kernel::destroyMemoryMap() {
 void Kernel::loop() {
     sf::Clock clock;
     float lastTime = 0;
+    audioSyncCounter = 0;
     
     while (window.isOpen()) {
         float currentTime = clock.getElapsedTime().asSeconds();
@@ -262,7 +264,6 @@ void Kernel::loop() {
         }
 
         // Roda o processo no topo da lista de processos
-        audioMutex.lock();
         auto pcopy = processes;
         for (auto p :pcopy) {
             if (!p->isRunning())
@@ -284,10 +285,15 @@ void Kernel::loop() {
             ram.pop_back();
             p->unmap();
         }
-        audioMutex.unlock();
 
         gpu->draw();
         window.display();
+
+        // Espera o sinal do chip de áudio
+        if (window.isOpen()) {
+            while (audioSyncCounter <= 0);
+            audioSyncCounter -= 1;
+        }
     }
 }
 
@@ -355,29 +361,6 @@ string Kernel::getenv(const string key) {
 
 void Kernel::setenv(const string key, const string value) {
     runningProcess->setEnvVar(key, value);
-}
-
-void Kernel::audio_tick() {
-    if (!exiting) {
-        audioMutex.lock();
-        auto previousRunningProcess = runningProcess;
-
-        auto pcopy = processes;
-        for (auto p :pcopy) {
-            if (!p->isRunning())
-                continue;
-
-            runningProcess = p;
-
-            // Traz o cart do processo pra RAM se já não estiver
-            if (p->isInitialized()) {
-                p->audio_tick();
-            }
-        }
-
-        runningProcess = previousRunningProcess;
-        audioMutex.unlock();
-    }
 }
 
 // API de acesso à memória
@@ -525,6 +508,10 @@ void Kernel::checkWaitlist() {
             w++;
         }
     }
+}
+
+void Kernel::syncAudio() {
+    audioSyncCounter += 1;
 }
 
 luabridge::LuaRef Kernel::receive() {

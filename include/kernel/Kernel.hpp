@@ -5,7 +5,7 @@
 #include <vector>
 #include <set>
 #include <string>
-#include <mutex>
+#include <atomic>
 #include <SFML/Graphics.hpp>
 #include <kernel/filesystem.hpp>
 #include <kernel/Process.hpp>
@@ -20,8 +20,8 @@
 using namespace std;
 
 // Simula o hardware do console e um kernel com
-// seis chamadas de sistema. Três para gerenciar
-// a memória e três para gerenciar processos.
+// nove chamadas de sistema. Duas para gerenciar
+// a memória e sete para gerenciar processos.
 class Kernel {
     sf::RenderWindow window;
     // Memória para acesso direto aos dispositivos
@@ -45,14 +45,14 @@ class Kernel {
     Controller *controller;
     // Placa de áudio
     Audio *audio;
-    // Não deixa a callback de áudio/vídeo serem chamadas ao mesmo
-    // tempo
-    mutex audioMutex;
     // Waitlist: processos que estão bloqueados
     // esperando utros processos
     map<uint64_t, uint64_t> waitlist;
     // Saindo
     bool exiting;
+    // Usado para sincronizar o vídeo com a placa
+    // de áudio
+    atomic<int> audioSyncCounter;
 public:
     Kernel();
     ~Kernel();
@@ -63,10 +63,11 @@ public:
     void reset();
     void menu();
 
+    // Sinal de sincronização do áudio
+    void syncAudio();
+
     // Loop principal do console. Atualiza o processo em execução e desenha a tela.
     void loop();
-    // Tick do audio
-    void audio_tick();
 
     // API do kernel
     // Acesso direto a memória
