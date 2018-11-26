@@ -134,6 +134,8 @@ function execute(cmd)
                 shell = kernel.getenv("pid"),
                 exec = path
             })
+
+            kernel.wait(monitor)
             
             found = true
 
