@@ -1,9 +1,24 @@
+local iv = require('nibui.InterpolatedValue')
 local UIWidget = require('nibui/UIWidget')
 
 local DEFAULT_W = 320
 local DEFAULT_H = 240
 
 local NOM = {}
+
+function extend(path, props)
+    local nom = lang.copy(require(path))
+
+    for k, v in pairs(props) do
+        if type(k) == 'number' then
+            table.insert(nom, v)
+        else
+            nom[k] = v
+        end
+    end
+
+    return nom
+end
 
 function percent(prop, prop2, value)
     if not value then
@@ -23,6 +38,12 @@ end
 function parent(prop)
     return function (widget)
         return widget.parent:get(widget.parent[prop])
+    end
+end
+
+function this(prop)
+    return function (widget)
+        return widget:get(widget[prop])
     end
 end
 
@@ -49,16 +70,16 @@ function calc(fn, value)
 end
 
 -- static: Makes a document from a description
-function NOM.make_document(desc)
+function NOM:make_document(desc)
     local widget_desc = desc
-    local widget = UIWidget:new(widget_desc)
+    local widget = UIWidget:new(widget_desc, self)
 
     for k, v in pairs(desc) do
         -- Only iterate over unamed properties 
         -- we don't use ipairs to avoid stopping
         -- at nil
         if type(k) == "number" then
-            local child = NOM.make_document(v)
+            local child = self:make_document(v)
 
             -- Relationships
             child.parent = widget
@@ -71,7 +92,6 @@ end
 
 function NOM:new(desc)
     local instance = {
-        root = NOM.make_document(desc),
         features = {},
         cursor = {
             offset = { x = -3, y = -1 },
@@ -88,13 +108,16 @@ function NOM:new(desc)
         mouse = { x = 0, y = 0 }
     }
 
+    lang.instanceof(instance, NOM)
+
+    instance.root = instance:make_document(desc)
+
     instance.root.parent = {
         x = 0, y = 0,
         w = DEFAULT_W, h = DEFAULT_H,
         get = UIWidget.get
     }
 
-    lang.instanceof(instance, NOM)
 
     return instance
 end
@@ -113,8 +136,42 @@ function NOM:draw()
     end
 end
 
-function NOM:update()
+function NOM:update(dt)
+    self.root:update(dt)
+
     self:update_mouse()
+end
+
+function NOM:find(selector, node)
+    if selector:sub(1, 1) == '#' then
+        local id = selector:sub(2, -1)
+
+        if node then
+            if node.id == id then
+                return node
+            end
+
+            for _, c in ipairs(node.children) do
+                local r = self:find(selector, c)
+
+                if r then
+                    return r
+                end
+            end
+
+            return nil
+        else
+            local found = self:find(selector, self.root)
+
+            if not found then
+                dprint('nom:', 'could not find', selector, id)
+            else
+                return found
+            end
+        end
+    end
+
+    return nil
 end
 
 function NOM:draw_cursor()
@@ -126,10 +183,12 @@ end
 
 function NOM:update_mouse()
     local x, y = read16(154442), read16(154444)
+    local drag = false
     self.mouse.click = read8(154446)
 
     if self.mouse.click == 2 then
         self.cursor.state = 'pressing'
+        drag = true
     else
         self.cursor.state = 'normal'
     end
@@ -139,7 +198,7 @@ function NOM:update_mouse()
     end
 
     if self.mouse.x ~= x or self.mouse.y ~= y then
-        self:move({ x = x, y = y })
+        self:move({ x = x, y = y, drag = drag })
         self.mouse.x, self.mouse.y = x, y
     end
 end

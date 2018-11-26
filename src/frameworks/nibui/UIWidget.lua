@@ -1,45 +1,100 @@
+local iv = require('nibui.InterpolatedValue')
 local UIWidget = {}
 
-function UIWidget:new(config)
-    local instance = {
-        id = config.id or '',
-        border_color = config.border_color or 0,
-        background = config.background or 0,
-        shadow_color = config.shadow_color or 0,
-        x = config.x or 0, y = config.y or 0,
-        w = config.w or 0, h = config.h or 0,
-        z = config.z or 0, radius = config.radius or 0,
-        onclick = config.onclick,
-        onenter = config.onenter, onleave = config.onleave,
-        content = config.content or '',
-        mouse = {
-            inside = false
-        },
-        children = {}, parent = nil
+function UIWidget.bind(self, fn)
+    return function()
+        return fn(self)
+    end
+end
+
+function UIWidget:new(config, document)
+    local defaults = {
+        -- Colors
+        shadow_color = 0, border_color = 0, background = 0, color = 15,
+        -- Position and size
+        x = 0, y = 0, z = 0, w = 0, h = 0, radius = 0,
+        -- Content
+        content = '', text_align = 'center', vertical_align = 'middle',
+        -- Methods
+        onclick = nil, onenter = nil, onleave = nil,
+        -- Padding
+        padding = { top = 0, left = 0, bottom = 0, right = 0 },
+        -- Mouse
+        mouse = { inside = false },
+        -- Tree
+        children = {}, parent = nil, document = document
     }
+
+    local instance = {}
+
+    for k, _ in lang.zip(defaults, config) do
+        if config[k] then
+            if type(config[k]) == 'number' then
+                instance[k] = iv:new(config[k])
+            elseif type(config[k]) == 'function' and (not UIWidget[k]) and (k:sub(1, 1) ~= '_') then
+                instance[k] = iv:new(UIWidget.bind(instance, config[k]))
+            else
+                instance[k] = config[k]
+            end
+        else
+            if type(defaults[k]) == 'number' then
+                instance[k] = iv:new(defaults[k])
+            else
+                instance[k] = defaults[k]
+            end
+        end
+    end
 
     lang.instanceof(instance, UIWidget)
 
     return instance
 end
 
+function UIWidget:onenter()
+end
+
+function UIWidget:onclick()
+end
+
+function UIWidget:onleave()
+end
+
+function UIWidget:onmove()
+end
+
 function UIWidget:get(value)
     if type(value) == 'function' then
         return value(self)
+    elseif type(value) == 'table' and value.value then
+        return self:get(value.value)
     else
         return value
+    end
+end
+
+function UIWidget:update(dt)
+    if self.children then
+        for _, child in ipairs(self.children) do
+            child:update(dt)
+        end
+    end
+
+    for _, v in pairs(self) do
+        if type(v) == 'table' and v.update and v.value then
+            v:update(dt, self)
+        end
     end
 end
 
 function UIWidget:draw()
     local x, y = self:get(self.x), self:get(self.y)
     local w, h = self:get(self.w), self:get(self.h)
-    local r = self:get(self.radius)
+    local r = math.floor(self:get(self.radius))
     local content = self:get(self.content)
-    local background = self:get(self.background)
-    local shadow_color = self:get(self.shadow_color)
-    local border_color = self:get(self.border_color)
-    local z = self:get(self.z)
+    local background = math.floor(self:get(self.background))
+    local shadow_color = math.floor(self:get(self.shadow_color))
+    local border_color = math.floor(self:get(self.border_color))
+    local z = math.floor(self:get(self.z))
 
     -- TODO: Optimize common cases
 
@@ -68,8 +123,29 @@ function UIWidget:draw()
     circf(x+w-r, y+h-r, r, background)
 
     -- TODO: use decorated text
-    -- TODO: aligned text
-    print(content, x+w/2-#content/2*8, y+h/2-4)
+    col(15, math.floor(self:get(self.color)))
+
+    local tx, ty = 0, 0
+
+    if self.text_align == 'left' then
+        tx = self.padding.left
+    elseif self.text_align == 'center' then
+        tx = x+w/2-#content/2*8
+    elseif self.text_align == 'right' then
+        tx = w-#content*8-self.padding.right
+    end
+
+    if self.vertical_align == 'top' then
+        ty = self.padding.top
+    elseif self.vertical_align == 'middle' then
+        ty = y+h/2-4
+    elseif self.vertical_align == 'bottom' then
+        ty = h-8-self.padding.bottom
+    end
+    
+    print(content, tx, ty)
+
+    col(15, 15)
 
     if self.children then
         for _, child in ipairs(self.children) do
@@ -122,22 +198,22 @@ function UIWidget:move(event)
             end
         end
     else
-        if self.mouse.inside then
-            self:leave(event)
-        end
+        self:leave(event)
     end
 end
 
 function UIWidget:leave(event)
-    self.mouse.inside = false
+    if self.mouse.inside then
+        self.mouse.inside = false
 
-    if self.onleave then
-        self:onleave(event)
-    end
+        if self.onleave then
+            self:onleave(event)
+        end
 
-    if self.children then
-        for _, child in ipairs(self.children) do
-            child:leave(event)
+        if self.children then
+            for _, child in ipairs(self.children) do
+                child:leave(event)
+            end
         end
     end
 end
