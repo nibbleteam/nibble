@@ -34,9 +34,6 @@ enum RESERVED {
   TK_SHL, TK_SHR,
   TK_DBCOLON,
 
-  /* Nibble extension */
-  TK_PLUSEQ, TK_MINUSEQ,
-  
   /* special */
   TK_EOS,
   TK_FLT, TK_INT, TK_NAME, TK_STRING

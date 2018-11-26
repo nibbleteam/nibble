@@ -886,7 +886,7 @@ static void primaryexp (LexState *ls, expdesc *v) {
       luaX_next(ls);
       expr(ls, v);
       check_match(ls, ')', '(', line);
-      luaK_dischargevars(ls->fs, v, 1);
+      luaK_dischargevars(ls->fs, v);
       return;
     }
     case TK_NAME: {
@@ -1079,7 +1079,7 @@ static BinOpr subexpr (LexState *ls, expdesc *v, int limit) {
     luaK_infix(ls->fs, op, v);
     /* read sub-expression with higher priority */
     nextop = subexpr(ls, &v2, priority[op].right);
-    luaK_posfix(ls->fs, op, v, &v2, line, 1);
+    luaK_posfix(ls->fs, op, v, &v2, line);
     op = nextop;
   }
   leavelevel(ls);
@@ -1163,6 +1163,21 @@ static void check_conflict (LexState *ls, struct LHS_assign *lh, expdesc *v) {
   }
 }
 
+static void compound_operator(LexState*ls, struct LHS_assign *lh, BinOpr op) {
+    expdesc rh;
+    expdesc tmp = lh->v;
+
+    /* Avoids issues with indexed vars */
+    luaK_reserveregs(ls->fs, 1);
+    /* Read the right hand expression */
+    expr(ls, &rh);
+    /* Start the evaluation code for the expression */
+    luaK_infix(ls->fs, op, &tmp);
+    /* Finish */
+    luaK_posfix(ls->fs, op, &tmp, &rh, ls->linenumber);
+    /* Store */
+    luaK_storevar(ls->fs, &lh->v, &tmp);
+}
 
 static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
   expdesc e;
@@ -1179,40 +1194,29 @@ static void assignment (LexState *ls, struct LHS_assign *lh, int nvars) {
     assignment(ls, &nv, nvars+1);
   }
   /* Nibble extensions */
-  else if (testnext(ls, TK_PLUSEQ)) {
-    /* Save the current references to keep then when
-     * luaK_posfix mutates lh->v */
-    expdesc tmp = lh->v;
-
-    /* Read the right hand expression */
-    expr(ls, &e);
-    /* Start the evaluation code for the expression */
-    luaK_infix(ls->fs, OPR_ADD, &e);
-    /* Run posfix but doesn't free regs if indexed */
-    luaK_posfix(ls->fs, OPR_ADD, &e, &lh->v, ls->linenumber, 0);
-    /* Store */
-    luaK_storevar(ls->fs, &tmp, &e);
-    /* Free the registers */
-    freereg(ls->fs, lh->v.u.ind.t);
-
+  else if (testnext(ls, '+')) {
+    checknext(ls, '=');
+    compound_operator(ls, lh, OPR_ADD);
     return;  /* avoid default */
   }
-  else if (testnext(ls, TK_MINUSEQ)) {
-    /* Save the current references to keep then when
-     * luaK_posfix mutates lh->v */
-    expdesc tmp = lh->v;
-
-    /* Read the right hand expression */
-    expr(ls, &e);
-    /* Start the evaluation code for the expression */
-    luaK_infix(ls->fs, OPR_SUB, &e);
-    /* Run posfix but doesn't free regs if indexed */
-    luaK_posfix(ls->fs, OPR_SUB, &e, &lh->v, ls->linenumber, 0);
-    /* Store */
-    luaK_storevar(ls->fs, &tmp, &e);
-    /* Free the registers */
-    freereg(ls->fs, lh->v.u.ind.t);
-
+  else if (testnext(ls, '-')) {
+    checknext(ls, '=');
+    compound_operator(ls, lh, OPR_SUB);
+    return;  /* avoid default */
+  }
+  else if (testnext(ls, '/')) {
+    checknext(ls, '=');
+    compound_operator(ls, lh, OPR_DIV);
+    return;  /* avoid default */
+  }
+  else if (testnext(ls, '*')) {
+    checknext(ls, '=');
+    compound_operator(ls, lh, OPR_MUL);
+    return;  /* avoid default */
+  }
+  else if (testnext(ls, TK_CONCAT)) {
+    checknext(ls, '=');
+    compound_operator(ls, lh, OPR_CONCAT);
     return;  /* avoid default */
   }
   else {  /* assignment -> '=' explist */
@@ -1550,8 +1554,11 @@ static void exprstat (LexState *ls) {
   suffixedexp(ls, &v.v);
   if (ls->t.token == '=' ||
       ls->t.token == ',' ||
-      ls->t.token == TK_PLUSEQ ||
-      ls->t.token == TK_MINUSEQ) { /* stat -> assignment ? */
+      ls->t.token == '-' ||
+      ls->t.token == '+' ||
+      ls->t.token == TK_CONCAT ||
+      ls->t.token == '/' ||
+      ls->t.token == '*') { /* stat -> assignment ? */
     v.prev = NULL;
     assignment(ls, &v, 1);
   }
@@ -1582,7 +1589,7 @@ static void retstat (LexState *ls) {
     }
     else {
       if (nret == 1)  /* only one single value? */
-        first = luaK_exp2anyreg(fs, &e, 1);
+        first = luaK_exp2anyreg(fs, &e);
       else {
         luaK_exp2nextreg(fs, &e);  /* values must go to the stack */
         first = fs->nactvar;  /* return all active values */
