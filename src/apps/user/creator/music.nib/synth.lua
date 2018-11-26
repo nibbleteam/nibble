@@ -117,17 +117,17 @@ function audio_tick(dt)
 
     local p = 1/8
 
-    if sync%math.floor(speed) == 0 then
-        dprint(notes[note]-12)
-        noteon(notes[note]-12, writep%16)
-        writep += 1
+    --if sync%math.floor(speed) == 0 then
+    --    dprint(notes[note]-12)
+    --    noteon(notes[note]-12, writep%16)
+    --    writep += 1
 
-        note += 1
+    --    note += 1
 
-        if note > #notes then
-            note = 1
-        end
-    end
+    --    if note > #notes then
+    --        note = 1
+    --    end
+    --end
 
     if sync%600 == 0 and speed > 2 then
         speed /= 2
