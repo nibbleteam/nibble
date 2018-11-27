@@ -20,23 +20,14 @@ class VideoMemory : public Memory {
     sf::RenderTexture framebuffer;
     // Textura contendo a imagem que é visível na tela,
     // funciona como memória de vídeo
-    sf::RenderTexture gpuRenderTextureQuads, gpuRenderTextureTris, gpuRenderTextureLines;
+    sf::RenderTexture gpuRenderTexture;
     // Áreas para desenho do framebuffer e combinar os renders
     // em CPU e GPU
     sf::Sprite framebufferSpr, combineSpr;
-    // Texturas para guardar os timings dos desenhos feitos pela cpu
-    // e pela gpu, de forma que eles possam ser combinados na ordem
-    // correta, facilitando para o desenvolvedor
-    sf::RenderTexture gpuRenderTimingQuads, gpuRenderTimingTris;
-    sf::RenderTexture gpuRenderTimingLines;
-    sf::Texture cpuTiming;
-    uint8_t *timingBuffer;
     // Vertex arrays utilizadas para desenhar informação de timing
-    RenderBuffer gpuTQuadsBuffer, gpuQuadsBuffer;
-    RenderBuffer gpuTLinesBuffer, gpuLinesBuffer;
-    RenderBuffer gpuTTrisBuffer, gpuTrisBuffer;
-    // Contador de draws
-    uint32_t currentDraw;
+    RenderBuffer gpuQuadsBuffer;
+    RenderBuffer gpuLinesBuffer;
+    RenderBuffer gpuTrisBuffer;
     // Textura que permite a leitura e escrita.
     // Memória de vídeo para operações não aceleradas em hardware
     sf::Texture cpuTexture;

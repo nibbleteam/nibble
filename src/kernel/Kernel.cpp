@@ -291,8 +291,8 @@ void Kernel::loop() {
 
         // Espera o sinal do chip de áudio
         if (window.isOpen()) {
-            //while (audioSyncCounter <= 0);
-            //audioSyncCounter -= 1;
+            while (audioSyncCounter <= 0);
+            audioSyncCounter -= 1;
         }
     }
 }

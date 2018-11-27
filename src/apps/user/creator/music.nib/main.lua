@@ -14,8 +14,6 @@ function init()
     audio_init()
 
     clr(16)
-
-    start_recording('nibui.gif')
 end
 
 function draw()
