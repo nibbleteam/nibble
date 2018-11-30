@@ -99,6 +99,7 @@ protected:
     void circle(int16_t, int16_t, int16_t, uint8_t);
 
     void rectFill(int16_t, int16_t, int16_t, int16_t, uint8_t);
+    void orderedTriFill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
     void triFill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
     void quadFill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
     void circleFill(int16_t, int16_t, int16_t, uint8_t);

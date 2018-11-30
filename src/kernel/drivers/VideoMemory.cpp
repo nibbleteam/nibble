@@ -141,7 +141,7 @@ VideoMemory::~VideoMemory() {
 }
 
 string VideoMemory::name() {
-	return "VIDEO";
+    return "VIDEO";
 }
 
 bool VideoMemory::startCapturing(const string& path) {
@@ -252,7 +252,7 @@ ColorMapObject* VideoMemory::getColorMap() {
 // Render de Software
 //
 
-inline void VideoMemory::fixRectBounds(int16_t& x, int16_t& y,
+void VideoMemory::fixRectBounds(int16_t& x, int16_t& y,
                                        int16_t& w, int16_t& h,
                                        int16_t bw, int16_t bh) {
     if (x < 0) {
@@ -272,61 +272,43 @@ inline void VideoMemory::fixRectBounds(int16_t& x, int16_t& y,
     }
 }
 
-inline void VideoMemory::line(int16_t x1, int16_t y1,
-                              int16_t x2, int16_t y2,
-                              uint8_t color) {
-    // Linha vertical
-    if (x1 == x2) {
-        if (y1 < y2) {
-            const auto yf = y2+1;
-
-            for (;y1<yf;y1++) {
-                buffer[x1+y1*SCREEN_W] = color;
-            }
-        } else {
-            const auto yf = y1+1;
-
-            for (;y2<yf;y2++) {
-                buffer[x1+y2*SCREEN_W] = color;
-            }
-        }
-    }
+void VideoMemory::line(int16_t x1, int16_t y1,
+                       int16_t x2, int16_t y2,
+                       uint8_t color) {
     // Bresenham para inteiros
-    else {
-        const int16_t dx = abs(x1-x2);
-        const int16_t dy = -abs(y1-y2);
-        const int16_t yi = y1>y2 ? -1 : 1; 
-        const int16_t xi = x1>x2 ? -1 : 1; 
-        register int16_t D2;
-        int16_t D = dx + dy;
+    const int16_t dx = abs(x1-x2);
+    const int16_t dy = -abs(y1-y2);
+    const int16_t yi = y1>y2 ? -1 : 1; 
+    const int16_t xi = x1>x2 ? -1 : 1; 
+    register int16_t D2;
+    int16_t D = dx + dy;
 
-        while (true) {
-            if (!OUT_OF_BOUNDS(x1, y1)) {
-                buffer[x1+y1*SCREEN_W] = color;
-            }
+    while (true) {
+        if (!OUT_OF_BOUNDS(x1, y1)) {
+            buffer[x1+y1*SCREEN_W] = color;
+        }
 
-            D2 = D<<1;
+        D2 = D<<1;
 
-            if (D2 >= dy) {
-                if (x1 == x2) break;
+        if (D2 >= dy) {
+            if (x1 == x2) break;
 
-                D += dy;
-                x1 += xi;
-            }
+            D += dy;
+            x1 += xi;
+        }
 
-            if (D2 <= dx) {
-                if (y1 == y2) break;
+        if (D2 <= dx) {
+            if (y1 == y2) break;
 
-                D += dx;
-                y1 += yi;
-            }
+            D += dx;
+            y1 += yi;
         }
     }
 }
 
-inline void VideoMemory::rect(int16_t x, int16_t y,
-                              int16_t w, int16_t h,
-                              uint8_t color) {
+void VideoMemory::rect(int16_t x, int16_t y,
+                       int16_t w, int16_t h,
+                       uint8_t color) {
     fixRectBounds(x, y, w, h, SCREEN_W, SCREEN_H);
 
     auto ex = max(x+w-1, 0);
@@ -338,35 +320,35 @@ inline void VideoMemory::rect(int16_t x, int16_t y,
     line(x, ey, ex, ey, color);
 }
 
-inline void VideoMemory::tri(int16_t x1, int16_t y1,
-                             int16_t x2, int16_t y2,
-                             int16_t x3, int16_t y3,
-                             uint8_t color) {
+void VideoMemory::tri(int16_t x1, int16_t y1,
+                      int16_t x2, int16_t y2,
+                      int16_t x3, int16_t y3,
+                      uint8_t color) {
     line(x1, y1, x2, y2, color);
     line(x2, y2, x3, y3, color);
     line(x3, y3, x1, y1, color);
 }
 
-inline void VideoMemory::quad(int16_t x1, int16_t y1,
-                              int16_t x2, int16_t y2,
-                              int16_t x3, int16_t y3,
-                              int16_t x4, int16_t y4,
-                              uint8_t color) {
+void VideoMemory::quad(int16_t x1, int16_t y1,
+                       int16_t x2, int16_t y2,
+                       int16_t x3, int16_t y3,
+                       int16_t x4, int16_t y4,
+                       uint8_t color) {
     line(x1, y1, x2, y2, color);
     line(x2, y2, x3, y3, color);
     line(x3, y3, x4, y4, color);
     line(x4, y4, x1, y1, color);
 }
 
-inline void VideoMemory::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
+void VideoMemory::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     // Decisão inicial, começamos a desenhar de (r, 0):
     // midpoint(r, 0) => (r-0.5), (0+1)
     // P do midpoint => P(r-0.5, 1) = (r-0.5)²+1²-r² = r²-r+.5²+1-r² = (1+.25)-r = 1.25-r
     // Arredondando:
-    int16_t d = 1-r;
-    int16_t x = r, y = 0;
+    int16_t d = 1-abs(r);
+    int16_t x = abs(r), y = 0;
 
-    while(x > y) {
+    while(x >= y) {
         // Desenha o pixel anterior, replicado em 8
         if (!OUT_OF_BOUNDS(dx+x, dy+y)) {
             buffer[dx+x+(dy+y)*SCREEN_W] = color;
@@ -383,13 +365,13 @@ inline void VideoMemory::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color
         if (!OUT_OF_BOUNDS(dx+y, dy+x)) {
             buffer[dx+y+(dy+x)*SCREEN_W] = color;
         }
-        if (!OUT_OF_BOUNDS(dy-y, dy-x)) {
+        if (!OUT_OF_BOUNDS(dx-y, dy-x)) {
             buffer[dx-y+(dy-x)*SCREEN_W] = color;
         }
-        if (!OUT_OF_BOUNDS(dy+y, dy-x)) {
+        if (!OUT_OF_BOUNDS(dx+y, dy-x)) {
             buffer[dx+y+(dy-x)*SCREEN_W] = color;
         }
-        if (!OUT_OF_BOUNDS(dy-y, dy+x)) {
+        if (!OUT_OF_BOUNDS(dx-y, dy+x)) {
             buffer[dx-y+(dy+x)*SCREEN_W] = color;
         }
 
@@ -406,34 +388,183 @@ inline void VideoMemory::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color
     }
 }
 
-inline void VideoMemory::rectFill(int16_t x, int16_t y,
-                                  int16_t w, int16_t h,
-                                  uint8_t color) {
-    fixRectBounds(x, y, w, h, SCREEN_W, SCREEN_H);
+void VideoMemory::rectFill(int16_t x, int16_t y,
+                           int16_t w, int16_t h,
+                           uint8_t color) {
+    if (w < 0) {
+        x += w;
+        w = -w;
+    }
 
-    auto ptr = buffer+y*SCREEN_W+x;
-    const auto ptrF = ptr+SCREEN_W*h;
+    if (h < 0) {
+        y += h;
+        h = -h;
+    }
 
-    for(;ptr < ptrF;ptr+=SCREEN_W) {
-        memset(ptr, color, w);
+    const auto fy = y+h;
+
+    for (;y<fy;y++) {
+        scanLine(x, x+w-1, y, color);
     }
 }
 
-inline void VideoMemory::triFill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t) { }
-inline void VideoMemory::quadFill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t) { }
+void VideoMemory::orderedTriFill(int16_t x1, int16_t y1,
+                                 int16_t x2, int16_t y2,
+                                 int16_t x3, int16_t y3,
+                                 uint8_t color) {
+    // Casos especiais
+    if ((x1 == x2 && x2 == x3) ||(y1 == y2 && y2 == y3)) {
+        tri(x1, y1, x2, y2, x3, y3, color);
+        return;
+    }
 
-inline void VideoMemory::scanLine(int16_t x1, int16_t x2, int16_t y, uint8_t color) {
-    if (!SCAN_OUT_OF_BOUNDS(x1, x2, y)) {
-        x1 = max(x1, (int16_t)0);
-        x2 = min(x2, (int16_t)(SCREEN_W-1));
+    // Linha de x1, y1 -> x3, y3    (a)
+    // Linha de x1, y1 -> x2, y2    (b)
 
-        memset(buffer+x1+y*SCREEN_W, color, x2-x1+1);
+    const int16_t dxa = abs(x1-x3);
+    const int16_t dya = -abs(y1-y3);
+    const int16_t yia = y1>y3 ? -1 : 1; 
+    const int16_t xia = x1>x3 ? -1 : 1; 
+    register int16_t D2a;
+    int16_t Da = dxa + dya;
+
+    int16_t dxb = abs(x1-x2);
+    int16_t dyb = -abs(y1-y2);
+    int16_t yib = y1>y2 ? -1 : 1; 
+    int16_t xib = x1>x2 ? -1 : 1; 
+    register int16_t D2b;
+    int16_t Db = dxb + dyb;
+
+    int16_t x1b = x1, y1b = y1;
+
+    bool firstLine = true;
+
+    while (true) {
+start:
+        if (x1 < x1b) {
+            scanLine(x1, x1b, y1, color);
+        } else {
+            scanLine(x1b, x1, y1, color);
+        }
+
+        do {
+            const auto cmpA = y1 <= y1b;
+
+            if (y1 >= y1b) {
+                D2b = Db<<1;
+                D2a = Da<<1;
+
+                if (D2b >= dyb) {
+                    if (x1b == x2 && firstLine) goto prepareSecondLine;
+
+                    Db += dyb;
+                    x1b += xib;
+                }
+
+                if (D2b <= dxb) {
+                    if (y1b == y2 && firstLine) goto prepareSecondLine;
+
+                    Db += dxb;
+                    y1b += yib;
+                }
+
+            }
+            
+            if (cmpA) {
+                D2a = Da<<1;
+
+                if (D2a >= dya) {
+                    if (x1 == x3) return;
+
+                    Da += dya;
+                    x1 += xia;
+                }
+
+                if (D2a <= dxa) {
+                    if (y1 == y3) return;
+
+                    Da += dxa;
+                    y1 += yia;
+                }
+            }
+        } while (y1 != y1b);
+    }
+prepareSecondLine:
+    firstLine = false;
+
+    dxb = abs(x2-x3);
+    dyb = -abs(y2-y3);
+    yib = y2>y3 ? -1 : 1; 
+    xib = x2>x3 ? -1 : 1; 
+    Db = dxb + dyb;
+
+    x1b = x2; y1b = y2;
+
+    goto start;
+}
+
+void VideoMemory::triFill(int16_t x1, int16_t y1,
+                          int16_t x2, int16_t y2,
+                          int16_t x3, int16_t y3,
+                          uint8_t color) {
+    if (y1 <= y2 && y2 <= y3) {
+        orderedTriFill(x1, y1, x2, y2, x3, y3, color);
+    } else if (y1 <= y3 && y3 <= y2) {
+        orderedTriFill(x1, y1, x3, y3, x2, y2, color);
+    }else if (y3 <= y1 && y1 <= y2) {
+        orderedTriFill(x3, y3, x1, y1, x2, y2, color);
+    } else if (y3 <= y2 && y2 <= y1) {
+        orderedTriFill(x3, y3, x2, y2, x1, y1, color);
+    }else if (y2 <= y1 && y1 <= y3) {
+        orderedTriFill(x2, y2, x1, y1, x3, y3, color);
+    } else if (y2 <= y3 && y3 <= y1) {
+        orderedTriFill(x2, y2, x3, y3, x1, y1, color);
     }
 }
 
-inline void VideoMemory::circleFill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
-    int16_t d = 1-r;
-    int16_t x = r, y = 0;
+void VideoMemory::quadFill(int16_t x1, int16_t y1,
+                           int16_t x2, int16_t y2,
+                           int16_t x3, int16_t y3,
+                           int16_t x4, int16_t y4,
+                           uint8_t color) {
+    const int16_t miny = min<int16_t>({y1, y2, y3, y4});
+    const int16_t maxy = max<int16_t>({y1, y2, y3, y4});
+
+    if ((miny == y1 && maxy == y2) || (miny == y2 && maxy == y1)) {
+        triFill(x1, y1, x3, y3, x4, y4, color);
+        triFill(x2, y2, x3, y3, x4, y4, color);
+    } else if ((miny == y1 && maxy == y3) || (miny == y3 && maxy == y1)) {
+        triFill(x1, y1, x2, y2, x4, y4, color);
+        triFill(x3, y3, x2, y2, x4, y4, color);
+    } else if ((miny == y1 && maxy == y4) || (miny == y4 && maxy == y1)) {
+        triFill(x1, y1, x2, y2, x3, y3, color);
+        triFill(x4, y4, x2, y2, x3, y3, color);
+    } else if ((miny == y2 && maxy == y3) || (miny == y3 && maxy == y2)) {
+        triFill(x2, y2, x1, y1, x4, y4, color);
+        triFill(x3, y3, x1, y1, x4, y4, color);
+    } else if ((miny == y2 && maxy == y4) || (miny == y4 && maxy == y2)) {
+        triFill(x2, y2, x1, y1, x3, y3, color);
+        triFill(x4, y4, x1, y1, x3, y3, color);
+    } else if ((miny == y3 && maxy == y4) || (miny == y4 && maxy == y3)) {
+        triFill(x3, y3, x1, y1, x2, y2, color);
+        triFill(x4, y4, x1, y1, x2, y2, color);
+    }
+}
+
+void VideoMemory::scanLine(int16_t x1, int16_t x2, int16_t y, uint8_t color) {
+    if (x2 >= x1) {
+        if (!SCAN_OUT_OF_BOUNDS(x1, x2, y)) {
+            x1 = max(x1, (int16_t)0);
+            x2 = min(x2, (int16_t)(SCREEN_W-1));
+
+            memset(buffer+x1+y*SCREEN_W, color, x2-x1+1);
+        }
+    }
+}
+
+void VideoMemory::circleFill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
+    int16_t d = 1-abs(r);
+    int16_t x = abs(r), y = 0;
 
     while(x >= y) {
         scanLine(dx-x, dx+x, dy+y, color);
@@ -453,7 +584,7 @@ inline void VideoMemory::circleFill(int16_t dx, int16_t dy, int16_t r, uint8_t c
     }
 }
 
-inline void VideoMemory::copyScanLine(uint8_t *dst, uint8_t *src, size_t bytes) {
+void VideoMemory::copyScanLine(uint8_t *dst, uint8_t *src, size_t bytes) {
     const auto end_src = src+bytes;
 
     while (src < end_src) {
@@ -469,10 +600,10 @@ inline void VideoMemory::copyScanLine(uint8_t *dst, uint8_t *src, size_t bytes) 
     }
 }
 
-inline void VideoMemory::sprite(int16_t sx, int16_t sy,
-                                int16_t dx, int16_t dy,
-                                int16_t w, int16_t h,
-                                uint8_t pal) {
+void VideoMemory::sprite(int16_t sx, int16_t sy,
+                         int16_t dx, int16_t dy,
+                         int16_t w, int16_t h,
+                         uint8_t pal) {
     fixRectBounds(dx, dy, w, h, SCREEN_W, SCREEN_H);
     fixRectBounds(sx, sy, w, h, SPRITESHEET_W, SPRITESHEET_H);
 
@@ -485,11 +616,11 @@ inline void VideoMemory::sprite(int16_t sx, int16_t sy,
     }
 }
 
-inline uint8_t VideoMemory::next8Arg(uint8_t *&arg) {
+uint8_t VideoMemory::next8Arg(uint8_t *&arg) {
     return *arg++;
 }
 
-inline int16_t VideoMemory::next16Arg(uint8_t *&arg) {
+int16_t VideoMemory::next16Arg(uint8_t *&arg) {
     int16_t value = int16_t(uint16_t(arg[0]&0b01111111)<<8 | uint16_t(arg[1])) * (arg[0]&0x80 ? -1 : 1);
     arg+=sizeof(int16_t);
     return value;
@@ -735,7 +866,7 @@ uint64_t VideoMemory::write(const uint64_t p, const uint8_t* data, const uint64_
 uint64_t VideoMemory::read(const uint64_t p, uint8_t* data, const uint64_t size) {
     // Copia da memória de vídeo para o buffer do cliente
     memcpy(data, buffer+p, size);
-	
+    
     return size;
 }
 
