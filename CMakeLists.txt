@@ -12,7 +12,7 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
   # Full optimization for speed
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2")
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   # Update if necessary
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -O3")

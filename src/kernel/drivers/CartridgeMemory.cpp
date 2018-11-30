@@ -1,9 +1,9 @@
 #include <kernel/drivers/CartridgeMemory.hpp>
 
 const string CartridgeMemory::spriteSheetLocation = "/sheet.png";
-const uint16_t CartridgeMemory::width = 8192;
-const uint16_t CartridgeMemory::height = 1024;
-const uint64_t CartridgeMemory::length = CartridgeMemory::width*CartridgeMemory::height/2;
+const uint16_t CartridgeMemory::width = SPRITESHEET_W;
+const uint16_t CartridgeMemory::height = SPRITESHEET_H;
+const uint64_t CartridgeMemory::length = CartridgeMemory::width*CartridgeMemory::height;
 
 CartridgeMemory::CartridgeMemory(Path& assets, const uint64_t addr, VideoMemory* video) :
 	address(addr),
@@ -52,17 +52,14 @@ bool CartridgeMemory::loadFromFile(Path& path) {
     }
 
     // Converte a imagem e escreve array data
-    for (unsigned int y=0;y<size.y;y++) {
-        // Escreve 1 byte (2 pixels de 1 nibble) por vez
-        // para isso lê de 2 em 2 pixels
-        for (unsigned int x=0;x<size.x;x+=2) {
-            uint8_t pixA = color2Index(sheet.getPixel(x+0, y));
-            uint8_t pixB = color2Index(sheet.getPixel(x+1, y));
-            
-            data[y*(width/2)+x/2] = (pixA<<4) | pixB;
+    for (size_t y=0;y<size.y;y++) {
+        for (size_t x=0;x<size.x;x++) {
+            uint8_t pix = color2Index(sheet.getPixel(x, y));
+
+            data[y*width+x] = pix&0x0F;
         }
     }
-    
+
     return true;
 }
 

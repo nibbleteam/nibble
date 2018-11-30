@@ -8,7 +8,7 @@
 
 PaletteMemory::PaletteMemory(VideoMemory* video, const uint64_t addr) :
 	address(addr),
-    length(GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel+ // Cores RGBA 
+    length(GPU::paletteLength*GPU::paletteAmount*BYTES_PER_TEXEL+ // Cores RGBA 
            2*GPU::paletteAmount*GPU::paletteLength),                         // Mapas Índice -> Índice e Índice -> COr 
     videoMemory(video) {
 	data = new uint8_t[(size_t)length] {
@@ -30,7 +30,7 @@ PaletteMemory::PaletteMemory(VideoMemory* video, const uint64_t addr) :
         0xde, 0xee, 0xd6, 0xFF,
     };
 
-    int start = GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel; 
+    int start = GPU::paletteLength*GPU::paletteAmount*BYTES_PER_TEXEL; 
     int len = GPU::paletteLength*GPU::paletteAmount;
 
     // Preenche routing tables com mapeamentos 1:1
@@ -56,17 +56,12 @@ string PaletteMemory::name() {
 }
 
 uint64_t PaletteMemory::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
-    unsigned int start = GPU::paletteLength*GPU::paletteAmount*VideoMemory::bytesPerPixel; 
-    unsigned int len = GPU::paletteLength*GPU::paletteAmount;
+    unsigned int start = GPU::paletteLength*GPU::paletteAmount*BYTES_PER_TEXEL; 
     // Acesso direto as cores é lento
     // de forma que não pode ser usado
     // para efeitos intensos
     if (pos < start) {
         std::this_thread::sleep_for(std::chrono::milliseconds(LOW_PALETTE_ACCESS_TIME));
-    } else if (pos < start+len) {
-        // Se mudou a RT1, manda as informações para
-        // o buffer de cor
-        videoMemory->render();
     }
 
 	memcpy(this->data + pos, data, (size_t)amount);

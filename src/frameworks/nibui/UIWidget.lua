@@ -102,25 +102,25 @@ function UIWidget:draw()
     rectf(x, y+r+z, w, h-r*2, shadow_color)
 
     circf(x+r, y+r+z, r, shadow_color)
-    circf(x+w-r, y+r+z, r, shadow_color)
-    circf(x+r, y+h-r+z, r, shadow_color)
-    circf(x+w-r, y+h-r+z, r, shadow_color)
+    circf(x+w-r-1, y+r+z, r, shadow_color)
+    circf(x+r, y+h-r+z-1, r, shadow_color)
+    circf(x+w-r-1, y+h-r+z-1, r, shadow_color)
 
-    rect(x+r, y-1, w-r*2+1, h+1, border_color)
-    rect(x, y+r-1, w+1, h-r*2+1, border_color)
+    rect(x+r-1, y-1, w-r*2+2, h+2, border_color)
+    rect(x-1, y+r-1, w+2, h-r*2+2, border_color)
 
     circf(x+r, y+r, r+1, border_color)
-    circf(x+w-r, y+r, r+1, border_color)
-    circf(x+r, y+h-r, r+1, border_color)
-    circf(x+w-r, y+h-r, r+1, border_color)
+    circf(x+w-r-1, y+r, r+1, border_color)
+    circf(x+r, y+h-r-1, r+1, border_color)
+    circf(x+w-r-1, y+h-r-1, r+1, border_color)
 
     rectf(x+r, y, w-r*2, h, background)
     rectf(x, y+r, w, h-r*2, background)
 
     circf(x+r, y+r, r, background)
-    circf(x+w-r, y+r, r, background)
-    circf(x+r, y+h-r, r, background)
-    circf(x+w-r, y+h-r, r, background)
+    circf(x+w-r-1, y+r, r, background)
+    circf(x+r, y+h-r-1, r, background)
+    circf(x+w-r-1, y+h-r-1, r, background)
 
     -- TODO: use decorated text
     col(15, math.floor(self:get(self.color)))

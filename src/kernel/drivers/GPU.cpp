@@ -14,9 +14,9 @@ GPU::GPU(sf::RenderWindow& window,
          uint64_t addr) {
     const uint64_t paletteSize = paletteLength*
                                  paletteAmount*
-                                 VideoMemory::bytesPerPixel+
+                                 BYTES_PER_TEXEL+
                                  2*paletteLength*paletteAmount;
-    videoMemory = new VideoMemory(window, w, h, addr+paletteSize+GPUCommandMemory::length);
+    videoMemory = new VideoMemory(window, addr+paletteSize+GPUCommandMemory::length);
     paletteMemory = new PaletteMemory(videoMemory, addr+GPUCommandMemory::length);
     commandMemory = new GPUCommandMemory(videoMemory, addr);
 }
@@ -25,10 +25,6 @@ GPU::~GPU() {
 	delete paletteMemory;
     delete commandMemory;
 	delete videoMemory;
-}
-
-void GPU::render() {
-    videoMemory->render();
 }
 
 void GPU::draw() {
