@@ -1,6 +1,8 @@
 local length = 0.5
-local stripes = 5
+local stripes = 4
 local color = 16
+
+local stripe = 0
 
 function opening(start, t)
     local p = (t-start)/length

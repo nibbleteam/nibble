@@ -21,6 +21,7 @@ local settings = {
     },
     {
         content = '\7',
+        z = 0,
         onclick = function (self, event)
             if self.color.value ~= 6 then
                 self.color:set(6, 0.1, Easing.InCubic)

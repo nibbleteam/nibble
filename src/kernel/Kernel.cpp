@@ -18,7 +18,7 @@ Kernel::Kernel():
     exiting(false), audioSyncCounter(0) {
     // FPS Máximo 
     // Sincronizado através da thread de áudio
-    //window.setFramerateLimit(30);
+    window.setFramerateLimit(30);
     // O tamanho virtual da janela é sempre 320x240
     window.setView(sf::View(sf::FloatRect(0, 0, 320, 240)));
     // Não gera múltiplos keypresses se a tecla ficar apertada
@@ -277,7 +277,6 @@ void Kernel::loop() {
             if (p->isInitialized()) {
                 p->update(delta);
                 p->draw();
-                gpu->render();
             } else {
                 p->init();
             }
@@ -286,14 +285,14 @@ void Kernel::loop() {
             p->unmap();
         }
 
+        // Espera o sinal do chip de áudio
+        //if (window.isOpen()) {
+        //    while (audioSyncCounter <= 0);
+        //    audioSyncCounter -= 1;
+        //}
+
         gpu->draw();
         window.display();
-
-        // Espera o sinal do chip de áudio
-        if (window.isOpen()) {
-            while (audioSyncCounter <= 0);
-            audioSyncCounter -= 1;
-        }
     }
 }
 
@@ -511,7 +510,7 @@ void Kernel::checkWaitlist() {
 }
 
 void Kernel::syncAudio() {
-    audioSyncCounter += 1;
+    audioSyncCounter += 2;
 }
 
 luabridge::LuaRef Kernel::receive() {
