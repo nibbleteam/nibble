@@ -5,7 +5,7 @@
 #include <vector>
 #include <set>
 #include <string>
-#include <atomic>
+#include <mutex>
 #include <SFML/Graphics.hpp>
 #include <kernel/filesystem.hpp>
 #include <kernel/Process.hpp>
@@ -52,7 +52,7 @@ class Kernel {
     bool exiting;
     // Usado para sincronizar o vídeo com a placa
     // de áudio
-    atomic<int> audioSyncCounter;
+    mutex audioMutex;
 public:
     Kernel();
     ~Kernel();
@@ -64,7 +64,7 @@ public:
     void menu();
 
     // Sinal de sincronização do áudio
-    void syncAudio();
+    void audioTick();
 
     // Loop principal do console. Atualiza o processo em execução e desenha a tela.
     void loop();

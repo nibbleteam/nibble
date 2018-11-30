@@ -42,11 +42,11 @@ Audio::~Audio() {
 }
 
 string Audio::name() {
-	return "AUDIO";
+    return "AUDIO";
 }
 
 uint64_t Audio::write(const uint64_t p, const uint8_t* data, const uint64_t size) {
-	memcpy(sndMemory+p, data, size);
+    memcpy(sndMemory+p, data, size);
     return size;
 }
 
@@ -56,17 +56,34 @@ uint64_t Audio::read(const uint64_t p, uint8_t* data, const uint64_t size) {
 }
 
 bool Audio::onGetData(Audio::Chunk& chunk) {
-    while (t >= nextTick) {
-        // Envia sinal de sincronização com o vídeo
-        KernelSingleton->syncAudio();
-        // Calcula quando enviar o próximo sinal
-        calculateNextTick();
-    }
-
-    t += sampleCount;
+    unsigned int missingSampleCount = sampleCount;
+    unsigned int initialT = t;
 
     memset(samples, 0, sizeof(int16_t)*sampleCount);
-    mix(samples, sampleCount);
+
+    // Preenche o buffer "samples"
+    do {
+        // Caso o tick precise ser rodado antes
+        // de completar todos os samples
+        if (t+missingSampleCount > nextTick) {
+            unsigned int finalSampleCount = nextTick-t;
+
+            mix(samples+(t-initialT), finalSampleCount);
+
+            t = nextTick;
+            missingSampleCount -= finalSampleCount;
+
+            KernelSingleton->audioTick();
+
+            calculateNextTick();
+        } else {
+            mix(samples+(t-initialT), missingSampleCount);
+
+            t += missingSampleCount;
+            missingSampleCount = 0;
+            break;
+        }
+    } while (missingSampleCount > 0);
 
     // Passa informações sobre os samples para a placa de áudio
     chunk.samples = samples;
@@ -90,15 +107,15 @@ void Audio::onSeek(sf::Time) {
 }
 
 void Audio::calculateTickPeriod(const double frequency) {
-	// Período em segundos
-	const double period = 1/frequency;
-	
-	// Período em samples
-	tickPeriod = (unsigned int) (period*44100);
+    // Período em segundos
+    const double period = 1/frequency;
+    
+    // Período em samples
+    tickPeriod = (unsigned int) (period*44100);
 }
 
 void Audio::calculateNextTick() {
-	nextTick += tickPeriod;
+    nextTick += tickPeriod;
 }
 
 uint64_t Audio::addr() {

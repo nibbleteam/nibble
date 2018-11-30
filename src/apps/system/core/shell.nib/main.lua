@@ -44,6 +44,10 @@ function init()
     text:newline()
     text:add(prompt:copy()):add(space)
 
+    clr(16)
+
+    math.randomseed(time())
+
     --start_recording("Shell.gif")
 end
 
