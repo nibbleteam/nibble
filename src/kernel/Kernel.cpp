@@ -15,7 +15,7 @@ Kernel::Kernel():
     window(sf::VideoMode(640, 480), "Nibble"),
     lastPid(1),
     lastUsedMemByte(0),
-    exiting(false), audioSyncCounter(0) {
+    exiting(false) {
     // FPS Máximo 
     // Sincronizado através da thread de áudio
     window.setFramerateLimit(30);
@@ -158,7 +158,6 @@ void Kernel::destroyMemoryMap() {
 void Kernel::loop() {
     sf::Clock clock;
     float lastTime = 0;
-    audioSyncCounter = 0;
     
     while (window.isOpen()) {
         float currentTime = clock.getElapsedTime().asSeconds();
@@ -264,6 +263,7 @@ void Kernel::loop() {
         }
 
         // Roda o processo no topo da lista de processos
+        audioMutex.lock();
         auto pcopy = processes;
         for (auto p :pcopy) {
             if (!p->isRunning())
@@ -284,12 +284,7 @@ void Kernel::loop() {
             ram.pop_back();
             p->unmap();
         }
-
-        // Espera o sinal do chip de áudio
-        //if (window.isOpen()) {
-        //    while (audioSyncCounter <= 0);
-        //    audioSyncCounter -= 1;
-        //}
+        audioMutex.unlock();
 
         gpu->draw();
         window.display();
@@ -509,8 +504,26 @@ void Kernel::checkWaitlist() {
     }
 }
 
-void Kernel::syncAudio() {
-    audioSyncCounter += 2;
+void Kernel::audioTick() {
+    audioMutex.lock();
+    auto pcopy = processes;
+    for (auto p :pcopy) {
+        if (!p->isRunning())
+            continue;
+
+        runningProcess = p;
+
+        // Traz o cart do processo pra RAM se já não estiver
+        ram.push_back(p->getMemory());
+
+        if (p->isInitialized()) {
+            p->audio_tick();
+        }
+
+        ram.pop_back();
+        p->unmap();
+    }
+    audioMutex.unlock();
 }
 
 luabridge::LuaRef Kernel::receive() {

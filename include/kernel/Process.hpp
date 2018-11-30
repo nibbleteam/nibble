@@ -56,6 +56,7 @@ public:
     // Roda o processo
     void init();
     void update(float);
+    void audio_tick();
     void draw();
 
     // Usado para colocar o cart na ram principal quando
