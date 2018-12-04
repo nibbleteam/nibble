@@ -8,22 +8,19 @@ delay = 0
 require("synth")
 
 function init()
-    cppal(0, 1)
-    mask(0)
-
     audio_init()
 
     clr(16)
 end
 
 function draw()
-    nom:draw()
+    --nom:draw()
 end
 
 function update(dt)
     audio_tick(dt)
 
-    nom:update(dt)
+    --nom:update(dt)
 
     -- Cute sounds
     if nom.mouse.click == 1 then

@@ -1,46 +1,55 @@
-local Easing = require("nibui.Easing")
+local Easing = require('nibui.Easing')
+local dynamic = require('nibui.NOM').dynamic
 
 local envelopes_w = 60
 
 local envelopes = {
     id = 'envelopes',
-    x = parent('x'), y = parent('y'),
-    w = envelopes_w, h = parent('h'),
+    x = dynamic 'left', y = dynamic 'top',
+    w = envelopes_w, h = dynamic '^' 'h',
+    background = 6,
     _open = function(self)
-        self.x:set(self:bind(parent('x')), 0.3, Easing.InCubic)
+        -- , 0.3, Easing.InCubic
+        self.x = dynamic 'left'
     end,
     _close = function(self)
-        self.x:set(self:bind(calc(self:bind(parent('x')), -envelopes_w-1)), 0.3, Easing.OutCubic)
+        -- , 0.3, Easing.OutCubic
+        -- self.x = dynamic '-' (dynamic 'left', envelopes_w+1)
+        -- self.x = dynamic '-' (dynamic '^' 'x', envelopes_w+1)
     end,
 }
 
-for i=0,3 do
-    table.insert(envelopes, extend('elements.envelope', {
-        x = parent('x'), y = percent('y', 'h', 25*i),
-        w = parent('w'), h = percent('h', 25.5),
-        background = 16+i,
-        index = i,
-    }));
-end
+--for i=0,3 do
+--    table.insert(envelopes, dynamic '=>' ('elements.envelope', {
+--        x = dynamic 'left', y = dynamic '+' (dynamic 'y', dynamic '%' (25*i, 'h')),
+--        w = dynamic '^' 'w', h = dynamic '%' (25, 'h'),
+--        background = 16+i,
+--        index = i,
+--    }));
+--end
 
 local app = {
-    x = parent('x'), y = calc(parent('y'), 13),
-    w = parent('w'), h = calc(parent('h'), -25),
+    x = dynamic 'left', y = dynamic '+' (dynamic '^' 'y', 13),
+    w = dynamic '^' 'w', h = dynamic '-' (dynamic '^' 'h', 25),
     envelopes
 }
 
 
 local nom = {
-    x = calc(parent('x'), 1), y = calc(parent('y'), 1),
-    w = calc(parent('w'), -2), h = calc(parent('h'), -2-16),
+    x = dynamic '+' (dynamic '^' 'x', 1),
+    y = dynamic '+' (dynamic '^' 'y', 1),
+    w = dynamic '-' (dynamic '^' 'w', 2),
+    h = dynamic '-' (dynamic '^' 'h', 2+16),
     background = 7,
     border_color = 6,
-    require('elements.header'),
+    dynamic '=>' ('elements.header', {}),
     app,
-    require('elements.status'),
+    --dynamic '=>' ('elements.status', {}),
     {
-        x = calc(parent('x'), -1), y = calc(bottom(), 1),
-        w = calc(parent('w'), 2), h = 1,
+        x = dynamic '-' (dynamic 'left', 1),
+        y = dynamic '+' (dynamic 'bottom', 1),
+        w = dynamic '+' (dynamic '^' 'w', 2),
+        h = 1,
         background = 4
     },
 }

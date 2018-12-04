@@ -66,17 +66,18 @@ function audio_init()
     -- Primeiro canal
     channel(CH1)
     -- Frequências
-    freqs(6, 1, 1, 0.01)
+    freqs(2.01, 0.99, 0.01, 0.01)
     -- Envelopes
-    envelope(OP1, 0, 1, 0.005, 0.05, 0.9, 0.01)
-    envelope(OP2, 0, 1, 0.005, 0.05, 0.45, 0.01)
-    envelope(OP3, 0, 1, 0.1, 0.1, 0.3, 1)
-    envelope(OP4, 0, 1, 0.4, 0.1, 0.9, 1)
+    envelope(OP1, 0, 1, 0.005, 0.05, 0.9, 2.0)
+    envelope(OP2, 0, 1, 0.005, 0.05, 0.45, 0.1)
+    envelope(OP3, 0, 1, 0.005, 0.05, 0.99, 0)
+    --envelope(OP4, 0, 1, 0.4, 0.1, 0.9, 1)
     -- Roteia
     route(OP1, OUT, 0.1)
-    route(OP2, OP1, 0.2)
-    route(OP3, OUT, 0.5)
-    route(OP4, OP3, 0.8)
+    route(OP1, OP1, 0.5)
+    route(OP2, OP1, 2.0)
+    route(OP3, OP1, 1.0)
+    --route(OP4, OP3, 0.8)
     -- Reverb
     --reverb(4, 0.6)
 end
