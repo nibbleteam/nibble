@@ -1,5 +1,5 @@
 local length = 0.5
-local stripes = 4
+local stripes = 5
 local color = 16
 
 local stripe = 0
