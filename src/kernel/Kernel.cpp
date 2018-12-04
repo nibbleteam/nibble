@@ -86,7 +86,7 @@ void Kernel::startup() {
     // talvez um pequeno processo codificado em C++ diretamente
     // apenas para mostrar mensagens de erro e coisas parecidas?
     // e.g.: um processo "system"
-    if (exec("apps/system/core/init.nib", map<string, string>()) > 0) {
+    if (get<0>(exec("apps/system/core/init.nib", map<string, string>())) > 0) {
         cout << "[kernel] " << "process started" << endl;
     }
 }
@@ -295,19 +295,21 @@ void Kernel::loop() {
 // executable é um diretório que deve seguir a seguinte organização:
 // <cart-name>/
 //  - main.lua
-int64_t Kernel::exec(const string& executable, map<string, string> environment) {
+tuple<int, string> Kernel::exec(const string& executable, map<string, string> environment) {
     cout << "[kernel] exec " << executable << endl;
 
     Path executablePath(executable);
 
     // Verifica a existência e estrutura de do cart "executable"
     if (!checkCartStructure(executablePath)) {
-        return 0;
+        return tuple<int, string> (-3, "app not found: \""+executablePath.getOriginalPath()+"\"");
     }
+
+    auto pid = runningProcess ? runningProcess->getPid() : 0;
 
     // Cria o processo carregando o cart para a memória na
     // primeira localização livre
-    auto process = new Process(executablePath, environment, lastPid++, lastUsedMemByte, (VideoMemory*)gpu->getVideoMemory());
+    auto process = new Process(executablePath, environment, lastPid++, pid, lastUsedMemByte, (VideoMemory*)gpu->getVideoMemory());
 
     if (process->isOk()) {
         // Adiciona as chamadas de sistema providas pelo Kernel
@@ -316,12 +318,10 @@ int64_t Kernel::exec(const string& executable, map<string, string> environment) 
 
         processes.insert(process);
 
-        return process->getPid();
+        return tuple<int, string> (process->getPid(), "");
     } else {
-        return -1;
+        return tuple<int, string> (-4, process->getError());
     }
-
-    return process->getPid();
 }
 
 // Espera "wait" sair
@@ -551,28 +551,53 @@ string kernel_api_read(const unsigned long from, const unsigned long amount) {
     return KernelSingleton->read(from, amount);
 }
 
-unsigned long kernel_api_exec(const string executable, luabridge::LuaRef lEnvironment) {
-    if (lEnvironment.isTable()) {
-        map <string, string> environment;
+int kernel_api_exec(lua_State* L) {
+    int args = lua_gettop(L);
 
-        auto L = lEnvironment.state();
-        push(L, lEnvironment);         
-        lua_pushnil(L);
+    if (args >= 2) {
+        if (lua_istable(L, 2)) {
+            const string executable = string(lua_tostring(L, 1));
+            map <string, string> environment;
 
-        while (lua_next(L, -2) != 0) {
-            if (lua_isstring(L, -2) && lua_isstring(L, -1)) {
-                environment.emplace(lua_tostring(L, -2), lua_tostring(L, -1));
+            lua_gettable(L, 2);
+            lua_pushnil(L);
+
+            while (lua_next(L, -2) != 0) {
+                if (lua_isstring(L, -2) && lua_isstring(L, -1)) {
+                    environment.emplace(lua_tostring(L, -2), lua_tostring(L, -1));
+                }
+                lua_pop(L, 1);
             }
+         
             lua_pop(L, 1);
-        }
-     
-        lua_pop(L, 1);
 
-        return KernelSingleton->exec(executable, environment);
-    } else {
-        cout << "ERROR: environment is not a table" << endl;
-        return 0;
+            auto result = KernelSingleton->exec(executable, environment);
+
+            lua_pop(L, 1);
+            lua_pop(L, 1);
+
+            lua_pushnumber(L, get<0>(result));
+            lua_pushstring(L, get<1>(result).c_str());
+
+            return 2;
+        } else {
+            lua_pop(L, 1);
+            lua_pop(L, 1);
+
+            lua_pushnumber(L, -2);
+            lua_pushstring(L, "`environment` is not a table!");
+
+            return 2;
+        }
     }
+
+    lua_pop(L, 1);
+    lua_pop(L, 1);
+
+    lua_pushnumber(L, -1);
+    lua_pushstring(L, "needs 2 arguments");
+
+    return 2;
 }
 
 void kernel_api_wait(unsigned long pid) {

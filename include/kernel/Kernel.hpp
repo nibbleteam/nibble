@@ -80,7 +80,7 @@ public:
     string read(uint64_t, uint64_t);
     // Gerenciamento de processos
     // Executa app
-    int64_t exec(const string&, map<string, string>);
+    tuple<int, string> exec(const string&, map<string, string>);
     // Bloqueia enquanto app não sair
     void wait(const uint64_t);
     // Fecha uma app
@@ -111,7 +111,7 @@ extern Kernel *KernelSingleton;
 // API estática para o acesso via Lua
 string kernel_api_read(const unsigned long, const unsigned long);
 unsigned long kernel_api_write(const unsigned long, const string);
-unsigned long kernel_api_exec(const string, luabridge::LuaRef);
+int kernel_api_exec(lua_State*);
 void kernel_api_wait(unsigned long);
 void kernel_api_kill(unsigned long);
 void kernel_api_setenv(const string, const string);

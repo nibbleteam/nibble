@@ -13,14 +13,17 @@ const string Process::NiblibEntryPoint = "frameworks/niblib/main.lua";
 Process::Process(Path& executable,
                  map<string, string> environment,
                  const uint64_t pid,
+                 const uint64_t parent,
                  const uint64_t cartStart,
                  VideoMemory *video):
     environment(environment),
     pid(pid),
+    parent(parent),
     mapped(false),
     initialized(false),
     ok(true),
     running(true),
+    error(""),
     executable(executable) {
     // Pontos de entrada no sistema de arquivos para código
     // e dados do cart
@@ -53,21 +56,29 @@ Process::Process(Path& executable,
     // ao search path 
     string loadPath = "package.path = package.path .. ';./"+executable.getOriginalPath()+"/?.lua;./frameworks/?/main.lua;./frameworks/?.lua'";
     if (luaL_dostring(st, loadPath.c_str())) {
-        cout << "error when setting search path " << lua_tostring(st, -1) << endl;
+        error = string(lua_tostring(st, -1));
+
+        cout << "error when setting search path " << error << endl;
         ok = false;
     }
 
     // Carrega o código do cart
     if (luaL_loadfile(st, (const char*)lua.getPath().c_str())) {
-        cout << "syntax error on cartridge " << lua_tostring(st, -1) << endl;
+        error = string(lua_tostring(st, -1));
+
+        cout << "syntax error on cartridge " << error << endl;
         ok = false;
     }
     else if (lua_pcall(st, 0, LUA_MULTRET, 0)) {
-        cout << "runtime error on cartridge " << lua_tostring(st, -1) << endl;
+        error = string(lua_tostring(st, -1));
+
+        cout << "runtime error on cartridge " << error << endl;
         ok = false;
     }
 
     this->environment["pid"] = to_string(pid);
+    this->environment["parent.pid"] = to_string(parent);
+    this->environment["name"] = executable.getName();
 }
 
 Process::~Process() {
@@ -87,7 +98,7 @@ void Process::addSyscalls() {
         .beginNamespace("kernel")
         .addFunction("read", &kernel_api_read)
         .addFunction("write", &kernel_api_write)
-        .addFunction("exec", &kernel_api_exec)
+        .addCFunction("exec", &kernel_api_exec)
         .addFunction("wait", &kernel_api_wait)
         .addFunction("kill", &kernel_api_kill)
         .addFunction("setenv", &kernel_api_setenv)
@@ -144,6 +155,10 @@ void Process::audio_tick() {
 
 const uint64_t Process::getPid() const {
     return pid;
+}
+
+const string Process::getError() const {
+    return error;
 }
 
 Memory* Process::getMemory() {

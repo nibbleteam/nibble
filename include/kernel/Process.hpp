@@ -29,6 +29,7 @@ class Process {
     map<string, string> environment;
     // ID
     const uint64_t pid;
+    const uint64_t parent;
     bool mapped;
     bool initialized;
     bool ok;
@@ -36,13 +37,15 @@ class Process {
     // IPC
     // Através de tabelas Lua
     queue<luabridge::LuaRef> receivedMessages;
+
+    string error;
 public:
     Path executable;
     const static string LuaEntryPoint;
     const static string AssetsEntryPoint;
     const static string NiblibEntryPoint;
 
-    Process(Path&, map<string, string>, const uint64_t, const uint64_t, VideoMemory*);
+    Process(Path&, map<string, string>, const uint64_t, const uint64_t, const uint64_t, VideoMemory*);
     ~Process();
 
     // Verifica se não há erros no código
@@ -68,6 +71,7 @@ public:
     bool isMapped();
 
     const uint64_t getPid() const;
+    const string getError() const;
 
     void addSyscalls();
 
