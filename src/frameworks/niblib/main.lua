@@ -25,8 +25,12 @@ local input = require('frameworks/niblib/input')
 local vid = require('frameworks/niblib/vid')
 local audio = require('frameworks/niblib/audio')
 -- Helpers da linguagem
-lang = require('frameworks/niblib/lang')
+local lang = require('frameworks/niblib/lang')
 
+-- Exporta API da linguagem
+instanceof = lang.instanceof
+copy = lang.copy
+zip = lang.zip
 
 -- Exporta a API gráfica
 
