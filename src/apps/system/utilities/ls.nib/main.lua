@@ -1,10 +1,10 @@
-local shell
+local tty
 
 function init()
-    shell = tonumber(kernel.getenv("shell"))
+    tty = tonumber(kernel.getenv("tty"))
 
-    kernel.send(shell, {print="[DIR] [./]"})
-    kernel.send(shell, {print="apps/"})
+    kernel.send(tty, {print="[DIR] [./]\n"})
+    kernel.send(tty, {print="apps/\n"})
 
     kernel.kill(0)
 end

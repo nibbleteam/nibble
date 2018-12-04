@@ -1,19 +1,22 @@
-local shell
+local tty
 local exec
 local child
+local shell
 
 function init()
-    shell = tonumber(kernel.getenv("shell"))
+    tty = tonumber(kernel.getenv("tty"))
     exec = kernel.getenv("exec")
+    shell = tonumber(kernel.getenv("shell"))
 
     child = kernel.exec(exec, {
-        shell = tostring(shell)
+        tty = tostring(tty)
     })
 
     if child > 0 then
-        kernel.send(shell, {app_started=child, app_name=exec})
+        kernel.send(tty, {app_started=child, app_name=exec})
         kernel.wait(child)
     else
+        kernel.send(shell, {app_stopped=child})
         kernel.kill(0)
     end
 end
