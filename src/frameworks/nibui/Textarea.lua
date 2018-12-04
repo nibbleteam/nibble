@@ -1,16 +1,16 @@
--- NibUI->FormattedText
+-- NibUI->Textarea
 -- Cria um objeto de texto dentro
 -- de uma bounding box em que
 -- partes individuais podem receber
 -- atributos diferentes
-local FormattedText = {}
+local Textarea = {}
 
 local DEFAULT_W = 320
 local DEFAULT_H = 240
 local CHAR_W = 8
 local CHAR_H = 8
 
-function FormattedText:new(x, y, w, h)
+function Textarea:new(x, y, w, h)
     local instance = {
         -- Bounding box
         x = x or 0, y = y or 0,
@@ -20,29 +20,40 @@ function FormattedText:new(x, y, w, h)
         cursor = 0,
         cursor_x = x or 0,
         cursor_y = y or 0,
+        -- altura da linha
+        line_height = 12,
         -- Várias instâncias de DecoratedText
         text = {}
     }
 
-    lang.instanceof(instance, self)
+    instanceof(instance, Textarea)
 
     return instance
 end
 
-function FormattedText:delete(n)
+function Textarea:line_spacing()
+    return (self.line_height-CHAR_H)/2
+end
+
+function Textarea:delete(n)
     while n > 0 do
         local deleted = self:try_delete(n)
         n -= deleted
         self.cursor -= deleted
     end
 
-    local last = self.text[#self.text]
+    if #self.text > 0 then
+        local last = self.text[#self.text]
 
-    self.cursor_x = last.x+#last.text*CHAR_W
-    self.cursor_y = last.y
+        self.cursor_x = last.x+#last.text*CHAR_W
+        self.cursor_y = last.y
+    else
+        self.cursor_x = self.x
+        self.cursor_y = self.y
+    end
 end
 
-function FormattedText:try_delete(n)
+function Textarea:try_delete(n)
     local deleted = 0
     local from = self.text[#self.text]
     
@@ -56,12 +67,24 @@ function FormattedText:try_delete(n)
     end
 end
 
-function FormattedText:newline()
+function Textarea:newline()
     self.cursor_x = self.x
-    self.cursor_y += CHAR_H
+    self.cursor_y += self.line_height
+
+    if self.cursor_y >= self.y+self.h then
+        self:scroll(-self.line_height)
+    end
 end
 
-function FormattedText:add(text)
+function Textarea:scroll(delta)
+    for _, text in ipairs(self.text) do
+        text.y += delta
+    end
+
+    self.cursor_y += delta
+end
+
+function Textarea:add(text)
     text.x, text.y = self.cursor_x, self.cursor_y
     text.align = 0
 
@@ -71,16 +94,22 @@ function FormattedText:add(text)
         table.insert(self.text, text)
     end
 
+    if self.cursor_y >= self.y+self.h then
+        self:scroll(-self.line_height)
+    end
+
     return self
 end
 
-function FormattedText:draw()
-    for t=1,#self.text do
-        self.text[t]:draw()
+function Textarea:draw()
+    for _, text in ipairs(self.text) do
+        if text.y+self.line_height > self.y and text.y < self.y+self.h then
+            text:draw()
+        end
     end
 end
 
-function FormattedText:advance_cursor(text)
+function Textarea:advance_cursor(text)
     local by = text.text
     local texts = {}
 
@@ -92,7 +121,7 @@ function FormattedText:advance_cursor(text)
         local overflow = (self.cursor_x-(self.x+self.w))/CHAR_W
 
         self.cursor_x = self.x
-        self.cursor_y += CHAR_H
+        self.cursor_y += self.line_height
 
         local before, after = text:sub(0, #by-overflow), text:sub(#by-overflow, #by)
 
@@ -113,4 +142,4 @@ function FormattedText:advance_cursor(text)
     return texts
 end
 
-return FormattedText
+return Textarea

@@ -1,78 +1,112 @@
 local iv = require('nibui.InterpolatedValue')
-local UIWidget = require('nibui/UIWidget')
+local Widget = require('nibui.Widget')
+local DynamicValue = require('nibui.DynamicValue')
 
 local DEFAULT_W = 320
 local DEFAULT_H = 240
 
 local NOM = {}
 
-function extend(path, props)
-    local nom = lang.copy(require(path))
+-- DynamicValues predefinidos
+NOM.helpers = {
+    ['=>'] = function (path, props)
+        local nom = copy(require(path))
 
-    for k, v in pairs(props) do
-        if type(k) == 'number' then
-            table.insert(nom, v)
-        else
-            nom[k] = v
+        for k, v in pairs(props) do
+            if type(k) == 'number' then
+                table.insert(nom, v)
+            else
+                nom[k] = v
+            end
         end
-    end
 
-    return nom
+        return nom
+    end,
+    ['%'] = function (value, prop)
+        return DynamicValue:new('dynamic', function (widget)
+            return widget.parent[prop]*value/100
+        end)
+    end,
+    ['^'] = function (prop)
+        return DynamicValue:new('dynamic', function (widget)
+            return widget.parent[prop]
+        end)
+    end,
+    ['.'] = function (prop)
+        return DynamicValue:new('dynamic', function (widget)
+            return widget[prop]
+        end)
+    end,
+    ['fn'] = function (fn)
+        return DynamicValue:new('dynamic', fn)
+    end,
+    ['+'] = function (a, b)
+        return DynamicValue:new('dynamic', function(w)
+            if type(a) == 'table' and a.isdynamicvalue then
+                a = a:get(w)
+            end
+
+            if type(b) == 'table' and b.isdynamicvalue then
+                b = b:get(w)
+            end
+
+            return a+b
+        end)
+    end,
+    ['-'] = function (a, b)
+        return DynamicValue:new('dynamic', function(w)
+            if type(a) == 'table' and a.isdynamicvalue then
+                a = a:get(w)
+            end
+
+            if type(b) == 'table' and b.isdynamicvalue then
+                b = b:get(w)
+            end
+
+            return a-b
+        end)
+    end,
+    ['*'] = function (a, b)
+        return DynamicValue:new('dynamic', function(w)
+            if type(a) == 'table' and a.isdynamicvalue then
+                a = a:get(w)
+            end
+
+            if type(b) == 'table' and b.isdynamicvalue then
+                b = b:get(w)
+            end
+
+            return a*b
+        end)
+    end,
+    ['/'] = function (a, b)
+        return DynamicValue:new('dynamic', function(w)
+            if type(a) == 'table' and a.isdynamicvalue then
+                a = a:get(w)
+            end
+
+            if type(b) == 'table' and b.isdynamicvalue then
+                b = b:get(w)
+            end
+
+            return a/b
+        end)
+    end,
+}
+
+function NOM.dynamic (k)
+    return NOM.helpers[k]
 end
 
-function percent(prop, prop2, value)
-    if not value then
-        value = prop2
-
-        return function (widget)
-            return widget.parent:get(widget.parent[prop])*value/100
-        end
-    else
-        return function (widget)
-            return widget.parent:get(widget.parent[prop])+
-                   widget.parent:get(widget.parent[prop2])*value/100
-        end
-    end
-end
-
-function parent(prop)
-    return function (widget)
-        return widget.parent:get(widget.parent[prop])
-    end
-end
-
-function this(prop)
-    return function (widget)
-        return widget:get(widget[prop])
-    end
-end
-
-function top()
-    return parent('y')
-end
-
-function left()
-    return parent('x')
-end
-
-function bottom()
-    return percent('y', 'h', 100)
-end
-
-function right()
-    return percent('x', 'w', 100)
-end
-
-function calc(fn, value)
-    return function(w)
-        return fn(w)+value
-    end
-end
+NOM.helpers['top'] = NOM.dynamic '^' 'y'
+NOM.helpers['left'] = NOM.dynamic '^' 'x'
+NOM.helpers['right'] = NOM.dynamic '+' (NOM.dynamic 'left', NOM.dynamic '^' 'w')
+NOM.helpers['bottom'] = NOM.dynamic '+' (NOM.dynamic 'top', NOM.dynamic '^' 'h')
 
 -- static: Makes a document from a description
 function NOM:make_document(desc)
     local widget_desc = desc
-    local widget = UIWidget:new(widget_desc, self)
+    local widget = Widget:new(widget_desc, self)
 
     for k, v in pairs(desc) do
         -- Only iterate over unamed properties 
@@ -108,16 +142,14 @@ function NOM:new(desc)
         mouse = { x = 0, y = 0 }
     }
 
-    lang.instanceof(instance, NOM)
+    instanceof(instance, NOM)
 
     instance.root = instance:make_document(desc)
 
     instance.root.parent = {
         x = 0, y = 0,
         w = DEFAULT_W, h = DEFAULT_H,
-        get = UIWidget.get
     }
-
 
     return instance
 end

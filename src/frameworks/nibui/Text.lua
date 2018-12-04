@@ -1,4 +1,4 @@
--- NibUI->DecoratedText
+-- NibUI->Text
 -- Cria um objeto de texto que pode ter
 -- váris características, como:
 -- - Posição 
@@ -8,9 +8,9 @@
 -- - Bold
 -- - Underline
 
-local DecoratedText = {}
+local Text = {}
 
-function DecoratedText:new(text, x, y)
+function Text:new(text, x, y)
     local instance = {
         text = text or "",
         x = x or 0, y = y or 0,
@@ -22,12 +22,12 @@ function DecoratedText:new(text, x, y)
         align = 0
     }
 
-    lang.instanceof(instance, self)
+    instanceof(instance, self)
 
     return instance
 end
 
-function DecoratedText:copy()
+function Text:copy()
     local instance = {
         text = self.text,
         x = self.x, y = self.y,
@@ -39,19 +39,19 @@ function DecoratedText:copy()
         align = self.align
     }
 
-    lang.instanceof(instance, DecoratedText)
+    instanceof(instance, Text)
 
     return instance
 end
 
-function DecoratedText:set(key, value)
+function Text:set(key, value)
     self[key] = value or true
 
     return self
 end
 
 -- Troca as cores do FG e BG
-function DecoratedText:swap_colors()
+function Text:swap_colors()
     local buffer = self.color
     self.color = self.background_color
     self.background_color = buffer
@@ -61,7 +61,7 @@ end
 
 -- Returns a substring with the same
 -- decorations
-function DecoratedText:sub(i, j)
+function Text:sub(i, j)
     local instance = {
         text = self.text:sub(i, j),
         x = self.x, y = self.y,
@@ -73,12 +73,12 @@ function DecoratedText:sub(i, j)
         align = self.align
     }
 
-    lang.instanceof(instance, DecoratedText)
+    instanceof(instance, Text)
 
     return instance
 end
 
-function DecoratedText:draw()
+function Text:draw()
     local off_x = 0
 
     if self.align == 1 then
@@ -114,4 +114,4 @@ function DecoratedText:draw()
     col(0, 0)
 end
 
-return DecoratedText
+return Text

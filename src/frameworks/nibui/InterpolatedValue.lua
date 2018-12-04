@@ -18,16 +18,18 @@ function InterpolatedValue:new(v)
         }
     }
 
-    lang.instanceof(instance, InterpolatedValue)
+    instanceof(instance, InterpolatedValue)
 
     return instance
 end
 
-function InterpolatedValue:get(v)
-    if type(v) == 'function' then
-        return v()
-    elseif type(v) == 'table' and v.value then
-        return v.value
+function InterpolatedValue:get(v, w)
+    if type(v) == 'table' and v.isdynamicvalue then
+        if w then
+            return v:get(w)
+        else
+            return v:get()
+        end
     end
 
     return v
@@ -50,7 +52,9 @@ function InterpolatedValue:set(v, time, easing)
     self.interpolation.easing = easing
 end
 
-function InterpolatedValue:update(dt)
+function InterpolatedValue:update(dt, widget)
+    dprint(dt, widget)
+
     -- Elapsed time
     local et = clock() - self.interpolation.from.t
     -- Total time
@@ -59,10 +63,10 @@ function InterpolatedValue:update(dt)
     local i = self.interpolation.easing(et/t)
 
     -- Initial value
-    local iv = self:get(self.interpolation.from.v)
+    local iv = self:get(self.interpolation.from.v, w)
 
     -- Interpolation delta
-    local dv = self:get(self.interpolation.to.v)-iv
+    local dv = self:get(self.interpolation.to.v, w)-iv
 
     -- Set interpolated value
     self.value = iv+dv*i
