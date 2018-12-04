@@ -604,8 +604,31 @@ void VideoMemory::sprite(int16_t sx, int16_t sy,
                          int16_t dx, int16_t dy,
                          int16_t w, int16_t h,
                          uint8_t pal) {
-    fixRectBounds(dx, dy, w, h, SCREEN_W, SCREEN_H);
-    fixRectBounds(sx, sy, w, h, SPRITESHEET_W, SPRITESHEET_H);
+    if (dx < 0) {
+        w = max(w+dx, 0);
+        sx -= dx;
+        dx = 0;
+    }
+
+    if (dy < 0) {
+        h = max(h+dy, 0);
+        sy -= dy;
+        dy = 0;
+    }
+
+    if (dy+h >= SCREEN_H || dx+w >= SCREEN_W) {
+        return;
+    }
+
+    if (sx < 0) {
+        w = max(w+sx, 0);
+        sx = 0;
+    }
+
+    if (sy < 0) {
+        h = max(h+sy, 0);
+        dy = 0;
+    }
 
     auto src = spritesheet+sy*SPRITESHEET_W+sx;
     auto ptr = buffer+dy*SCREEN_W+dx;
@@ -773,20 +796,18 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
 
             sprite(sx, sy, x, y, w, h, pal);
         } break;
-        //case StartCapture: {
-        //    // TODO: Habilitar novamente
-        //    if (colormap == NULL) {
-        //        string filename = nextStrArg(cmd);
-        //        startCapturing(filename);
-        //    }
-        //    break;
-        //}
-        //case StopCapture: {
-        //    // TODO: Habilitar novamente
-        //    if (colormap != NULL) {
-        //        stopCapturing();
-        //    }
-        //} break;
+        case StartCapture: {
+            if (colormap == NULL) {
+                string filename = nextStrArg(cmd);
+                startCapturing(filename);
+            }
+            break;
+        }
+        case StopCapture: {
+            if (colormap != NULL) {
+                stopCapturing();
+            }
+        } break;
     }
 }
 
