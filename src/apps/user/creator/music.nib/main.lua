@@ -10,17 +10,15 @@ require("synth")
 function init()
     audio_init()
 
-    clr(16)
+    clr(8)
 end
 
 function draw()
-    --nom:draw()
+    nom:draw()
 end
 
 function update(dt)
-    audio_tick(dt)
-
-    --nom:update(dt)
+    nom:update(dt)
 
     -- Cute sounds
     if nom.mouse.click == 1 then

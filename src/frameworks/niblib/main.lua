@@ -103,12 +103,28 @@ BLACK = input.BLACK
 WHITE = input.WHITE
 
 -- Áudio
-snd = audio.snd
-mksnd = audio.mksnd
-note = audio.note
-skip = audio.skip
-rep = audio.rep
-loop = audio.loop
-stop = audio.stop
-adsr = audio.adsr
+OP1 = audio.OP1
+OP2 = audio.OP2
+OP3 = audio.OP3
+OP4 = audio.OP4
+OUT = audio.OUT
 
+CH1 = audio.CH1
+CH2 = audio.CH2
+CH3 = audio.CH3
+CH4 = audio.CH4
+CH5 = audio.CH5
+CH6 = audio.CH6
+CH7 = audio.CH7
+CH8 = audio.CH8
+
+dprint('ch3', CH3)
+
+encode = audio.encode
+channel = audio.channel
+envelope = audio.envelope
+freqs = audio.freqs
+reverb = audio.reverb
+route = audio.route
+noteon = audio.noteon
+noteoff = audio.noteoff

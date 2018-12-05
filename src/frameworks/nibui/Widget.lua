@@ -2,7 +2,7 @@ local DynamicValue = require('nibui.DynamicValue')
 
 local Widget = {}
 
-function Widget:new(config, document)
+function Widget:new(config, document, parent)
     local defaults = {
         -- Colors
         shadow_color = 0, border_color = 0, background = 0, color = 15,
@@ -19,7 +19,7 @@ function Widget:new(config, document)
         -- Mouse
         mouse = { inside = false },
         -- Tree
-        children = {}, parent = nil, document = document,
+        children = {}, parent = nil, document = document, parent = parent,
         -- Methods
         onclick = function() end,
         onenter = function() end,
@@ -30,20 +30,17 @@ function Widget:new(config, document)
     for k, _ in zip(defaults, config) do
         if config[k] then
             if type(config[k]) == 'number' then
-                instance.props[k] = DynamicValue:new('interpolated',
-                                                     DynamicValue:new('static', config[k]))
+                instance.props[k] = DynamicValue:new('interpolated', config[k], instance)
             elseif type(config[k]) == 'function' then
                 instance[k] = config[k]
             elseif type(config[k]) == 'table' and config[k].isdynamicvalue then
-                instance.props[k] = DynamicValue:new('interpolated',
-                                                     DynamicValue:new(config[k]:bind(instance)))
+                instance.props[k] = DynamicValue:new('interpolated', config[k], instance)
             else
                 instance.props[k] = DynamicValue:new('static', config[k])
             end
         else
             if type(defaults[k]) == 'number' then
-                instance.props[k] = DynamicValue:new('interpolated',
-                                                     DynamicValue:new('static', defaults[k]))
+                instance.props[k] = DynamicValue:new('interpolated', defaults[k], instance)
             else
                 instance.props[k] = DynamicValue:new('static', defaults[k])
             end
@@ -61,8 +58,10 @@ function Widget:__index(k)
     if self.props[k] then
         return self.props[k]:get(self)
     else
-        if rawget(self, k) then
-            return rawget(self, k)
+        local raw = rawget(self, k)
+
+        if raw then
+            return raw
         else
             return Widget[k]
         end
@@ -74,11 +73,11 @@ function Widget:__newindex(k, v)
         self.props[k]:set(v, self)
     else
         if type(v) == 'number' then
-            self.props[k] = DynamicValue:new('interpolated', DynamicValue:new('static', v))
+            self.props[k] = DynamicValue:new('interpolated', v, self)
         elseif type(v) == 'function' then
             rawset(self, k, v)
         elseif type(v) == 'table' and v.isdynamicvalue then
-            self.props[k] = v:bind(self)
+            self.props[k] = v
         else
             self.props[k] = DynamicValue:new('static', v)
         end
@@ -92,7 +91,7 @@ function Widget:update(dt)
     end
 
     -- Atualiza interpolated values
-    for _, prop in pairs(self.props) do
+    for name, prop in pairs(self.props) do
         if prop.kind == 'interpolated' then
             prop:update(dt, self)
         end
@@ -111,31 +110,37 @@ function Widget:draw()
     local border_color = math.floor(self.border_color)
     local z = math.floor(self.z)
 
-    -- TODO: Optimize common cases
+    if z ~= 0 then
+      rectf(x+r, y+z, w-r*2, h, shadow_color)
+      rectf(x, y+r+z, w, h-r*2, shadow_color)
 
-    rectf(x+r, y+z, w-r*2, h, shadow_color)
-    rectf(x, y+r+z, w, h-r*2, shadow_color)
-
-    circf(x+r, y+r+z, r, shadow_color)
-    circf(x+w-r-1, y+r+z, r, shadow_color)
-    circf(x+r, y+h-r+z-1, r, shadow_color)
-    circf(x+w-r-1, y+h-r+z-1, r, shadow_color)
+      if r ~= 0 then
+        circf(x+r, y+r+z, r, shadow_color)
+        circf(x+w-r-1, y+r+z, r, shadow_color)
+        circf(x+r, y+h-r+z-1, r, shadow_color)
+        circf(x+w-r-1, y+h-r+z-1, r, shadow_color)
+      end
+    end
 
     rect(x+r-1, y-1, w-r*2+2, h+2, border_color)
     rect(x-1, y+r-1, w+2, h-r*2+2, border_color)
 
-    circf(x+r, y+r, r+1, border_color)
-    circf(x+w-r-1, y+r, r+1, border_color)
-    circf(x+r, y+h-r-1, r+1, border_color)
-    circf(x+w-r-1, y+h-r-1, r+1, border_color)
+    if r ~= 0 then
+        circf(x+r, y+r, r+1, border_color)
+        circf(x+w-r-1, y+r, r+1, border_color)
+        circf(x+r, y+h-r-1, r+1, border_color)
+        circf(x+w-r-1, y+h-r-1, r+1, border_color)
+    end
 
     rectf(x+r, y, w-r*2, h, background)
     rectf(x, y+r, w, h-r*2, background)
 
-    circf(x+r, y+r, r, background)
-    circf(x+w-r-1, y+r, r, background)
-    circf(x+r, y+h-r-1, r, background)
-    circf(x+w-r-1, y+h-r-1, r, background)
+    if r ~= 0 then
+        circf(x+r, y+r, r, background)
+        circf(x+w-r-1, y+r, r, background)
+        circf(x+r, y+h-r-1, r, background)
+        circf(x+w-r-1, y+h-r-1, r, background)
+    end
 
     -- TODO: use decorated text
     col(15, math.floor(self.color))

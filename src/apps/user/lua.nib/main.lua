@@ -62,7 +62,7 @@ function update()
                 input = ''
             else
                 local ok, ret = pcall(fn)
-                shprint(tostring(ret)..'\n', 6)
+                shprint(tostring(ret)..'\n', 2)
                 input = ''
             end
 

@@ -10,11 +10,11 @@ local settings = {
         background = 5,
         onclick = function (self, event)
             if self.background ~= 5 then
-                self.background = 5
-                self.document:find('#envelopes'):_open()
+                self.background = {5, 0.3}
+                self.document:find('#envelopes'):open()
             else
-                self.background = 12
-                self.document:find('#envelopes'):_close()
+                self.background = {12, 0.3}
+                self.document:find('#envelopes'):close()
             end
         end,
     },
@@ -23,9 +23,9 @@ local settings = {
         z = 0,
         onclick = function (self, event)
             if self.color ~= 6 then
-                self.color = 6
+                self.color = {6, 0.3}
             else
-                self.color = 15
+                self.color = {15, 0.3}
             end
         end,
     }

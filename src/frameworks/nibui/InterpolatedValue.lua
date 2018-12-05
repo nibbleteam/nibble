@@ -2,7 +2,7 @@ local Easing = require('nibui.Easing')
 
 local InterpolatedValue = {}
 
-function InterpolatedValue:new(v)
+function InterpolatedValue:new(v, w)
     local instance = {
         value = v,
 
@@ -20,22 +20,26 @@ function InterpolatedValue:new(v)
 
     instanceof(instance, InterpolatedValue)
 
+    instance.value = instance:get(instance.value, w)
+
     return instance
 end
 
 function InterpolatedValue:get(v, w)
     if type(v) == 'table' and v.isdynamicvalue then
-        if w then
-            return v:get(w)
-        else
-            return v:get()
-        end
+        return v:get(w)
     end
 
     return v
 end
 
 function InterpolatedValue:set(v, time, easing)
+    if type(v) == 'table' and not v.isdynamicvalue then
+        time = v[2]
+        easing = v[3]
+        v = v[1]
+    end
+
     -- Default time and interpolation
     time = time or 1
     easing = easing or Easing.Linear
@@ -52,9 +56,7 @@ function InterpolatedValue:set(v, time, easing)
     self.interpolation.easing = easing
 end
 
-function InterpolatedValue:update(dt, widget)
-    dprint(dt, widget)
-
+function InterpolatedValue:update(dt, w)
     -- Elapsed time
     local et = clock() - self.interpolation.from.t
     -- Total time

@@ -12,11 +12,13 @@ NOM.helpers = {
     ['=>'] = function (path, props)
         local nom = copy(require(path))
 
-        for k, v in pairs(props) do
-            if type(k) == 'number' then
-                table.insert(nom, v)
-            else
-                nom[k] = v
+        if props then
+            for k, v in pairs(props) do
+                if type(k) == 'number' then
+                    table.insert(nom, v)
+                else
+                    nom[k] = v
+                end
             end
         end
 
@@ -104,19 +106,18 @@ NOM.helpers['right'] = NOM.dynamic '+' (NOM.dynamic 'left', NOM.dynamic '^' 'w')
 NOM.helpers['bottom'] = NOM.dynamic '+' (NOM.dynamic 'top', NOM.dynamic '^' 'h')
 
 -- static: Makes a document from a description
-function NOM:make_document(desc)
+function NOM:make_document(desc, parent)
     local widget_desc = desc
-    local widget = Widget:new(widget_desc, self)
+    local widget = Widget:new(widget_desc, self, parent)
 
     for k, v in pairs(desc) do
         -- Only iterate over unamed properties 
         -- we don't use ipairs to avoid stopping
         -- at nil
         if type(k) == "number" then
-            local child = self:make_document(v)
+            local child = self:make_document(v, widget)
 
             -- Relationships
-            child.parent = widget
             table.insert(widget.children, child)
         end
     end
@@ -144,12 +145,10 @@ function NOM:new(desc)
 
     instanceof(instance, NOM)
 
-    instance.root = instance:make_document(desc)
-
-    instance.root.parent = {
+    instance.root = instance:make_document(desc, {
         x = 0, y = 0,
         w = DEFAULT_W, h = DEFAULT_H,
-    }
+    })
 
     return instance
 end
