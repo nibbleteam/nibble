@@ -22,7 +22,12 @@ end
 function DynamicValue:set(value)
     if self.kind == 'static' or self.kind == 'dynamic' then
         -- Caso 1: transfere conteúdo
-        self.kind, self.value = value.kind, value.value
+        if type(value) == 'table' and value.isdynamicvalue then
+            self.kind, self.value = value.kind, value.value
+        else
+            self.kind = 'static'
+            self.value = value
+        end
     elseif self.kind == 'interpolated' then
         -- Caso 2: transfere  o valor atual
         self.value:set(value)

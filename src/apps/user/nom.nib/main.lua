@@ -2,11 +2,15 @@ local NOM = require('nibui.NOM')
 local dynamic = NOM.dynamic
 
 local nom = NOM:new({
-    x = dynamic '^' 'x',
+    var_with_custom_name = 16,
 }):use('cursor')
 
 function init()
-    dprint(nom.root.x)
+    nom.root.var_with_custom_name = {8, 0}
+
+    nom:update(1)
+
+    dprint(nom.root.var_with_custom_name)
 end
 
 function draw()

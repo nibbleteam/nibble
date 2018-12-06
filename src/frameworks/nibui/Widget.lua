@@ -27,7 +27,7 @@ function Widget:new(config, document, parent)
         onmove = function() end,
     }
 
-    for k, _ in zip(defaults, config) do
+    for k, _ in zip(config, defaults) do
         if config[k] then
             if type(config[k]) == 'number' then
                 instance.props[k] = DynamicValue:new('interpolated', config[k], instance)
@@ -85,16 +85,16 @@ function Widget:__newindex(k, v)
 end
 
 function Widget:update(dt)
-    -- Atualiza filhos
-    for _, child in ipairs(self.children) do
-        child:update(dt)
-    end
-
     -- Atualiza interpolated values
     for name, prop in pairs(self.props) do
         if prop.kind == 'interpolated' then
             prop:update(dt, self)
         end
+    end
+
+    -- Atualiza filhos
+    for _, child in ipairs(self.children) do
+        child:update(dt)
     end
 end
 
@@ -148,19 +148,19 @@ function Widget:draw()
     local tx, ty = 0, 0
 
     if self.text_align == 'left' then
-        tx = self.padding.left
+        tx = self.padding_left
     elseif self.text_align == 'center' then
         tx = x+w/2-#content/2*8
     elseif self.text_align == 'right' then
-        tx = w-#content*8-self.padding.right
+        tx = w-#content*8-self.padding_right
     end
 
     if self.vertical_align == 'top' then
-        ty = self.padding.top
+        ty = self.padding_top
     elseif self.vertical_align == 'middle' then
         ty = y+h/2-4
     elseif self.vertical_align == 'bottom' then
-        ty = h-8-self.padding.bottom
+        ty = h-8-self.padding_bottom
     end
     
     print(content, tx, ty)

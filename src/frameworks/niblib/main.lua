@@ -118,8 +118,6 @@ CH6 = audio.CH6
 CH7 = audio.CH7
 CH8 = audio.CH8
 
-dprint('ch3', CH3)
-
 encode = audio.encode
 channel = audio.channel
 envelope = audio.envelope

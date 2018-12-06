@@ -94,9 +94,6 @@ local function noteoff(n, i)
     kernel.write(154448+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+i*2, '\x02'..string.char(n));
 end
 
-function audio_tick()
-end
-
 audio.encode = encode
 audio.channel = channel
 audio.envelope = envelope
