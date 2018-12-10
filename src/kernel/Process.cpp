@@ -1,6 +1,10 @@
+#include <kernel/Types.hpp>
 #include <kernel/Process.hpp>
 #include <kernel/Kernel.hpp>
 #include <kernel/filesystem.hpp>
+
+#include <kernel/mmap/Image.hpp>
+
 #include <LuaBridge/LuaBridge.h>
 #include <iostream>
 
@@ -10,30 +14,27 @@ const string Process::LuaEntryPoint = "main.lua";
 const string Process::AssetsEntryPoint = "assets";
 const string Process::NiblibEntryPoint = "frameworks/niblib/main.lua";
 
-Process::Process(Path& executable,
+Process::Process(Memory &memory,
+                 Path &executable,
                  map<string, string> environment,
-                 const uint64_t pid,
-                 const uint64_t parent,
-                 const uint64_t cartStart,
-                 VideoMemory *video):
+                 const PID pid, const PID parent):
     environment(environment),
     pid(pid),
     parent(parent),
-    mapped(false),
     initialized(false),
     ok(true),
     running(true),
     error(""),
+    memory(memory),
+    layout(*((MemoryLayout*)memory.allocate(PROCESS_INFO_LENGTH, "Process Information"))),
     executable(executable) {
     // Pontos de entrada no sistema de arquivos para código
-    // e dados do cart
+    // e dados do app
     Path lua = executable.resolve(LuaEntryPoint);
     Path assets = executable.resolve(AssetsEntryPoint);
     Path niblib = Path(NiblibEntryPoint);
 	
-    // Carrega os assets para o cartridge (que será copiado para RAM
-    // na localização cartStart)
-    cartridgeMemory = new CartridgeMemory(assets, cartStart, video);
+    layout.spritesheet = kernel_api_memmap(assets.resolve("/sheet.png").getPath());
 
     st = luaL_newstate();
 
@@ -50,7 +51,7 @@ Process::Process(Path& executable,
         ok = false;
     }
 
-    cout << "pid " << pid << " loading cart " << lua.getPath() << endl;
+    cout << "pid " << pid << " loading app " << lua.getPath() << endl;
 
     // Adiciona pasta do executável & frameworks
     // ao search path 
@@ -62,7 +63,7 @@ Process::Process(Path& executable,
         ok = false;
     }
 
-    // Carrega o código do cart
+    // Carrega o código do app
     if (luaL_loadfile(st, (const char*)lua.getPath().c_str())) {
         error = string(lua_tostring(st, -1));
 
@@ -79,18 +80,14 @@ Process::Process(Path& executable,
     this->environment["pid"] = to_string(pid);
     this->environment["parent.pid"] = to_string(parent);
     this->environment["name"] = executable.getName();
+    this->environment["addr"] = to_string(((uint8_t*)&layout)-memory.raw);
 }
 
 Process::~Process() {
     lua_close(st);
-}
 
-bool Process::isOk() {
-    return ok;
-}
-
-bool Process::isInitialized() {
-    return initialized;
+    memory.deallocate(layout.spritesheet);
+    memory.deallocate((uint8_t*)&layout);
 }
 
 void Process::addSyscalls() {
@@ -105,6 +102,10 @@ void Process::addSyscalls() {
         .addFunction("getenv", &kernel_api_getenv)
         .addFunction("send", &kernel_api_send)
         .addFunction("receive", &kernel_api_receive)
+        .addFunction("memmap", &kernel_api_memmap)
+        .addFunction("memsync", &kernel_api_memsync)
+        .addFunction("memresize", &kernel_api_memresize)
+        .addFunction("list", &kernel_api_list)
         .endNamespace();
 }
 
@@ -114,7 +115,7 @@ void Process::init() {
         if (lua_isfunction(st, -1)) {
             if (lua_pcall(st, 0, 0, 0) != 0) {
                 cout << "pid " << pid << " init(): " << lua_tostring(st, -1) << endl;
-                KernelSingleton->kill(pid);
+                KernelSingleton.lock()->kill(pid);
             }
         }
 
@@ -128,7 +129,7 @@ void Process::update(float dt) {
         lua_pushnumber(st, dt);
         if (lua_pcall(st, 1, 0, 0) != 0) {
             cout << "pid " << pid << " update(): " << lua_tostring(st, -1) << endl;
-            KernelSingleton->kill(pid);
+            KernelSingleton.lock()->kill(pid);
         }
     }
 }
@@ -138,7 +139,7 @@ void Process::draw() {
     if (lua_isfunction(st, -1)) {
         if (lua_pcall(st, 0, 0, 0) != 0) {
             cout << "pid " << pid << " draw(): " << lua_tostring(st, -1) << endl;
-            KernelSingleton->kill(pid);
+            KernelSingleton.lock()->kill(pid);
         }
     }
 }
@@ -148,44 +149,9 @@ void Process::audio_tick() {
     if (lua_isfunction(st, -1)) {
         if (lua_pcall(st, 0, 0, 0) != 0) {
             cout << "pid " << pid << " audio_tick(): " << lua_tostring(st, -1) << endl;
-            KernelSingleton->kill(pid);
+            KernelSingleton.lock()->kill(pid);
         }
     }
-}
-
-const uint64_t Process::getPid() const {
-    return pid;
-}
-
-const string Process::getError() const {
-    return error;
-}
-
-Memory* Process::getMemory() {
-    if (!mapped) {
-        mapped = true;
-        cartridgeMemory->load();
-    }
-
-    return cartridgeMemory;
-}
-
-void Process::unmap() {
-    if (mapped) {
-        mapped = false;
-    }
-}
-
-bool Process::isMapped() {
-    return mapped;
-}
-
-bool Process::isRunning() {
-    return running; 
-}
-
-void Process::setRunning(bool running) {
-    this->running = running;
 }
 
 void Process::setEnvVar(const string& key, const string& value) {
@@ -285,5 +251,5 @@ void Process::copyLuaValue(lua_State* from, lua_State* to, int p) {
 }
 
 bool Process::operator < (const Process& p) {
-    return pid < p.getPid();
+    return pid < p.pid;
 }

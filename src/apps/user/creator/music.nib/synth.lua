@@ -4,16 +4,15 @@ function audio_init()
     -- Frequências
     freqs(2.0, 1, 0.01, 0.01)
     -- Envelopes
-    envelope(OP1, 0, 1, 0.1, 0.1, 0.9, 2.0)
-    envelope(OP2, 0, 1, 0.1, 0.1, 0.45, 0.1)
-    envelope(OP3, 0, 1, 0.1, 0.1, 0.99, 0.1)
-    --envelope(OP4, 0, 1, 0.4, 0.1, 0.9, 1)
+    envelope(OP1, 0, 1, 0.01, 0.01, 0.6, 0.01)
+    envelope(OP2, 0, 1, 0.01, 0.04, 0.45, 0.01)
+    envelope(OP3, 0, 1, 0.5, 0.01, 0.99, 0.01)
+    envelope(OP4, 0, 1, 0.01, 0.01, 0.9, 0.01)
     -- Roteia
     route(OP1, OUT, 0.1)
-    route(OP1, OP1, 0.8)
-    route(OP2, OP1, 0.1)
-    route(OP3, OP1, 0.5)
-    --route(OP4, OP3, 0.8)
+    route(OP2, OP1, 2.0)
+    route(OP3, OUT, 0.3)
+    route(OP4, OP3, 2.0)
     -- Reverb
     --reverb(4, 0.6)
 end

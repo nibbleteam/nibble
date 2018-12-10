@@ -81,41 +81,32 @@ add_executable(nibble
                 ${PROJECT_HEADER_DIR}/kernel/Kernel.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Process.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Process.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/RenderBuffer.cpp
-                ${PROJECT_HEADER_DIR}/kernel/RenderBuffer.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/Memory.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Memory.hpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/CartridgeMemory.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/CartridgeMemory.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/RAM.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/RAM.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/Audio.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/Audio.cpp
-                ${PROJECT_HEADER_DIR}/kernel/Wave.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Wave.cpp
-                ${PROJECT_HEADER_DIR}/kernel/FMSynthesizer.hpp
+                ${PROJECT_HEADER_DIR}/kernel/Wave.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/FMSynthesizer.cpp
-                ${PROJECT_HEADER_DIR}/kernel/Envelope.hpp
+                ${PROJECT_HEADER_DIR}/kernel/FMSynthesizer.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Envelope.cpp
-				${PROJECT_HEADER_DIR}/kernel/Channel.hpp
-				${PROJECT_SOURCE_DIR}/kernel/Channel.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/Controller.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/Controller.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/Keyboard.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/Keyboard.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/Mouse.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/Mouse.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/RandomMemory.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/RandomMemory.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/VideoMemory.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/VideoMemory.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/GPU.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/GPU.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/GPUCommandMemory.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/GPUCommandMemory.cpp
-                ${PROJECT_HEADER_DIR}/kernel/drivers/PaletteMemory.hpp
-                ${PROJECT_SOURCE_DIR}/kernel/drivers/PaletteMemory.cpp
-                ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
+                ${PROJECT_HEADER_DIR}/kernel/Envelope.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/Channel.cpp
+                ${PROJECT_HEADER_DIR}/kernel/Channel.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/mmap/Image.cpp
+                ${PROJECT_HEADER_DIR}/kernel/mmap/Image.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/mmap/Binary.cpp
+                ${PROJECT_HEADER_DIR}/kernel/mmap/Binary.hpp
+                ${PROJECT_SOURCE_DIR}/devices/Audio.cpp
+                ${PROJECT_HEADER_DIR}/devices/Audio.hpp
+                ${PROJECT_SOURCE_DIR}/devices/Controller.cpp
+                ${PROJECT_HEADER_DIR}/devices/Controller.hpp
+                ${PROJECT_SOURCE_DIR}/devices/Keyboard.cpp
+                ${PROJECT_HEADER_DIR}/devices/Keyboard.hpp
+                ${PROJECT_SOURCE_DIR}/devices/Mouse.cpp
+                ${PROJECT_HEADER_DIR}/devices/Mouse.hpp
+                ${PROJECT_SOURCE_DIR}/devices/GPU.cpp
+                ${PROJECT_HEADER_DIR}/devices/GPU.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/filesystem.cpp
+                ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
               )
 add_dependencies(nibble SFML LUA GIF LuaCartsBin LuaCartsBuild)
 

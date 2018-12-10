@@ -1,33 +1,58 @@
 #ifndef NIBBLE_FM_SYNTHESIZER
 #define NIBBLE_FM_SYNTHESIZER
 
+#include <array>
+#include <memory>
+
 #include <kernel/Wave.hpp>
 #include <kernel/Envelope.hpp>
 
-#define SND_FM_OPERATORS    4
+#include <Specs.hpp>
+
+using namespace std;
+
+/*
+ * Formato da matriz FM
+ * OPS: operadores
+ * OUT: saída (uma só coluna com aplitudes da saída)
+ *
+ * A amplitude em cada célula representa o operador em y
+ * modulando o operador em x.
+ *
+ * y -> x
+ *
+ *  OPS + OUT
+ * ------|--->
+ *  _________
+ * |     |   | | OPS
+ * |     |   | |
+ * |_____|___| v
+ */
+#define FM_MATRIX(y,x)   (y)*(AUDIO_OPERATOR_AMOUNT+1)+(x)
 
 class FMSynthesizer {
     // Oscilador
     static Wave wave;
-
     // Acumuladores
-    uint16_t times[SND_FM_OPERATORS];
-    // Freqüências
-    uint8_t *freqs;
+    uint16_t times[AUDIO_OPERATOR_AMOUNT];
     // Envelopes
-    Envelope* envelopes[SND_FM_OPERATORS];
+    array<unique_ptr<Envelope>, AUDIO_OPERATOR_AMOUNT> envelopes;
     // Saídas
-    int16_t outputs[SND_FM_OPERATORS+1];
-    // Matriz de operadores
-    uint8_t *amplitudes;
-
-    uint8_t *mem;
-
+    int16_t outputs[AUDIO_OPERATOR_AMOUNT+1];
     // Frequência base
     float base;
 public:
-    FMSynthesizer(uint8_t*, uint8_t);
-    ~FMSynthesizer();
+#pragma pack(push, 1)
+    struct MemoryLayout {
+        int16_t frequencies[AUDIO_OPERATOR_AMOUNT];
+        Envelope::MemoryLayout envelopes[AUDIO_OPERATOR_AMOUNT];
+        int16_t amplitudes[AUDIO_OPERATOR_AMOUNT*AUDIO_OPERATOR_AMOUNT+AUDIO_OPERATOR_AMOUNT];
+    };
+#pragma pack(pop)
+
+    MemoryLayout &memory;
+public:
+    FMSynthesizer(MemoryLayout&, uint8_t);
 
     void fill(int16_t*, int16_t*, unsigned int);
 
@@ -38,10 +63,6 @@ public:
     void off();
 private:
     int16_t synthesize();
-
-    uint8_t* argptr8(const size_t);
-    int16_t* argptr16(const size_t);
-    float tof(uint8_t);
 };
 
 #endif /* NIBBLE_FM_SYNTHESIZER */

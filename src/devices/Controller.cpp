@@ -1,39 +1,14 @@
-#include <kernel/drivers/Controller.hpp>
 #include <iostream>
 #include <cstring>
 
-Controller::Controller(const uint64_t addr) :
-    address(addr), length(10) {
+#include <devices/Controller.hpp>
+
+Controller::Controller(Memory& memory):
+                       controllers(*((ControllersMemory*)memory.allocate(sizeof(ControllersMemory), "Controllers"))) {
     // Zera todos os botões
-    memset(&controllers, 0, 10);
+    memset(&controllers, 0, sizeof(ControllersMemory));
     // O primeiro controle está sempre conectado 
     controllers.connected = 0b10000000;
-}
-
-Controller::~Controller() {
-}
-
-string Controller::name() {
-	return "CONTROLLER";
-}
-
-// Apenas leitura
-uint64_t Controller::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
-    return 0;
-}
-
-uint64_t Controller::read(const uint64_t pos, uint8_t* data, const uint64_t amount) {
-    memcpy(data, (uint8_t*)(&controllers) + pos, (size_t)amount);
-
-    return amount;
-}
-
-uint64_t Controller::size() {
-    return length;
-}
-
-uint64_t Controller::addr() {
-    return address;
 }
 
 uint8_t Controller::get(uint8_t c, uint8_t b) {
@@ -296,16 +271,16 @@ void Controller::joyDisconnected(sf::Event& event) {
 } 
 
 unsigned int Controller::getState(const unsigned int c) {
-    return (controllers.connected>>((CONTROLLER_NUM-c)*2-2))&3;
+    return (controllers.connected>>((CONTROLLER_AMOUNT-c)*2-2))&3;
 }
 
 void Controller::setState(const unsigned int c, const unsigned int value) {
-    controllers.connected |= value << ((CONTROLLER_NUM-c)*2-2);
+    controllers.connected |= value << ((CONTROLLER_AMOUNT-c)*2-2);
 }
 
 unsigned int Controller::getOpenSlot() {
-    for (unsigned int i=0;i<CONTROLLER_NUM;i++) {
-        unsigned int connected = (controllers.connected>>((CONTROLLER_NUM-i)*2-2))&3;
+    for (unsigned int i=0;i<CONTROLLER_AMOUNT;i++) {
+        unsigned int connected = (controllers.connected>>((CONTROLLER_AMOUNT-i)*2-2))&3;
         if (connected == BUTTON_OFF ||
             connected == BUTTON_ON_OFF) {
             return i;
@@ -316,7 +291,7 @@ unsigned int Controller::getOpenSlot() {
 }
 
 void Controller::allReleased() {
-    for (unsigned int c=0;c<CONTROLLER_NUM;c++) {
+    for (unsigned int c=0;c<CONTROLLER_AMOUNT;c++) {
         for (unsigned int b=0; b<8; b++) {
             release(c, b);
         }
@@ -324,7 +299,7 @@ void Controller::allReleased() {
 }
 
 void Controller::update() {
-    for (unsigned int c=0;c<CONTROLLER_NUM;c++) {
+    for (unsigned int c=0;c<CONTROLLER_AMOUNT;c++) {
         int controllerState = getState(c);
 
         if (controllerState == BUTTON_ON_OFF)

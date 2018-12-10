@@ -61,10 +61,12 @@ return {
             for n=0,12*6-1 do
                 if pattern[t] and pattern[t][n] then
                     local x = t*note_width+self.x
-                    local y = (lines-(n-36))*note_height+self.y
+                    local y = (lines-(n-24))*note_height+self.y
 
-                    rectf(x, y, note_width, note_height, 6)
-                    rect(x, y, note_width, note_height, 15)
+                    rectf(x, y, note_width+1, note_height, 6)
+                    rect(x, y, note_width+1, note_height, 15)
+
+                    print(tostring(n%12+1), x+1, y+2)
                 end
             end
         end
@@ -77,10 +79,10 @@ return {
             pattern[px] = {}
         end
 
-        if pattern[px][py+36] then
-            pattern[px][py+36] = nil
+        if pattern[px][py+24] then
+            pattern[px][py+24] = nil
         else
-            pattern[px][py+36] = true
+            pattern[px][py+24] = true
         end
 
         self.dragging = false
@@ -98,8 +100,8 @@ return {
                 pattern[px] = {}
             end
 
-            if pattern[px][py+36] then
-                pattern[px][py+36] = nil
+            if pattern[px][py+24] then
+                pattern[px][py+24] = nil
             end
         else
             self.dragging = false

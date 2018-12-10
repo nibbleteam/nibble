@@ -1,47 +1,23 @@
 #include <kernel/FMSynthesizer.hpp>
-#include <kernel/drivers/Audio.hpp>
+#include <devices/Audio.hpp>
 #include <cmath>
 
 #include <iostream>
 using namespace std;
 
-#define PARAM_PER_ENVELOPE 12
-
 Wave FMSynthesizer::wave;
 
-FMSynthesizer::FMSynthesizer(uint8_t* mem, uint8_t note): mem(mem) {
-    for (size_t o=0;o<SND_FM_OPERATORS;o++) {
-        outputs[o] = 0;
-        envelopes[o] = new Envelope(argptr16(o*PARAM_PER_ENVELOPE+0*sizeof(int16_t) +
-                                             SND_FM_OPERATORS*sizeof(int16_t)),
-                                    argptr16(o*PARAM_PER_ENVELOPE+1*sizeof(int16_t) +
-                                             SND_FM_OPERATORS*sizeof(int16_t)),
-                                    argptr16(o*PARAM_PER_ENVELOPE+2*sizeof(int16_t) +
-                                             SND_FM_OPERATORS*sizeof(int16_t)),
-                                    argptr16(o*PARAM_PER_ENVELOPE+3*sizeof(int16_t) +
-                                             SND_FM_OPERATORS*sizeof(int16_t)),
-                                    argptr16(o*PARAM_PER_ENVELOPE+4*sizeof(int16_t) +
-                                             SND_FM_OPERATORS*sizeof(int16_t)),
-                                    argptr16(o*PARAM_PER_ENVELOPE+5*sizeof(int16_t) +
-                                             SND_FM_OPERATORS*sizeof(int16_t)));
+FMSynthesizer::FMSynthesizer(MemoryLayout &memory, uint8_t note): memory(memory) {
+    for (size_t op=0;op<AUDIO_OPERATOR_AMOUNT;op++) {
+        outputs[op] = 0;
+        envelopes[op] = make_unique<Envelope>(memory.envelopes[op]);
     }
 
     base = 440.0*pow(1.059463094359, double(note-48));
-
-    freqs = mem;
-    amplitudes = mem +
-                 PARAM_PER_ENVELOPE*SND_FM_OPERATORS +
-                 SND_FM_OPERATORS*sizeof(int16_t);
-}
-
-FMSynthesizer::~FMSynthesizer() {
-    for (size_t e=0;e<SND_FM_OPERATORS;e++) {
-        delete envelopes[e];
-    }
 }
 
 bool FMSynthesizer::done() {
-    for (size_t e=0;e<SND_FM_OPERATORS;e++) {
+    for (size_t e=0;e<AUDIO_OPERATOR_AMOUNT;e++) {
         if (!envelopes[e]->done) {
             return false;
         }
@@ -51,13 +27,13 @@ bool FMSynthesizer::done() {
 }
 
 void FMSynthesizer::on() {
-    for (size_t e=0;e<SND_FM_OPERATORS;e++) {
+    for (size_t e=0;e<AUDIO_OPERATOR_AMOUNT;e++) {
         envelopes[e]->on();
     }
 }
 
 void FMSynthesizer::off() {
-    for (size_t e=0;e<SND_FM_OPERATORS;e++) {
+    for (size_t e=0;e<AUDIO_OPERATOR_AMOUNT;e++) {
         envelopes[e]->off();
     }
 }
@@ -101,12 +77,11 @@ void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCo
 
 int16_t FMSynthesizer::synthesize() {
     // Itera sobre a matriz de operadores
-    for (size_t o1=0;o1<SND_FM_OPERATORS;o1++) {
+    for (size_t o1=0;o1<AUDIO_OPERATOR_AMOUNT;o1++) {
         uint16_t phase = times[o1];
         
-        for (size_t o2=0;o2<SND_FM_OPERATORS;o2++) {
-            auto i = o2*(SND_FM_OPERATORS+1)+o1;
-            phase += outputs[o2]*Audio::tof16(amplitudes+i*sizeof(int16_t));
+        for (size_t o2=0;o2<AUDIO_OPERATOR_AMOUNT;o2++) {
+            phase += outputs[o2]*Audio::tof16(memory.amplitudes[FM_MATRIX(o2, o1)]);
         }
 
         outputs[o1] = wave[phase] * envelopes[o1]->getAmplitude();
@@ -114,13 +89,11 @@ int16_t FMSynthesizer::synthesize() {
 
     int16_t output = 0;
 
-    for (size_t o=0;o<SND_FM_OPERATORS;o++) {
+    for (size_t o=0;o<AUDIO_OPERATOR_AMOUNT;o++) {
         // Avança os acumuladores de cada operador
-        times[o] += Audio::tof16(freqs+o*sizeof(int16_t)) * base * float(UINT16_MAX)/float(44100);
+        times[o] += Audio::tof16(memory.frequencies[o]) * base * float(UINT16_MAX)/float(44100);
 
-        int16_t delta = outputs[o] * Audio::tof16(amplitudes+
-                                                  o*(SND_FM_OPERATORS+1)*sizeof(int16_t)+
-                                                  SND_FM_OPERATORS*sizeof(int16_t));
+        int16_t delta = outputs[o] * Audio::tof16(memory.amplitudes[FM_MATRIX(o, AUDIO_OPERATOR_AMOUNT)]);
 
         // Mixa o operador anterior e o novo
 #ifdef _WIN32
@@ -145,16 +118,4 @@ int16_t FMSynthesizer::synthesize() {
     }
 
     return output;
-}
-
-uint8_t* FMSynthesizer::argptr8(const size_t position) {
-    return &mem[position];
-}
-
-int16_t* FMSynthesizer::argptr16(const size_t position) {
-    return (int16_t*)(mem+position);
-}
-
-float FMSynthesizer::tof(uint8_t n) {
-    return float(n);
 }

@@ -2,54 +2,60 @@
 #define KERNEL_H
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 #include <set>
 #include <string>
 #include <mutex>
-#include <SFML/Graphics.hpp>
+#include <list>
+
 #include <kernel/filesystem.hpp>
 #include <kernel/Process.hpp>
 #include <kernel/Memory.hpp>
-#include <kernel/drivers/GPU.hpp>
-#include <kernel/drivers/Audio.hpp>
-#include <kernel/drivers/Keyboard.hpp>
-#include <kernel/drivers/Mouse.hpp>
-#include <kernel/drivers/Controller.hpp>
+#include <kernel/Types.hpp>
+
+#include <devices/GPU.hpp>
+#include <devices/Audio.hpp>
+#include <devices/Keyboard.hpp>
+#include <devices/Mouse.hpp>
+#include <devices/Controller.hpp>
+
+#include <SFML/Graphics.hpp>
 #include <LuaBridge/LuaBridge.h>
 
 using namespace std;
 
-// Simula o hardware do console e um kernel com
-// nove chamadas de sistema. Duas para gerenciar
-// a memória e sete para gerenciar processos.
+#define NIBBLE_APP_MENU     "apps/system/core/menu.nib"
+
+// Simula o hardware do console e um kernel.
 class Kernel {
-    sf::RenderWindow window;
-    // Memória para acesso direto aos dispositivos
-    // Cada seção específica (joysticks, video, cart)
-    // é implementada como uma extensão
-    // da classe Memory
-    vector <Memory*> ram;
-    // Contém todos os processos carregados em memória
-    set <Process*> processes;
+private:
+    /* Memória */
+    Memory memory;
+
+    /* Processos */
+
     // Contador de ID para os processos gerados
-    uint64_t lastPid;
-    // Usado para saber qual o pid que fez uma chamada de sistema
-    Process* runningProcess;
-    // Aponta para o último byte usado de memória
-    uint64_t lastUsedMemByte;
+    PID lastProcess;
+    // Processo atual, usado para saber quem
+    // chamou as chamadas de sistema
+    PID runningProcess;
+    // Lista de processos executando ou bloqueando
+    map <PID, shared_ptr<Process>> processes;
+    // Tabela de esperas
+    map <PID, PID> waitTable;
+
+    /* Dispositivos */
+
     // GPU 
-    GPU *gpu;
+    unique_ptr<GPU> gpu;
+    // APU
+    unique_ptr<Audio> audio;
     // HID
-    Keyboard *keyboard;
-    Mouse *mouse;
-    Controller *controller;
-    // Placa de áudio
-    Audio *audio;
-    // Waitlist: processos que estão bloqueados
-    // esperando utros processos
-    map<uint64_t, uint64_t> waitlist;
-    // Saindo
-    bool exiting;
+    unique_ptr<Keyboard> keyboard;
+    unique_ptr<Mouse> mouse;
+    unique_ptr<Controller> controller;
+
     // Usado para sincronizar o vídeo com a placa
     // de áudio
     mutex audioMutex;
@@ -73,51 +79,56 @@ public:
     // Acesso direto a memória
     // O acesso ao vídeo e áudio também é feito através de
     // writes e reads
-    // Estas funções operam no vetor de ram, dividindo suas
-    // chamadas em blocos unitários que podem ser executados
-    // por um dos elementos de ram (dispositivos)
-    uint64_t write(uint64_t, const uint8_t*, uint64_t);
-    string read(uint64_t, uint64_t);
+    size_t write(size_t, const uint8_t*, size_t);
+    string read(size_t, size_t);
     // Gerenciamento de processos
     // Executa app
-    tuple<int, string> exec(const string&, map<string, string>);
+    tuple<int32_t, string> exec(const string&, map<string, string>&);
     // Bloqueia enquanto app não sair
-    void wait(const uint64_t);
+    void wait(const PID);
     // Fecha uma app
-    void kill(const uint64_t);
+    void kill(const PID);
     // Environment de processos
     void setenv(const string, const string);
     string getenv(const string);
     // IPC
     luabridge::LuaRef receive();
-    bool send(const uint64_t, luabridge::LuaRef);
+    bool send(const PID, luabridge::LuaRef);
+    // Arquivos
+    // List diretório
+    vector<string> list(const string&);
+    // Mapeia arquivo para memória
+    size_t memmap(const string&);
+    // Salva arquivo mapeado em memória para o disco
+    void memsync(const size_t, const string&, bool);
+    // Muda o tamanho de um arquivo mapeado
+    // em memória
+    size_t memresize(const size_t, const size_t);
 private:
-    // Mapeia dispositivos para a memória, essencialmente
-    // adicionando dispositivos ao vetor ram. Chamada pelo
-    // construtor
-    void createMemoryMap();
-    void destroyMemoryMap();
-    void addMemoryDevice(Memory*);
     // Verifica estrutura de um cartridge
-    bool checkCartStructure(Path&);
+    bool checkAppStructure(Path&);
     // Desbloqueia processos se estiverem
     // na waitlist e o bloqueador já estiver
     // saído
-    void checkWaitlist();
+    void updateWaitTable();
 };
 
-extern Kernel *KernelSingleton;
+extern weak_ptr<Kernel> KernelSingleton;
 
 // API estática para o acesso via Lua
-string kernel_api_read(const unsigned long, const unsigned long);
-unsigned long kernel_api_write(const unsigned long, const string);
+string kernel_api_read(const size_t, const size_t);
+size_t kernel_api_write(const size_t, const string&);
 int kernel_api_exec(lua_State*);
-void kernel_api_wait(unsigned long);
-void kernel_api_kill(unsigned long);
+void kernel_api_wait(PID);
+void kernel_api_kill(PID);
 void kernel_api_setenv(const string, const string);
 string kernel_api_getenv(const string);
 luabridge::LuaRef kernel_api_receive();
-bool kernel_api_send(unsigned long, luabridge::LuaRef);
+bool kernel_api_send(PID, luabridge::LuaRef);
+size_t kernel_api_memmap(const string&);
+void kernel_api_memsync(const size_t, const string&, bool);
+size_t kernel_api_memresize(const size_t, const size_t);
+luabridge::LuaRef kernel_api_list(const string&, lua_State*);
 
 #endif /* KERNEL_H */
 

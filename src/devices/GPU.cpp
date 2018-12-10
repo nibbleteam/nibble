@@ -1,13 +1,15 @@
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <SFML/OpenGL.hpp>
-#include <kernel/drivers/VideoMemory.hpp>
-#include <kernel/drivers/GPU.hpp>
 #include <iostream>
 #include <cstring>
+#include <cmath>
+
+#include <devices/GPU.hpp>
+
+#include <Icon.hpp>
+
+using namespace std;
 
 // Vertex shader padrão do SFML sem alterações
-const string VideoMemory::shaderVertex = R"(
+const string GPU::shaderVertex = R"(
 void main()
 {
     // transform the vertex position
@@ -26,7 +28,7 @@ void main()
 // pixel na imagem como 4 pixels na tela.
 // Para fazer isso considera cada canal como
 // um pixel
-const string VideoMemory::toRGBAShaderFragment = R"(
+const string GPU::toRGBAShaderFragment = R"(
 const float screen_w = 320.0;
 // 4 canais na textura (RGBA)
 const float bytes_per_pixel = 4.0;
@@ -92,22 +94,50 @@ void main()
 }
 )";
 
-VideoMemory::VideoMemory(sf::RenderWindow &window, const uint64_t addr):
-    window(window), address(addr), colormap(NULL),
-    screenScale(2), screenOffsetX(0), screenOffsetY(0) {
+GPU::GPU(Memory& memory):
+    colormap(NULL), screenScale(2), screenOffsetX(0), screenOffsetY(0),
+    window(sf::VideoMode(GPU_VIDEO_WIDTH*GPU_DEFAULT_SCALING,
+                         GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING),
+           "Nibble") {
+    commandMemory = memory.allocate(GPU_COMMAND_MEM_SIZE, "GPU Commands", [&] (Memory::AccessMode mode) {
+        if (mode == Memory::ACCESS_WRITE) {
+            this->execGpuCommand(this->commandMemory);
+        }
+    });
+    // TODO: esse não é o tamanho certo
+    paletteMemory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
+    videoMemory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
+
+    // FPS Máximo 
+    window.setFramerateLimit(GPU_FRAMERATE);
+
+    // O tamanho virtual da janela é sempre fixo
+    window.setView(sf::View(sf::FloatRect(0, 0, GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT)));
+
+    // Não gera múltiplos keypresses se a tecla ficar apertada
+    window.setKeyRepeatEnabled(false);
+
+    // Não mostra o cursor
+    window.setMouseCursorVisible(false);
+
+    // Coloca o ícone
+    sf::Image Icon;
+	if (Icon.loadFromMemory(icon_png, icon_png_len)) {
+        window.setIcon(icon_width, icon_height, Icon.getPixelsPtr());
+    }
+
     // Tamanho da textura é 1/4 do tamanho da tela
     // uma vez que um pixel no sfml são quatro bytes
     // e no console é apenas um
-    framebuffer.create(SCREEN_W/BYTES_PER_TEXEL, SCREEN_H);
+    framebuffer.create(GPU_VIDEO_WIDTH/BYTES_PER_TEXEL, GPU_VIDEO_HEIGHT);
 
     // Sprite para desenhar o framebuffer na tela
     framebufferSpr = sf::Sprite(framebuffer);
     framebufferSpr.setScale(BYTES_PER_TEXEL, 1);
     
     // Cria a textura da palleta
-    paletteTex.create(GPU::paletteLength*GPU::paletteAmount+
-                      (2*GPU::paletteLength*GPU::paletteAmount)/BYTES_PER_TEXEL, 1);
-    
+    paletteTex.create(GPU_PALETTE_MEM_SIZE/BYTES_PER_TEXEL, 1);
+
     // Shader de final de pipeline
     if (!toRGBAShader.loadFromMemory(shaderVertex, toRGBAShaderFragment)) {
         cout << "video " << "error loading toRGBA shader" << endl;
@@ -120,31 +150,126 @@ VideoMemory::VideoMemory(sf::RenderWindow &window, const uint64_t addr):
     }
 
     // Inicializa a memória
-    for (size_t i=0;i<VIDEO_MEMORY_LENGTH;i++) {
-      buffer[i] = int(0xFF*sin(i/14))%0x10;
-      //buffer[i] = (i%320+rand()%4)%8 == 0 ? (rand()%0x10) : (0);
+    for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
+      //videoMemory[i] = int(0xFF*sin(i/14))%0x10;
+      videoMemory[i] = (i%320+rand()%4)%8 == 0 ? (rand()%0x10) : (0);
     }
 
     // Inicializa com bytes não inicializados
-    framebuffer.update(buffer);
-
-    paletteData = nullptr;
+    framebuffer.update(videoMemory);
 
     // Aspect-ratio correto
     resize();
+
+    // Configura os buffers padrões:
+    //  - target -> video
+    //  - source -> spritesheet
+    source = videoMemory; // TODO
+    sourceW = GPU_VIDEO_WIDTH;
+    sourceH = GPU_VIDEO_HEIGHT;
+
+    target = videoMemory;
+    targetW = GPU_VIDEO_WIDTH;
+    targetH = GPU_VIDEO_HEIGHT;
 }
 
-VideoMemory::~VideoMemory() {
-    if (colormap != NULL) {
-        stopCapturing();
+void GPU::startup() {
+    uint8_t defaultPalette[] = {
+        0x14, 0x0c, 0x1c, 0xFF,
+        0x44, 0x24, 0x34, 0xFF,
+        0x30, 0x34, 0x6d, 0xFF,
+        0x4e, 0x4a, 0x4e, 0xFF,
+        0x85, 0x4c, 0x30, 0xFF,
+        0x34, 0x65, 0x24, 0xFF,
+        0xd0, 0x46, 0x48, 0xFF,
+        0x75, 0x71, 0x61, 0xFF,
+        0x59, 0x7d, 0xce, 0xFF,
+        0xd2, 0x7d, 0x2c, 0xFF,
+        0x85, 0x95, 0xa1, 0xFF,
+        0x6d, 0xaa, 0x2c, 0xFF,
+        0xd2, 0xaa, 0x99, 0xFF,
+        0x6d, 0xc2, 0xca, 0xFF,
+        0xda, 0xd4, 0x5e, 0xFF,
+        0xde, 0xee, 0xd6, 0xFF,
+    };
+
+    memcpy(paletteMemory, defaultPalette, sizeof(defaultPalette));
+
+    for (size_t i=0;i<GPU_PALETTE_TBL1_SIZE;i++) {
+        paletteMemory[i+GPU_PALETTE_SIZE*GPU_PALETTE_DEPTH] = i;
+    }
+
+    for (size_t i=0;i<GPU_PALETTE_TBL2_SIZE;i++) {
+        paletteMemory[i+GPU_PALETTE_SIZE*GPU_PALETTE_DEPTH+GPU_PALETTE_TBL1_SIZE] = i;
     }
 }
 
-string VideoMemory::name() {
-    return "VIDEO";
+void GPU::draw() {
+    paletteTex.update(paletteMemory);
+    // Atualiza resultado do render da CPU
+    framebuffer.update(videoMemory);
+
+    // Grava a frame
+    if (colormap != NULL) {
+        captureFrame();
+    }
+
+    // Só limpa a tela se tivermos barras horizontais ou verticais
+    if (screenOffsetX != 0 || screenOffsetY != 0) {
+        window.clear();
+    }
+
+    // Desenha o framebuffer na tela, usando o shader para converter do
+    // formato 1byte por pixel para cores RGBA nos pixels
+    window.draw(framebufferSpr, &toRGBAShader);
+
+    // Mostra o resultado na janela
+    window.display();
 }
 
-bool VideoMemory::startCapturing(const string& path) {
+void GPU::resize() {
+    // Mantém o aspect ratio
+    auto windowSize = window.getSize();
+    auto screenRatio = float(GPU_VIDEO_WIDTH)/float(GPU_VIDEO_HEIGHT);
+
+    if (windowSize.x > windowSize.y*screenRatio) {
+        auto ratio = float(GPU_VIDEO_WIDTH)/float(GPU_VIDEO_HEIGHT)*float(windowSize.y)/float(windowSize.x);
+        float spriteWidth = ratio*BYTES_PER_TEXEL;
+
+        screenScale = float(windowSize.y)/float(GPU_VIDEO_HEIGHT);
+        screenOffsetX = (float)GPU_VIDEO_WIDTH*(1-ratio)/2.0;
+        screenOffsetY = 0;
+
+        framebufferSpr.setScale(spriteWidth, 1.0);
+        framebufferSpr.setPosition(screenOffsetX, 0);
+    }
+    else {
+        auto ratio = (float)windowSize.x/(float)windowSize.y*(float)GPU_VIDEO_HEIGHT/(float)GPU_VIDEO_WIDTH;
+        float spriteHeight = ratio;
+
+        screenScale = float(windowSize.x)/float(GPU_VIDEO_WIDTH);
+        screenOffsetX = 0;
+        screenOffsetY = (float)GPU_VIDEO_HEIGHT*(1-ratio)/2.0;
+
+        framebufferSpr.setScale(BYTES_PER_TEXEL, spriteHeight);
+        framebufferSpr.setPosition(0, screenOffsetY);
+    }
+}
+
+void GPU::transformMouse(int16_t &x, int16_t &y) {
+    auto windowSize = window.getSize();
+
+    x /= screenScale;
+    y /= screenScale;
+    x -= (windowSize.x/screenScale-GPU_VIDEO_WIDTH)/2;
+    y -= (windowSize.y/screenScale-GPU_VIDEO_HEIGHT)/2;
+}
+
+/*
+ * GIF
+ */
+
+bool GPU::startCapturing(const string& path) {
     int error;
 
     // Cria um colormap a partir da paleta
@@ -155,9 +280,12 @@ bool VideoMemory::startCapturing(const string& path) {
     // Versão nova do GIF
     EGifSetGifVersion(gif, true);
     // Coonfigurações da screen
-    error = EGifPutScreenDesc(gif, SCREEN_W, SCREEN_H,
-                              GPU::paletteLength*GPU::paletteAmount, 0,
+    error = EGifPutScreenDesc(gif,
+                              GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT,
+                              GPU_PALETTE_MEM_SIZE,
+                              0,
                               colormap);
+
     // Limpa a paleta que foi escrita
     GifFreeMapObject(colormap);
 
@@ -184,7 +312,7 @@ bool VideoMemory::startCapturing(const string& path) {
     return true;
 }
 
-bool VideoMemory::stopCapturing() {
+bool GPU::stopCapturing() {
     int error;
     EGifCloseFile(gif, &error);
     if (error != GIF_OK) {
@@ -197,7 +325,7 @@ bool VideoMemory::stopCapturing() {
     return true;
 }
 
-bool VideoMemory::captureFrame() {
+bool GPU::captureFrame() {
     int error;
     char graphics[] {
         0, 4&0xFF, 4>>8, 0
@@ -213,13 +341,13 @@ bool VideoMemory::captureFrame() {
         return false;
     }
 
-    error = EGifPutImageDesc(gif, 0, 0, SCREEN_W, SCREEN_H, false, NULL);
+    error = EGifPutImageDesc(gif, 0, 0, GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT, false, NULL);
     if (error != GIF_OK) {
         cerr << GifErrorString(error) << endl;
         return false;
     }
 
-    error = EGifPutLine(gif, buffer, VIDEO_MEMORY_LENGTH);
+    error = EGifPutLine(gif, videoMemory, GPU_VIDEO_MEM_SIZE);
 
     if (error != GIF_OK) {
         cerr << GifErrorString(error) << endl;
@@ -229,7 +357,7 @@ bool VideoMemory::captureFrame() {
     return true;
 }
 
-ColorMapObject* VideoMemory::getColorMap() {
+ColorMapObject* GPU::getColorMap() {
     // "Paleta" do GIF
     GifColorType colors[GPU_PALETTE_LENGTH*GPU_PALETTE_AMOUNT];
     auto image = paletteTex.copyToImage();
@@ -252,9 +380,9 @@ ColorMapObject* VideoMemory::getColorMap() {
 // Render de Software
 //
 
-void VideoMemory::fixRectBounds(int16_t& x, int16_t& y,
-                                       int16_t& w, int16_t& h,
-                                       int16_t bw, int16_t bh) {
+void GPU::fixRectBounds(int16_t& x, int16_t& y,
+                        int16_t& w, int16_t& h,
+                        int16_t bw, int16_t bh) {
     if (x < 0) {
         w = max(w+x, 0);
         x = 0;
@@ -272,9 +400,9 @@ void VideoMemory::fixRectBounds(int16_t& x, int16_t& y,
     }
 }
 
-void VideoMemory::line(int16_t x1, int16_t y1,
-                       int16_t x2, int16_t y2,
-                       uint8_t color) {
+void GPU::line(int16_t x1, int16_t y1,
+               int16_t x2, int16_t y2,
+               uint8_t color) {
     // Bresenham para inteiros
     const int16_t dx = abs(x1-x2);
     const int16_t dy = -abs(y1-y2);
@@ -285,7 +413,7 @@ void VideoMemory::line(int16_t x1, int16_t y1,
 
     while (true) {
         if (!OUT_OF_BOUNDS(x1, y1)) {
-            buffer[x1+y1*SCREEN_W] = color;
+            target[x1+y1*targetW] = color;
         }
 
         D2 = D<<1;
@@ -306,10 +434,10 @@ void VideoMemory::line(int16_t x1, int16_t y1,
     }
 }
 
-void VideoMemory::rect(int16_t x, int16_t y,
-                       int16_t w, int16_t h,
-                       uint8_t color) {
-    fixRectBounds(x, y, w, h, SCREEN_W, SCREEN_H);
+void GPU::rect(int16_t x, int16_t y,
+               int16_t w, int16_t h,
+               uint8_t color) {
+    fixRectBounds(x, y, w, h, targetW, targetH);
 
     auto ex = max(x+w-1, 0);
     auto ey = max(y+h-1, 0);
@@ -320,27 +448,27 @@ void VideoMemory::rect(int16_t x, int16_t y,
     line(x, ey, ex, ey, color);
 }
 
-void VideoMemory::tri(int16_t x1, int16_t y1,
-                      int16_t x2, int16_t y2,
-                      int16_t x3, int16_t y3,
-                      uint8_t color) {
+void GPU::tri(int16_t x1, int16_t y1,
+              int16_t x2, int16_t y2,
+              int16_t x3, int16_t y3,
+              uint8_t color) {
     line(x1, y1, x2, y2, color);
     line(x2, y2, x3, y3, color);
     line(x3, y3, x1, y1, color);
 }
 
-void VideoMemory::quad(int16_t x1, int16_t y1,
-                       int16_t x2, int16_t y2,
-                       int16_t x3, int16_t y3,
-                       int16_t x4, int16_t y4,
-                       uint8_t color) {
+void GPU::quad(int16_t x1, int16_t y1,
+               int16_t x2, int16_t y2,
+               int16_t x3, int16_t y3,
+               int16_t x4, int16_t y4,
+               uint8_t color) {
     line(x1, y1, x2, y2, color);
     line(x2, y2, x3, y3, color);
     line(x3, y3, x4, y4, color);
     line(x4, y4, x1, y1, color);
 }
 
-void VideoMemory::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
+void GPU::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     // Decisão inicial, começamos a desenhar de (r, 0):
     // midpoint(r, 0) => (r-0.5), (0+1)
     // P do midpoint => P(r-0.5, 1) = (r-0.5)²+1²-r² = r²-r+.5²+1-r² = (1+.25)-r = 1.25-r
@@ -351,28 +479,28 @@ void VideoMemory::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     while(x >= y) {
         // Desenha o pixel anterior, replicado em 8
         if (!OUT_OF_BOUNDS(dx+x, dy+y)) {
-            buffer[dx+x+(dy+y)*SCREEN_W] = color;
+            target[dx+x+(dy+y)*targetW] = color;
         }
         if (!OUT_OF_BOUNDS(dx-x, dy-y)) {
-            buffer[dx-x+(dy-y)*SCREEN_W] = color;
+            target[dx-x+(dy-y)*targetW] = color;
         }
         if (!OUT_OF_BOUNDS(dx+x, dy-y)) {
-            buffer[dx+x+(dy-y)*SCREEN_W] = color;
+            target[dx+x+(dy-y)*targetW] = color;
         }
         if (!OUT_OF_BOUNDS(dx-x, dy+y)) {
-            buffer[dx-x+(dy+y)*SCREEN_W] = color;
+            target[dx-x+(dy+y)*targetW] = color;
         }
         if (!OUT_OF_BOUNDS(dx+y, dy+x)) {
-            buffer[dx+y+(dy+x)*SCREEN_W] = color;
+            target[dx+y+(dy+x)*targetW] = color;
         }
         if (!OUT_OF_BOUNDS(dx-y, dy-x)) {
-            buffer[dx-y+(dy-x)*SCREEN_W] = color;
+            target[dx-y+(dy-x)*targetW] = color;
         }
         if (!OUT_OF_BOUNDS(dx+y, dy-x)) {
-            buffer[dx+y+(dy-x)*SCREEN_W] = color;
+            target[dx+y+(dy-x)*targetW] = color;
         }
         if (!OUT_OF_BOUNDS(dx-y, dy+x)) {
-            buffer[dx-y+(dy+x)*SCREEN_W] = color;
+            target[dx-y+(dy+x)*targetW] = color;
         }
 
         // Escolhe entre (x-1, y+1) e (x, y+1)
@@ -388,9 +516,9 @@ void VideoMemory::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     }
 }
 
-void VideoMemory::rectFill(int16_t x, int16_t y,
-                           int16_t w, int16_t h,
-                           uint8_t color) {
+void GPU::rectFill(int16_t x, int16_t y,
+                   int16_t w, int16_t h,
+                   uint8_t color) {
     if (w < 0) {
         x += w;
         w = -w;
@@ -408,10 +536,10 @@ void VideoMemory::rectFill(int16_t x, int16_t y,
     }
 }
 
-void VideoMemory::orderedTriFill(int16_t x1, int16_t y1,
-                                 int16_t x2, int16_t y2,
-                                 int16_t x3, int16_t y3,
-                                 uint8_t color) {
+void GPU::orderedTriFill(int16_t x1, int16_t y1,
+                         int16_t x2, int16_t y2,
+                         int16_t x3, int16_t y3,
+                         uint8_t color) {
     // Casos especiais
     if ((x1 == x2 && x2 == x3) ||(y1 == y2 && y2 == y3)) {
         tri(x1, y1, x2, y2, x3, y3, color);
@@ -503,10 +631,10 @@ prepareSecondLine:
     goto start;
 }
 
-void VideoMemory::triFill(int16_t x1, int16_t y1,
-                          int16_t x2, int16_t y2,
-                          int16_t x3, int16_t y3,
-                          uint8_t color) {
+void GPU::triFill(int16_t x1, int16_t y1,
+                  int16_t x2, int16_t y2,
+                  int16_t x3, int16_t y3,
+                  uint8_t color) {
     if (y1 <= y2 && y2 <= y3) {
         orderedTriFill(x1, y1, x2, y2, x3, y3, color);
     } else if (y1 <= y3 && y3 <= y2) {
@@ -522,11 +650,11 @@ void VideoMemory::triFill(int16_t x1, int16_t y1,
     }
 }
 
-void VideoMemory::quadFill(int16_t x1, int16_t y1,
-                           int16_t x2, int16_t y2,
-                           int16_t x3, int16_t y3,
-                           int16_t x4, int16_t y4,
-                           uint8_t color) {
+void GPU::quadFill(int16_t x1, int16_t y1,
+                   int16_t x2, int16_t y2,
+                   int16_t x3, int16_t y3,
+                   int16_t x4, int16_t y4,
+                   uint8_t color) {
     const int16_t miny = min<int16_t>({y1, y2, y3, y4});
     const int16_t maxy = max<int16_t>({y1, y2, y3, y4});
 
@@ -551,18 +679,18 @@ void VideoMemory::quadFill(int16_t x1, int16_t y1,
     }
 }
 
-void VideoMemory::scanLine(int16_t x1, int16_t x2, int16_t y, uint8_t color) {
+void GPU::scanLine(int16_t x1, int16_t x2, int16_t y, uint8_t color) {
     if (x2 >= x1) {
         if (!SCAN_OUT_OF_BOUNDS(x1, x2, y)) {
             x1 = max(x1, (int16_t)0);
-            x2 = min(x2, (int16_t)(SCREEN_W-1));
+            x2 = min(x2, (int16_t)(targetW-1));
 
-            memset(buffer+x1+y*SCREEN_W, color, x2-x1+1);
+            memset(target+x1+y*targetW, color, x2-x1+1);
         }
     }
 }
 
-void VideoMemory::circleFill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
+void GPU::circleFill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     int16_t d = 1-abs(r);
     int16_t x = abs(r), y = 0;
 
@@ -584,7 +712,7 @@ void VideoMemory::circleFill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     }
 }
 
-void VideoMemory::copyScanLine(uint8_t *dst, uint8_t *src, size_t bytes) {
+void GPU::copyScanLine(uint8_t *dst, uint8_t *src, size_t bytes) {
     const auto end_src = src+bytes;
 
     while (src < end_src) {
@@ -600,10 +728,10 @@ void VideoMemory::copyScanLine(uint8_t *dst, uint8_t *src, size_t bytes) {
     }
 }
 
-void VideoMemory::sprite(int16_t sx, int16_t sy,
-                         int16_t dx, int16_t dy,
-                         int16_t w, int16_t h,
-                         uint8_t pal) {
+void GPU::sprite(int16_t sx, int16_t sy,
+                 int16_t dx, int16_t dy,
+                 int16_t w, int16_t h,
+                 uint8_t pal) {
     if (dx < 0) {
         w = max(w+dx, 0);
         sx -= dx;
@@ -616,7 +744,7 @@ void VideoMemory::sprite(int16_t sx, int16_t sy,
         dy = 0;
     }
 
-    if (dy+h >= SCREEN_H || dx+w >= SCREEN_W) {
+    if (dy+h >= targetH || dx+w >= targetW) {
         return;
     }
 
@@ -630,26 +758,26 @@ void VideoMemory::sprite(int16_t sx, int16_t sy,
         dy = 0;
     }
 
-    auto src = spritesheet+sy*SPRITESHEET_W+sx;
-    auto ptr = buffer+dy*SCREEN_W+dx;
-    const auto ptrF = ptr+SCREEN_W*h;
+    auto src = source+sy*sourceW+sx;
+    auto ptr = target+dy*targetW+dx;
+    const auto ptrF = ptr+targetW*h;
 
-    for(;ptr < ptrF;ptr+=SCREEN_W,src+=SPRITESHEET_W) {
+    for(;ptr < ptrF;ptr+=targetW,src+=sourceW) {
         copyScanLine(ptr, src, w);
     }
 }
 
-uint8_t VideoMemory::next8Arg(uint8_t *&arg) {
+uint8_t GPU::next8Arg(uint8_t *&arg) {
     return *arg++;
 }
 
-int16_t VideoMemory::next16Arg(uint8_t *&arg) {
+int16_t GPU::next16Arg(uint8_t *&arg) {
     int16_t value = int16_t(uint16_t(arg[0]&0b01111111)<<8 | uint16_t(arg[1])) * (arg[0]&0x80 ? -1 : 1);
     arg+=sizeof(int16_t);
     return value;
 }
 
-string VideoMemory::nextStrArg(uint8_t *&arg) {
+string GPU::nextStrArg(uint8_t *&arg) {
     // Lê no máximo n caracteres
     static int limit = 31;
     string value;
@@ -666,7 +794,7 @@ string VideoMemory::nextStrArg(uint8_t *&arg) {
     return value;
 }
 
-void VideoMemory::execGpuCommand(uint8_t *cmd) {
+void GPU::execGpuCommand(uint8_t *cmd) {
     enum Commands {
         Clear = 0x00,
         FillRect,
@@ -690,7 +818,7 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
             if (TRANSPARENT(color))
                 break;
 
-            memset(buffer, COLMAP1(color), VIDEO_MEMORY_LENGTH);
+            memset(videoMemory, COLMAP1(color), GPU_VIDEO_MEM_SIZE);
         } break;
         case FillRect: {
             auto color = next8Arg(cmd);
@@ -809,92 +937,4 @@ void VideoMemory::execGpuCommand(uint8_t *cmd) {
             }
         } break;
     }
-}
-
-void VideoMemory::draw() {
-    // Atualiza resultado do render da CPU
-    framebuffer.update(buffer);
-
-    // Grava a frame
-    if (colormap != NULL) {
-        captureFrame();
-    }
-
-    // Só limpa a tela se tivermos barras horizontais ou verticais
-    if (screenOffsetX != 0 || screenOffsetY != 0) {
-        window.clear();
-    }
-
-    // Desenha o framebuffer na tela, usando o shader para converter do
-    // formato 1byte por pixel para cores RGBA nos pixels
-    window.draw(framebufferSpr, &toRGBAShader);
-}
-
-void VideoMemory::resize() {
-    // Mantém o aspect ratio
-    auto windowSize = window.getSize();
-    auto screenRatio = float(SCREEN_W)/float(SCREEN_H);
-
-    if (windowSize.x > windowSize.y*screenRatio) {
-        auto ratio = float(SCREEN_W)/float(SCREEN_H)*float(windowSize.y)/float(windowSize.x);
-        float spriteWidth = ratio*BYTES_PER_TEXEL;
-
-        screenScale = float(windowSize.y)/float(SCREEN_H);
-        screenOffsetX = (float)SCREEN_W*(1-ratio)/2.0;
-        screenOffsetY = 0;
-
-        framebufferSpr.setScale(spriteWidth, 1.0);
-        framebufferSpr.setPosition(screenOffsetX, 0);
-    }
-    else {
-        auto ratio = (float)windowSize.x/(float)windowSize.y*(float)SCREEN_H/(float)SCREEN_W;
-        float spriteHeight = ratio;
-
-        screenScale = float(windowSize.x)/float(SCREEN_W);
-        screenOffsetX = 0;
-        screenOffsetY = (float)SCREEN_H*(1-ratio)/2.0;
-
-        framebufferSpr.setScale(BYTES_PER_TEXEL, spriteHeight);
-        framebufferSpr.setPosition(0, screenOffsetY);
-    }
-}
-
-void VideoMemory::transformMouse(uint16_t &x, uint16_t &y) {
-    auto windowSize = window.getSize();
-
-    x /= screenScale;
-    y /= screenScale;
-    x -= (windowSize.x/screenScale-SCREEN_W)/2;
-    y -= (windowSize.y/screenScale-SCREEN_H)/2;
-}
-
-void VideoMemory::updatePalette(const uint8_t* palette) {
-    paletteData = palette;
-    paletteTex.update(palette, paletteTex.getSize().x, paletteTex.getSize().y, 0, 0);
-}
-
-void VideoMemory::updateSpriteSheet(const uint64_t p, const uint8_t* data, const uint64_t size) {
-    memcpy(spritesheet+p, data, size);
-}
-
-// Escreve data (que tem size bytes) na posição p na memória de vídeo
-uint64_t VideoMemory::write(const uint64_t p, const uint8_t* data, const uint64_t size) {
-    // Copia dados para RAM
-    memcpy(buffer+p, data, size);
-    return size;
-}
-
-uint64_t VideoMemory::read(const uint64_t p, uint8_t* data, const uint64_t size) {
-    // Copia da memória de vídeo para o buffer do cliente
-    memcpy(data, buffer+p, size);
-    
-    return size;
-}
-
-uint64_t VideoMemory::size() {
-    return VIDEO_MEMORY_LENGTH;
-}
-
-uint64_t VideoMemory::addr() {
-    return address;
 }

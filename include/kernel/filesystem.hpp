@@ -75,6 +75,6 @@ public:
 	static size_t getFileSize (Path);
 	static char* getFileData (Path);
 	static bool setFileData(Path, const char*, size_t);
-	//static vector <Path> listDirectory (Path,bool&);
+	static vector <Path> listDirectory (Path,bool&);
 };
 #endif /* BAZINGA_FILESYSTEM_H */

@@ -213,9 +213,11 @@ function NOM:draw_cursor()
 end
 
 function NOM:update_mouse()
-    local x, y = read16(154442), read16(154444)
+    local maddr = 81638
+
+    local x, y = read16(maddr), read16(maddr+2)
     local drag = false
-    self.mouse.click = read8(154446)
+    self.mouse.click = read8(maddr+4)
 
     if self.mouse.click == 2 then
         self.cursor.state = 'pressing'

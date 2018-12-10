@@ -13,15 +13,25 @@ class Envelope {
         RELEASE
     };
 
-    int16_t *sustained;
     Status status;
-    int16_t *level, *sustain;
-    int16_t *attack, *decay, *release;
+public:
+#pragma pack(push, 1)
+    struct MemoryLayout {
+        int16_t sustained;
+        int16_t level;
+        int16_t sustain;
+        int16_t attack;
+        int16_t decay;
+        int16_t release;
+    };
+#pragma pack(pop)
+
+    MemoryLayout &memory;
 public:
     float amplitude;
     bool done;
 
-    Envelope(int16_t*, int16_t*, int16_t*, int16_t*, int16_t*, int16_t*);
+    Envelope(MemoryLayout&);
 
     void on();
     void off();

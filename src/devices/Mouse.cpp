@@ -1,34 +1,11 @@
-#include <kernel/drivers/Mouse.hpp>
-#include <kernel/drivers/Controller.hpp>
 #include <iostream>
 #include <cstring>
 
-Mouse::Mouse(const uint64_t addr) :
-	address(addr) {
-}
+#include <devices/Mouse.hpp>
+#include <devices/Controller.hpp>
 
-Mouse::~Mouse() {
-}
-
-string Mouse::name() {
-    return "MOUSE";
-}
-
-uint64_t Mouse::write(const uint64_t pos, const uint8_t* data, const uint64_t amount) {
-	return 0;
-}
-
-uint64_t Mouse::read(const uint64_t pos, uint8_t* data, const uint64_t amount) {
-    memcpy(data, mem+pos, amount);
-	return amount;
-}
-
-uint64_t Mouse::size() {
-    return 6;
-}
-
-uint64_t Mouse::addr() {
-	return address;
+Mouse::Mouse(Memory &memory) {
+    mem = memory.allocate(MOUSE_MEM_SIZE, "Mouse");
 }
 
 void Mouse::moved(uint16_t x, uint16_t y) {

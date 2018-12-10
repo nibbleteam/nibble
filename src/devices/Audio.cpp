@@ -1,65 +1,40 @@
 #include <kernel/Kernel.hpp>
-#include <kernel/drivers/Audio.hpp>
+#include <devices/Audio.hpp>
 #include <climits>
 #include <cstring>
 #include <cmath>
 #include <iostream>
 using namespace std;
 
-const unsigned int Audio::sampleCount = 1470;
-
-Audio::Audio(const uint64_t addr):
-    address(addr), nextTick(0), t(0), playing(true) {
-    samples = new int16_t[sampleCount];
-
-    // Área de memória acessável para programas Lua
-    const auto sndMemorySize = SND_CHANNELS*Channel::bytesPerChannel;
-    sndMemory = new uint8_t[sndMemorySize];
-    memset(sndMemory, 0, sndMemorySize);
+Audio::Audio(Memory &memory): nextTick(0), t(0) {
+    // Aloca memória
+    samples = (int16_t*)memory.allocate(AUDIO_SAMPLE_MEM_SIZE, "Audio Samples Buffer");
 
     // Cria canais
-    for (unsigned int i=0;i<SND_CHANNELS;i++) {
-        channels[i] = new Channel(sndMemory+i*Channel::bytesPerChannel, i);
+    for (size_t ch=0;ch<AUDIO_CHANNEL_AMOUNT;ch++) {
+        channels[ch] = make_unique<Channel>(memory);
     }
 
     // Inicializa a placa de áudio
-    initialize(1, 44100);
+    initialize(1, AUDIO_SAMPLE_RATE);
 
     // Calcula velocidade da sincronização
-    calculateTickPeriod(60.0);
+    calculateTickPeriod(AUDIO_UPDATE_RATE);
 }
 
-Audio::~Audio() {
-    delete samples;
-
-    // Libera memória dos canais
-    for (unsigned int i=0;i<SND_CHANNELS;i++) {
-        delete channels[i];
-    }
-
-    // Libera memória dos registradores/mapa de memória
-    delete[] sndMemory;
+void Audio::startup() {
+    play();
 }
 
-string Audio::name() {
-    return "AUDIO";
-}
-
-uint64_t Audio::write(const uint64_t p, const uint8_t* data, const uint64_t size) {
-    memcpy(sndMemory+p, data, size);
-    return size;
-}
-
-uint64_t Audio::read(const uint64_t p, uint8_t* data, const uint64_t size) {
-    memcpy(data, sndMemory+p, size);
-    return 0;
+void Audio::shutdown() {
+    stop();
 }
 
 bool Audio::onGetData(Audio::Chunk& chunk) {
-    unsigned int missingSampleCount = sampleCount;
+    unsigned int missingSampleCount = AUDIO_SAMPLE_AMOUNT;
     unsigned int initialT = t;
 
-    memset(samples, 0, sizeof(int16_t)*sampleCount);
+    memset(samples, 0, AUDIO_SAMPLE_MEM_SIZE);
 
     // Preenche o buffer "samples"
     do {
@@ -73,7 +48,11 @@ bool Audio::onGetData(Audio::Chunk& chunk) {
             t = nextTick;
             missingSampleCount -= finalSampleCount;
 
-            KernelSingleton->audioTick();
+            auto kernel = KernelSingleton.lock();
+
+            if (kernel) {
+                kernel->audioTick();
+            }
 
             calculateNextTick();
         } else {
@@ -87,24 +66,19 @@ bool Audio::onGetData(Audio::Chunk& chunk) {
 
     // Passa informações sobre os samples para a placa de áudio
     chunk.samples = samples;
-    chunk.sampleCount = sampleCount;
+    chunk.sampleCount = AUDIO_SAMPLE_AMOUNT;
 
-    return playing;
-}
-
-void Audio::exit() {
-    playing = false;
+    return true;
 }
 
 void Audio::mix(int16_t* samples, unsigned int sampleCount) {
     // Preenche samples de cada canal
-    for (unsigned int c=0;c<SND_CHANNELS;c++) {
+    for (unsigned int c=0;c<AUDIO_CHANNEL_AMOUNT;c++) {
         channels[c]->fill(samples, sampleCount);
     }
 }
 
-void Audio::onSeek(sf::Time) {
-}
+void Audio::onSeek(sf::Time) { }
 
 void Audio::calculateTickPeriod(const double frequency) {
     // Período em segundos
@@ -116,14 +90,6 @@ void Audio::calculateTickPeriod(const double frequency) {
 
 void Audio::calculateNextTick() {
     nextTick += tickPeriod;
-}
-
-uint64_t Audio::addr() {
-    return address;
-}
-
-uint64_t Audio::size() {
-    return SND_MEMORY_LENGTH;
 }
 
 float Audio::tof(uint8_t n) {
@@ -140,4 +106,8 @@ float Audio::tof16(const uint8_t *buffer) {
 
 float Audio::tof16(const int16_t *buffer) {
     return tof16((uint8_t*)buffer);
+}
+
+float Audio::tof16(const int16_t &buffer) {
+    return tof16(&buffer);
 }

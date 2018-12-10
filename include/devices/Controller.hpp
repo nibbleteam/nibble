@@ -1,14 +1,18 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include <cstdint>
 #include <map>
+#include <cstdint>
+
 #include <SFML/Window.hpp>
+
 #include <kernel/Memory.hpp>
+#include <kernel/Device.hpp>
+
+#include <Specs.hpp>
 
 using namespace std;
 
-#define CONTROLLER_NUM 4
 // Estados possíveis de um botão
 #define BUTTON_OFF 0
 #define BUTTON_OFF_ON 1
@@ -25,7 +29,7 @@ using namespace std;
 #define J_WHITE 7
 #define J_PAUSE 8
 
-class Controller : public Memory {
+class Controller : public Device {
 #pragma pack(push, 1)
     struct ControllerMemory {
         unsigned int left :2;
@@ -56,22 +60,17 @@ class Controller : public Memory {
         // joysticks
         uint8_t connected;
 
-        ControllerMemory controllers[CONTROLLER_NUM];
+        ControllerMemory controllers[CONTROLLER_AMOUNT];
 
         PauseButton pauses;
     };
 #pragma pack(pop)
-    ControllersMemory controllers;
+    ControllersMemory &controllers;
     // Mapeia os números os controles SFML para os
     // controles do nibble
     map<unsigned int, unsigned int> sfml2nibble;
-    const uint64_t address;
-    const uint64_t length;
 public:
-    Controller(const uint64_t);
-    ~Controller();
-
-	string name();
+    Controller(Memory&);
 
     void update();
     void kbdPressed(sf::Event&);
@@ -82,12 +81,6 @@ public:
     void joyDisconnected(sf::Event&);
     void joyMoved(sf::Event&);
     void allReleased();
-
-    uint64_t write(const uint64_t, const uint8_t*, const uint64_t);
-    uint64_t read(const uint64_t, uint8_t*, const uint64_t);
-
-    uint64_t size();
-    uint64_t addr();
 private:
     unsigned int getOpenSlot();
     void press(const uint8_t, const uint8_t);

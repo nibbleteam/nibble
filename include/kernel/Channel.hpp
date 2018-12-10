@@ -2,20 +2,14 @@
 #define CHANNEL_H
 
 #include <kernel/FMSynthesizer.hpp>
+#include <kernel/Memory.hpp>
 #include <kernel/Wave.hpp>
 #include <map>
 using namespace std;
 
-// Número de "frames" de áudio completas a serem
-// guardadas
-#define SND_POSTPROCESS_LENGTH   64
-
 class Channel {
-	uint8_t *mem;
-	unsigned int channelNumber;
-
     // Sintetizadores (para permitir polifonia)
-    map<uint8_t, FMSynthesizer*> synthesizers;
+    map<uint8_t, unique_ptr<FMSynthesizer>> synthesizers;
 
     // Para efeitos de pós processamento
     int16_t *samples;
@@ -24,9 +18,36 @@ class Channel {
     // Reverb
     int reverbPosition;
 public:
-    const static uint16_t bytesPerChannel;
+    enum Cmd {
+        NoteOn = 1,
+        NoteOff = 2
+    };
 
-	Channel(uint8_t*, unsigned int);
+#pragma pack(push, 1)
+    struct CmdLayout {
+        uint8_t cmd;
+        uint8_t note;
+    };
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+    struct DelayLayout {
+        int16_t delay;
+        int16_t feedback;
+    };
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+    struct MemoryLayout {
+        FMSynthesizer::MemoryLayout synthesizer;
+        CmdLayout commands[AUDIO_CMD_AMOUNT];
+        DelayLayout delay;
+    };
+#pragma pack(pop)
+
+    MemoryLayout &memory;
+public:
+	Channel(Memory&);
 	~Channel();
 
 	void fill(int16_t*, const unsigned int); 

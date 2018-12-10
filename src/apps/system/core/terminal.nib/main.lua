@@ -71,9 +71,9 @@ function update(dt)
     receive_messages()
 
     if not disabled and has_listeners() then
-        local input = kernel.read(154410, 1)
+        local input = kernel.read(81606, 1)
 
-        if #input > 0 then
+        if input:byte() > 0 then
             cursor_active = .5
 
             if input == "\08" then

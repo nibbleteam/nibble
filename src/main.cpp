@@ -1,19 +1,13 @@
 #include <kernel/Kernel.hpp>
-#include <cstdlib>
 
-Kernel *KernelSingleton;
-
-void cleanup() {
-    delete KernelSingleton;
-}
+weak_ptr<Kernel> KernelSingleton;
 
 int main() {
-    std::atexit(cleanup);
+    auto kernel = make_shared<Kernel>();
 
-    KernelSingleton = new Kernel();
+    KernelSingleton = kernel;
 
-    KernelSingleton->startup();
-    KernelSingleton->loop();
+    kernel->loop();
 
     return 0;
 }
