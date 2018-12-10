@@ -74,6 +74,8 @@ void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCo
         } else {
             clean[s] = out;
         }
+
+        samples[s] = rand();
     }
 }
 

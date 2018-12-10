@@ -55,7 +55,7 @@ void Channel::fill(int16_t* output, const unsigned int sampleCount) {
         }
     }
 
-    reverb(output, samples, sampleCount);
+    //reverb(output, samples, sampleCount);
 }
 
 void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
