@@ -43,11 +43,11 @@ class FMSynthesizer {
     float base;
 public:
 #pragma pack(push, 1)
-    struct MemoryLayout {
+    typedef struct MemoryLayout {
         int16_t frequencies[AUDIO_OPERATOR_AMOUNT];
         Envelope::MemoryLayout envelopes[AUDIO_OPERATOR_AMOUNT];
         int16_t amplitudes[AUDIO_OPERATOR_AMOUNT*AUDIO_OPERATOR_AMOUNT+AUDIO_OPERATOR_AMOUNT];
-    };
+    }MemoryLayout;
 #pragma pack(pop)
 
     MemoryLayout &memory;

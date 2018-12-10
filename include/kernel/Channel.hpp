@@ -24,25 +24,25 @@ public:
     };
 
 #pragma pack(push, 1)
-    struct CmdLayout {
+    typedef struct CmdLayout {
         uint8_t cmd;
         uint8_t note;
-    };
+    }CmdLayout;
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-    struct DelayLayout {
+    typedef struct DelayLayout {
         int16_t delay;
         int16_t feedback;
-    };
+    }DelayLayout;
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-    struct MemoryLayout {
+    typedef struct MemoryLayout {
         FMSynthesizer::MemoryLayout synthesizer;
         CmdLayout commands[AUDIO_CMD_AMOUNT];
         DelayLayout delay;
-    };
+    }MemoryLayout;
 #pragma pack(pop)
 
     MemoryLayout &memory;
