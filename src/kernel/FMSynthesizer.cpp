@@ -8,6 +8,8 @@ using namespace std;
 Wave FMSynthesizer::wave;
 
 FMSynthesizer::FMSynthesizer(MemoryLayout &memory, uint8_t note): memory(memory) {
+    cout << "sizeof(FMSynthesize::MemoryLayout)" << sizeof(MemoryLayout) << endl;
+
     for (size_t op=0;op<AUDIO_OPERATOR_AMOUNT;op++) {
         outputs[op] = 0;
         envelopes[op] = make_unique<Envelope>(memory.envelopes[op]);
