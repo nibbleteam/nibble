@@ -360,7 +360,7 @@ vector <Path> fs::listDirectory (Path _path, bool &_success) {
         WIN32_FIND_DATA file;
         HANDLE foundFile;
 
-        if ((foundFile = FindFirstFile((_path.getPath()+lig).c_str(), &file)) != INVALID_HANDLE_VALUE) {
+        if ((foundFile = FindFirstFile((_path.getPath()+lig+"*").c_str(), &file)) != INVALID_HANDLE_VALUE) {
             do {
                 dir.push_back(Path(string(file.cFileName)));
             } while (FindNextFile(foundFile, &file) != 0);
