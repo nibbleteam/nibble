@@ -48,12 +48,11 @@ bool Audio::onGetData(Audio::Chunk& chunk) {
             t = nextTick;
             missingSampleCount -= finalSampleCount;
 
-            auto kernel = KernelSingleton.lock();
+            //auto kernel = KernelSingleton.lock();
 
-            if (kernel) {
-                cout << "We have the kernel, running the tick!" << endl;
-                kernel->audioTick();
-            }
+            //if (kernel) {
+            //    kernel->audioTick();
+            //}
 
             calculateNextTick();
         } else {

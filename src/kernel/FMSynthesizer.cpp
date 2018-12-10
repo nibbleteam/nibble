@@ -119,5 +119,8 @@ int16_t FMSynthesizer::synthesize() {
         }
     }
 
-    return output;
+    times[0] += 440*float(UINT16_MAX)/float(44100);
+
+    //return output;
+    return wave[times[0]];
 }

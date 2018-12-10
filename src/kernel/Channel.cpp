@@ -20,6 +20,8 @@ Channel::Channel(Memory &memory):
     samples = new int16_t[AUDIO_SAMPLE_AMOUNT];
 
     memset(buffer, 0, AUDIO_DELAY_MEM_SIZE);
+
+    press(48);
 }
 
 Channel::~Channel() {
