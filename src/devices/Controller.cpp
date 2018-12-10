@@ -4,9 +4,9 @@
 #include <devices/Controller.hpp>
 
 Controller::Controller(Memory& memory):
-                       controllers(*((ControllersMemory*)memory.allocate(sizeof(ControllersMemory), "Controllers"))) {
+                       controllers(*((ControllersMemory*)memory.allocate(CONTROLLER_MEM_SIZE, "Controllers"))) {
     // Zera todos os botões
-    memset(&controllers, 0, sizeof(ControllersMemory));
+    memset(&controllers, 0, CONTROLLER_MEM_SIZE);
     // O primeiro controle está sempre conectado 
     controllers.connected = 0b10000000;
 }
