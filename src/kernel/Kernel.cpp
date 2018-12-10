@@ -378,7 +378,7 @@ luabridge::LuaRef Kernel::receive() {
     return processes[runningProcess]->readMessage();
 }
 
-bool Kernel::send(const uint64_t pid, luabridge::LuaRef message) {
+bool Kernel::send(const PID pid, luabridge::LuaRef message) {
     try {
         processes.at(pid)->writeMessage(message);
     } catch (out_of_range &o) {

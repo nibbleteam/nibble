@@ -349,19 +349,31 @@ size_t fs::getFileSize (Path _path) {
 	return -1;
 }
 
-vector <Path> fs::listDirectory (Path _path,bool &_success) {
+vector <Path> fs::listDirectory (Path _path, bool &_success) {
     vector <Path> dir;
     _success = true;
 
     if (isDir(_path)) {
+#ifdef _WIN32
+        string lig = _path.getOriginalPath()[_path.getOriginalPath().size()-1] != '/'?"\\":"";
+
+        WIN32_FIND_DATA file;
+        HANDLE foundFile;
+
+        if ((foundFile = FindFirstFile((_path.getPath()+lig).c_str(), &file)) != INVALID_HANDLE_VALUE) {
+            do {
+                dir.push_back(Path(string(file.cFileName)));
+            } while (FindNextFile(foundFile, &file) != 0);
+        }
+#else
+        string lig = _path.getOriginalPath()[_path.getOriginalPath().size()-1] != '/'?"/":"";
+
         DIR *d;
         struct dirent *entry;
 
         d = opendir(_path.getPath().c_str());
 
         if (d) {
-            string lig = _path.getOriginalPath()[_path.getOriginalPath().size()-1] != '/'?"/":"";
-
             while ((entry = readdir(d)) != NULL) {
                 dir.push_back (Path(_path.getOriginalPath()+lig+string(entry->d_name)));
             }
@@ -370,6 +382,7 @@ vector <Path> fs::listDirectory (Path _path,bool &_success) {
         } else {
             _success = false;
         }
+#endif
     } else {
         _success = false;
     }
