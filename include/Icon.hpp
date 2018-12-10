@@ -76,3 +76,6 @@ unsigned char icon_png[] = {
   0x60, 0x82
 };
 unsigned int icon_png_len = 890;
+
+unsigned int icon_width = 320;
+unsigned int icon_height = 320;
