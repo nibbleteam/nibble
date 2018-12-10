@@ -495,11 +495,11 @@ int kernel_api_exec(lua_State* L) {
     return 2;
 }
 
-void kernel_api_wait(unsigned long pid) {
+void kernel_api_wait(size_t pid) {
     KernelSingleton.lock()->wait(pid);
 }
 
-void kernel_api_kill(unsigned long pid) {
+void kernel_api_kill(size_t pid) {
     KernelSingleton.lock()->kill(pid);
 }
 
@@ -511,7 +511,7 @@ string kernel_api_getenv(const string key) {
     return KernelSingleton.lock()->getenv(key);
 }
 
-bool kernel_api_send(unsigned long pid, luabridge::LuaRef message) {
+bool kernel_api_send(size_t pid, luabridge::LuaRef message) {
     return KernelSingleton.lock()->send(pid, message);
 }
 
