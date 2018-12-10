@@ -73,9 +73,9 @@ bool Audio::onGetData(Audio::Chunk& chunk) {
 
 void Audio::mix(int16_t* samples, unsigned int sampleCount) {
     // Preenche samples de cada canal
-    //for (unsigned int c=0;c<AUDIO_CHANNEL_AMOUNT;c++) {
-    //    channels[c]->fill(samples, sampleCount);
-    //}
+    for (unsigned int c=0;c<AUDIO_CHANNEL_AMOUNT;c++) {
+        channels[c]->fill(samples, sampleCount);
+    }
 
     for (int i=0;i<sampleCount;i++) {
         samples[i] = rand();
