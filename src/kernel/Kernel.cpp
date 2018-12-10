@@ -438,11 +438,11 @@ vector<string> Kernel::list(const string& dir) {
 }
 
 // Wrapper estático para a API
-unsigned long kernel_api_write(unsigned long to, const string& data) {
-    return (unsigned long)KernelSingleton.lock()->write(to, (uint8_t*)data.data(), data.size());
+size_t kernel_api_write(size_t to, const string& data) {
+    return KernelSingleton.lock()->write(to, (uint8_t*)data.data(), data.size());
 }
 
-string kernel_api_read(const unsigned long from, const unsigned long amount) {
+string kernel_api_read(const size_t from, const size_t amount) {
     return KernelSingleton.lock()->read(from, amount);
 }
 
