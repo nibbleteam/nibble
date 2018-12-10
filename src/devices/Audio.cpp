@@ -51,6 +51,7 @@ bool Audio::onGetData(Audio::Chunk& chunk) {
             auto kernel = KernelSingleton.lock();
 
             if (kernel) {
+                cout << "We have the kernel, running the tick!" << endl;
                 kernel->audioTick();
             }
 
