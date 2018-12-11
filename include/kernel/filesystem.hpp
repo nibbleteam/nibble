@@ -52,6 +52,7 @@ public:
 	void normalize();
 	Path resolve(Path);
 	Path resolve(const string);
+    vector<Path> getTree();
 private:
 	void setWindowsPath(string);
 	void setLinuxPath(string);
@@ -66,11 +67,13 @@ public:
 	fs ();
 	~fs	 ();
 
+    static bool touchFile (Path&);
 	static bool fileExists (Path);
 	static bool copyFile (Path,Path,bool);
 	static bool renameFile (Path,Path);
 	static bool deleteFile (Path);
 	static bool createFile (Path);
+    static bool createDirectory (Path&);
 	static bool isDir (Path);
 	static size_t getFileSize (Path);
 	static char* getFileData (Path);

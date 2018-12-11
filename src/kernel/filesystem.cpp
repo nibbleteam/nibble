@@ -189,12 +189,46 @@ void Path::normalize() {
 	setPath(final);
 }
 
+vector<Path> Path::getTree() {
+	vector <Path> tree;
+	string buffer;
+	
+	for (auto c :oPath) {
+        buffer += c;
+
+		if (c == '/') {
+			tree.push_back(Path(buffer));
+		}
+    }
+
+    return tree;
+}
+
 fs::fs () {
 
 }
 
 fs::~fs () {
 
+}
+
+bool fs::touchFile (Path &_path) {
+    for (auto &directory: _path.getTree()) {
+        if (!fs::createDirectory(directory)) {
+            return false;
+        }
+    }
+
+    return fs::createFile(_path);
+}
+
+bool fs::createDirectory(Path &_path) {
+#ifdef _WIN32
+    CreateDirectory(_path.getPath().c_str(), NULL);
+    return true;
+#else
+    return mkdir(_path.getPath().c_str(), 0777) == 0;
+#endif
 }
 
 bool fs::fileExists (Path _path) {

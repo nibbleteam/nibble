@@ -400,6 +400,10 @@ size_t Kernel::memmap(const string& file) {
     auto filePath = Path(file);
     auto ext = filePath.getExtension();
 
+    if (!fs::fileExists(filePath)) {
+        fs::touchFile(filePath);
+    }
+
     if (ext == "png") {
         return mmap::read_image(memory, filePath);
     }
