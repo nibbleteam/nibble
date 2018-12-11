@@ -42,32 +42,21 @@ void FMSynthesizer::off() {
 
 void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCount) {
     for (size_t s=0;s<sampleCount;s++) {
-        //int16_t delta = synthesize();
-        int16_t delta = rand();
+        int16_t delta = synthesize();
+        int out;
 
         // Mixa o canal anterior e o novo
-#ifdef _WIN32
-        bool overflow = false;
+        out = int(delta) + int(samples[s]);
 
-        int16_t result = delta + samples[s];
-
-        if (delta < 0 && samples[s] < 0) {
-            overflow = result >= 0;
-        } else if (delta > 0 && samples[s] > 0) {
-            overflow = result <= 0;
+        if (out < INT16_MIN) {
+            samples[s] = INT16_MIN;
+        } else if (out > INT16_MAX) {
+            samples[s] = INT16_MAX;
+        } else {
+            samples[s] = out;
         }
 
-        samples[s] = result;
-#else
-        bool overflow = __builtin_add_overflow(delta, samples[s], &samples[s]);
-
-        // Corta overflow
-        if (overflow) {
-            samples[s] = (delta < 0) ? INT16_MIN : INT16_MAX;
-        }
-#endif
-
-        int out = int(delta) + int(clean[s]);
+        out = int(delta) + int(clean[s]);
 
         if (out < INT16_MIN) {
             clean[s] = INT16_MIN;
