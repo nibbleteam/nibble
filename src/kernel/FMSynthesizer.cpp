@@ -60,12 +60,12 @@ void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCo
         samples[s] = result;
 #else
         bool overflow = __builtin_add_overflow(delta, samples[s], &samples[s]);
-#endif
 
         // Corta overflow
         if (overflow) {
             samples[s] = (delta < 0) ? INT16_MIN : INT16_MAX;
         }
+#endif
 
         int out = int(delta) + int(clean[s]);
 
