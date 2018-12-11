@@ -47,7 +47,8 @@ void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCo
 
         // Mixa o canal anterior e o novo
 #ifdef _WIN32
-        bool overflow;
+        bool overflow = false;
+
         int16_t result = delta + samples[s];
 
         if (delta < 0 && samples[s] < 0) {
