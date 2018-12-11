@@ -42,7 +42,8 @@ void FMSynthesizer::off() {
 
 void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCount) {
     for (size_t s=0;s<sampleCount;s++) {
-        int16_t delta = synthesize();
+        //int16_t delta = synthesize();
+        int16_t delta = rand();
 
         // Mixa o canal anterior e o novo
 #ifdef _WIN32
@@ -74,8 +75,6 @@ void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCo
         } else {
             clean[s] = out;
         }
-
-        samples[s] = rand();
     }
 }
 
