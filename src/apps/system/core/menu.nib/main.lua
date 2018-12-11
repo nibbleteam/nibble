@@ -31,13 +31,16 @@ end
 
 function update(delta)
     dt = delta
+
     if btp(RED) and kernel.getenv("app.pid") ~= "2" then
         kernel.kill(tonumber(kernel.getenv("app.pid")))
         kernel.kill(0)
+        return
     end
 
     if btp(BLUE) or (btp(RED) and kernel.getenv("app.pid") == "2") then
         kernel.setenv("menu.entry", "back")
         kernel.kill(0)
+        return
     end
 end

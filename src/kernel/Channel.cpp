@@ -12,16 +12,10 @@ using namespace std;
 Channel::Channel(Memory &memory):
                 reverbPosition(0),
                 memory(*((MemoryLayout*)memory.allocate(sizeof(MemoryLayout), "FM Audio Channel"))) {
-    cout << "sizeof(Channel::MemoryLayout)" << sizeof(MemoryLayout) << endl;
-    cout << "sizeof(Channel::DelayLayout)" << sizeof(DelayLayout) << endl;
-    cout << "sizeof(Channel::CmdLayout)" << sizeof(CmdLayout) << endl;
-
     buffer = new int16_t[AUDIO_DELAY_SIZE];
     samples = new int16_t[AUDIO_SAMPLE_AMOUNT];
 
     memset(buffer, 0, AUDIO_DELAY_MEM_SIZE);
-
-    press(48);
 }
 
 Channel::~Channel() {
@@ -55,7 +49,7 @@ void Channel::fill(int16_t* output, const unsigned int sampleCount) {
         }
     }
 
-    //reverb(output, samples, sampleCount);
+    reverb(output, samples, sampleCount);
 }
 
 void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
@@ -69,29 +63,19 @@ void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
         }
 
         int delta = buffer[reverbSample]*Audio::tof16(memory.delay.feedback);
+        int out;
 
-#ifdef _WIN32
-        // TODO: Apenas usar um tipo maior para checar overflow nesse caso
-        bool overflow;
-        int16_t result = delta + output[i];
+        out = delta+output[i];
 
-        if (delta < 0 && output[i] < 0) {
-            overflow = result >= 0;
-        } else if (delta > 0 && output[i] > 0) {
-            overflow = result <= 0;
+        if (out < INT16_MIN) {
+            out = INT16_MIN;
+        } else if (out > INT16_MAX) {
+            out = INT16_MAX;
         }
 
-        output[i] = result;
-#else
-        bool overflow = __builtin_add_overflow(delta, output[i], &output[i]);
-#endif
+        output[i] = out;
 
-        // Corta overflow
-        if (overflow) {
-            output[i] = (delta < 0) ? INT16_MIN : INT16_MAX;
-        }
-
-        int out = in[i]+delta;
+        out = in[i]+delta;
 
         if (out < INT16_MIN) {
             out = INT16_MIN;

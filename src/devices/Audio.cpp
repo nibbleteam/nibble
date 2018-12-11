@@ -48,11 +48,11 @@ bool Audio::onGetData(Audio::Chunk& chunk) {
             t = nextTick;
             missingSampleCount -= finalSampleCount;
 
-            //auto kernel = KernelSingleton.lock();
+            auto kernel = KernelSingleton.lock();
 
-            //if (kernel) {
-            //    kernel->audioTick();
-            //}
+            if (kernel) {
+                kernel->audioTick();
+            }
 
             calculateNextTick();
         } else {

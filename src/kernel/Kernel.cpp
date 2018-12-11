@@ -258,7 +258,7 @@ tuple<int32_t, string> Kernel::exec(const string &executable, map<string, string
 // Espera "wait" sair
 void Kernel::wait(const PID wait) {
     waitTable[runningProcess] = wait;
-    processes[runningProcess]->running = false;
+    processes.at(runningProcess)->running = false;
 }
 
 void Kernel::kill(const PID pid) {
@@ -276,11 +276,17 @@ void Kernel::kill(const PID pid) {
 }
 
 string Kernel::getenv(const string key) {
-    return processes[runningProcess]->getEnvVar(key);
+    try {
+        return processes.at(runningProcess)->getEnvVar(key);
+    } catch (out_of_range &o) {
+        return "";
+    }
 }
 
 void Kernel::setenv(const string key, const string value) {
-    return processes[runningProcess]->setEnvVar(key, value);
+    try {
+        return processes.at(runningProcess)->setEnvVar(key, value);
+    } catch (out_of_range &o) { }
 }
 
 // API de acesso à memória

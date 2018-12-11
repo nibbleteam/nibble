@@ -4,9 +4,7 @@
 #include <iostream>
 using namespace std;
 
-Envelope::Envelope(MemoryLayout &memory): memory(memory), amplitude(0), done(false) {
-    cout << "sizeof(Envelope::MemoryLayout)" << sizeof(MemoryLayout) << endl;
-}
+Envelope::Envelope(MemoryLayout &memory): memory(memory), amplitude(0), done(false) { }
 
 float Envelope::getAmplitude() {
     switch (status) {
@@ -49,7 +47,7 @@ float Envelope::getAmplitude() {
 
             if (amplitude <= 0) {
                 amplitude = 0;
-                //done = true;
+                done = true;
             }
             break;
     }

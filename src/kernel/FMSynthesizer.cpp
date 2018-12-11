@@ -8,8 +8,6 @@ using namespace std;
 Wave FMSynthesizer::wave;
 
 FMSynthesizer::FMSynthesizer(MemoryLayout &memory, uint8_t note): memory(memory) {
-    cout << "sizeof(FMSynthesize::MemoryLayout)" << sizeof(MemoryLayout) << endl;
-
     for (size_t op=0;op<AUDIO_OPERATOR_AMOUNT;op++) {
         outputs[op] = 0;
         envelopes[op] = make_unique<Envelope>(memory.envelopes[op]);
@@ -89,29 +87,16 @@ int16_t FMSynthesizer::synthesize() {
         int16_t delta = outputs[o] * Audio::tof16(memory.amplitudes[FM_MATRIX(o, AUDIO_OPERATOR_AMOUNT)]);
 
         // Mixa o operador anterior e o novo
-#ifdef _WIN32
-        bool overflow;
-        int16_t result = delta + output;
+        int out = delta + output;
 
-        if (delta < 0 && output < 0) {
-            overflow = result >= 0;
-        } else if (delta > 0 && output > 0) {
-            overflow = result <= 0;
-        }
-
-        output = result;
-#else
-        bool overflow = __builtin_add_overflow(delta, output, &output);
-#endif
-
-        // Corta overflow
-        if (overflow) {
-            output = (delta < 0) ? INT16_MIN : INT16_MAX;
+        if (out < INT16_MIN) {
+            output = INT16_MIN;
+        } else if (out > INT16_MAX) {
+            output = INT16_MAX;
+        } else {
+            output = out;
         }
     }
 
-    times[0] += 440*float(UINT16_MAX)/float(44100);
-
-    //return output;
-    return wave[times[0]];
+    return output;
 }
