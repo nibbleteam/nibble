@@ -209,7 +209,7 @@ function NOM:draw_cursor()
     local c = self.cursor[self.cursor.state]
 
     pspr(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
-         c.x, c.y, c.w, c.h)
+         c.x, c.y, c.w, c.h, 1)
 end
 
 function NOM:update_mouse()

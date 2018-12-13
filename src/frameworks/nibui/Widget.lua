@@ -10,6 +10,7 @@ function Widget:new(config, document, parent)
         x = 0, y = 0, z = 0, w = 0, h = 0, radius = 0,
         -- Content
         content = '', text_align = 'center', vertical_align = 'middle',
+        text_palette = 0,
         -- Padding
         padding_top = 0, padding_left = 0, padding_bottom = 0, padding_right = 0,
     }
@@ -163,7 +164,7 @@ function Widget:draw()
         ty = h-8-self.padding_bottom
     end
     
-    print(content, tx, ty)
+    print(content, tx, ty, self.text_palette)
 
     col(15, 15)
 

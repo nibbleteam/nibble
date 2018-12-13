@@ -712,11 +712,11 @@ void GPU::circleFill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     }
 }
 
-void GPU::copyScanLine(uint8_t *dst, uint8_t *src, size_t bytes) {
+void GPU::copyScanLine(uint8_t *dst, uint8_t *src, size_t bytes, uint8_t pal) {
     const auto end_src = src+bytes;
 
     while (src < end_src) {
-        auto c = COLMAP1(*src++);
+        auto c = COLMAP1(((*src++) + (pal<<4)));
 
         // TODO: Não checar as cores, apenas mudar o operador?
         if (TRANSPARENT(c)) {
@@ -763,7 +763,7 @@ void GPU::sprite(int16_t sx, int16_t sy,
     const auto ptrF = ptr+targetW*h;
 
     for(;ptr < ptrF;ptr+=targetW,src+=sourceW) {
-        copyScanLine(ptr, src, w);
+        copyScanLine(ptr, src, w, pal);
     }
 }
 

@@ -102,7 +102,7 @@ private:
     int16_t next16Arg(uint8_t*&);
     uint8_t next8Arg(uint8_t*&);
     string nextStrArg(uint8_t*&);
-    void copyScanLine(uint8_t *, uint8_t *, size_t);
+    void copyScanLine(uint8_t *, uint8_t *, size_t, uint8_t);
     void scanLine(int16_t, int16_t, int16_t, uint8_t);
     void fixRectBounds(int16_t&, int16_t&, int16_t&, int16_t&, int16_t, int16_t);
     // GIFs
