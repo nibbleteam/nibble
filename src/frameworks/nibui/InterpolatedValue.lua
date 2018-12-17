@@ -41,7 +41,7 @@ function InterpolatedValue:set(v, time, easing)
     end
 
     -- Default time and interpolation
-    time = time or 1
+    time = time or 0
     easing = easing or Easing.Linear
 
     -- From

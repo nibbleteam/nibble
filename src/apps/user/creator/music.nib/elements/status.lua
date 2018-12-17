@@ -6,5 +6,4 @@ return {
     background = 6,
     text_align = 'left',
     padding_left = 2,
-    content = 'music',
-}
+    content = '...', }

@@ -10,18 +10,11 @@ local nom = {
     y = d'+' (d'^' 'y', border_size),
     w = d'-' (d'^' 'w', 2*border_size),
     h = d'-' (d'^' 'h', 2*border_size+taskbar_height),
-    background = 7,
+    background = 0,
     border_color = 6,
     d'=>' 'elements.header',
     d'=>' 'elements.app',
     d'=>' 'elements.status',
-    {
-        x = d'-' (d'left', border_size),
-        y = d'+' (d'bottom', border_size),
-        w = d'+' (d'^' 'w', 2*border_size),
-        h = 1,
-        background = 4
-    },
 }
 
 

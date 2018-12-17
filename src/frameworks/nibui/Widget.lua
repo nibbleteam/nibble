@@ -22,6 +22,7 @@ function Widget:new(config, document, parent)
         -- Tree
         children = {}, parent = nil, document = document, parent = parent,
         -- Methods
+        onpress = function() end,
         onclick = function() end,
         onenter = function() end,
         onleave = function() end,
@@ -106,7 +107,6 @@ function Widget:draw()
     local w, h = self.w, self.h
     local r = math.floor(self.radius)
     local content = self.content
-    local background = math.floor(self.background)
     local shadow_color = math.floor(self.shadow_color)
     local border_color = math.floor(self.border_color)
     local z = math.floor(self.z)
@@ -133,18 +133,34 @@ function Widget:draw()
         circf(x+w-r-1, y+h-r-1, r+1, border_color)
     end
 
-    rectf(x+r, y, w-r*2, h, background)
-    rectf(x, y+r, w, h-r*2, background)
-
-    if r ~= 0 then
-        circf(x+r, y+r, r, background)
-        circf(x+w-r-1, y+r, r, background)
-        circf(x+r, y+h-r-1, r, background)
-        circf(x+w-r-1, y+h-r-1, r, background)
-    end
-
     -- TODO: use decorated text
     col(15, math.floor(self.color))
+
+    if type(self.background) ~= 'table' then
+        local background = math.floor(self.background)
+
+        rectf(x+r, y, w-r*2, h, background)
+        rectf(x, y+r, w, h-r*2, background)
+
+        if r ~= 0 then
+            circf(x+r, y+r, r, background)
+            circf(x+w-r-1, y+r, r, background)
+            circf(x+r, y+h-r-1, r, background)
+            circf(x+w-r-1, y+h-r-1, r, background)
+        end
+    else
+        if #self.background == 2 then
+            local spr_x, spr_y = self.background[1], self.background[2]
+
+            spr(x, y, spr_x, spr_y)
+        elseif #self.background == 4 then
+            local spr_x, spr_y, spr_w, spr_h = self.background[1], self.background[2],
+                                               self.background[3], self.background[4]
+
+            pspr(x, y, spr_x, spr_y, spr_w, spr_h)
+        end
+    end
+
 
     local tx, ty = 0, 0
 
@@ -175,17 +191,25 @@ end
 
 -- Eventos
 
-function Widget:click(event)
+function Widget:click(event, press)
     if self:in_bounds(event) then
         for _, child in ipairs(self.children) do
-            if child:click(event) then
+            if child:click(event, press) then
                 return true
             end
         end
 
-        if self.onclick then
-            if self:onclick(event) then
-                return true
+        if press then
+            if self.onpress then
+                if self:onpress(event) then
+                    return true
+                end
+            end
+        else
+            if self.onclick then
+                if self:onclick(event) then
+                    return true
+                end
             end
         end
 
@@ -233,10 +257,22 @@ function Widget:leave(event)
     end
 end
 
+function Widget:init()
+    for _, child in ipairs(self.children) do
+        child:init()
+    end
+end
+
 function Widget:in_bounds(e)
     return e.x >= self.x and e.y >= self.y and
            e.x < self.x+self.w and
            e.y < self.y+self.h
+end
+
+function Widget.inside_rect(e, x, y, w, h)
+    return e.x >= x and e.y >= y and
+           e.x < x+w and
+           e.y < y+h
 end
 
 return Widget

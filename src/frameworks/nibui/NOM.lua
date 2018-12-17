@@ -167,6 +167,11 @@ function NOM:draw()
     end
 end
 
+function NOM:init()
+    self:update(0)
+    self.root:init()
+end
+
 function NOM:update(dt)
     self.root:update(dt)
 
@@ -209,7 +214,7 @@ function NOM:draw_cursor()
     local c = self.cursor[self.cursor.state]
 
     pspr(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
-         c.x, c.y, c.w, c.h, 1)
+         c.x, c.y, c.w, c.h)
 end
 
 function NOM:update_mouse()
@@ -218,6 +223,10 @@ function NOM:update_mouse()
     local x, y = read16(maddr), read16(maddr+2)
     local drag = false
     self.mouse.click = read8(maddr+4)
+
+    if self.mouse.click == 1 then
+        self:click({ x = x, y = y }, true)
+    end
 
     if self.mouse.click == 2 then
         self.cursor.state = 'pressing'
@@ -236,8 +245,8 @@ function NOM:update_mouse()
     end
 end
 
-function NOM:click(event)
-    self.root:click(event)
+function NOM:click(event, press)
+    self.root:click(event, press)
 end
 
 function NOM:move(event)

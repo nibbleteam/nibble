@@ -732,6 +732,10 @@ void GPU::sprite(int16_t sx, int16_t sy,
                  int16_t dx, int16_t dy,
                  int16_t w, int16_t h,
                  uint8_t pal) {
+    if (dy >= targetH || dx >= targetW) {
+        return;
+    }
+
     if (dx < 0) {
         w = max(w+dx, 0);
         sx -= dx;
@@ -744,8 +748,12 @@ void GPU::sprite(int16_t sx, int16_t sy,
         dy = 0;
     }
 
-    if (dy+h >= targetH || dx+w >= targetW) {
-        return;
+    if (dy+h >= targetH) {
+        h = targetH-dy;
+    }
+
+    if (dx+w >= targetW) {
+        w = targetW-dx;
     }
 
     if (sx < 0) {

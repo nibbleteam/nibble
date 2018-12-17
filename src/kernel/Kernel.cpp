@@ -61,6 +61,10 @@ void Kernel::menu() {
 }
 
 void Kernel::shutdown() {
+    // Desliga áudio primeiro evitando
+    // chamadas quando estivermos limpando processos
+    audio->shutdown();
+
     /* Limpeza do Kernel */
 
     // Se não há processos, a wait table precisa
@@ -82,7 +86,6 @@ void Kernel::shutdown() {
 
     gpu->shutdown();
     mouse->shutdown();
-    audio->shutdown();
     keyboard->shutdown();
     controller->shutdown();
 }
@@ -102,6 +105,7 @@ void Kernel::loop() {
         // Event handling
         controller->update();
         mouse->update();
+        keyboard->update();
         while (gpu->window.pollEvent(event)) {
             switch (event.type) {
                 // Fecha a janela no "x" ou alt-f4 etc

@@ -134,7 +134,8 @@ size_t Memory::used() {
 void Memory::triggers(size_t start, size_t end, AccessMode mode) {
     for (auto &area: usedAreas) {
         if ((start >= area.second.pos && start <= area.second.pos+area.second.size) ||
-            (end>= area.second.pos && end <= area.second.pos+area.second.size)) {
+            (end>= area.second.pos && end <= area.second.pos+area.second.size) ||
+            (start <= area.second.pos && end >= area.second.pos+area.second.size)) {
             if (area.second.trigger) {
                 area.second.trigger(mode);
             }

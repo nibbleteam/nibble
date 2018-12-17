@@ -95,9 +95,9 @@ void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
 
 void Channel::press(uint8_t note) {
     if (synthesizers.find(note) == synthesizers.end()) {
-      synthesizers.emplace(note, make_unique<FMSynthesizer>(memory.synthesizer, note));
+        synthesizers.emplace(note, make_unique<FMSynthesizer>(memory.synthesizer, note));
     } else {
-      synthesizers[note]->on();
+        synthesizers[note]->on();
     }
 }
 

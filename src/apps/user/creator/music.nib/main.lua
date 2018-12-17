@@ -1,17 +1,15 @@
 local NOM = require("nibui.NOM")
 
-local nom = NOM:new(require("nom")):use("cursor")
+nom = NOM:new(require("nom")):use("cursor")
 
 require 'synth'
 
+playing = false
+
 function init()
-    cppal(0, 1)
-
-    mask(0)
-
-    clr(16)
-
     audio_init()
+
+    nom:init()
 end
 
 function draw()
@@ -20,4 +18,5 @@ end
 
 function update(dt)
     nom:update(dt)
+    audio_update(dt)
 end

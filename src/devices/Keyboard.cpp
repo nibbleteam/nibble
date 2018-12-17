@@ -8,22 +8,22 @@
 #include <Specs.hpp>
 
 Keyboard::Keyboard(Memory &memory) {
-    queue = memory.allocate(KEYBOARD_QUEUE_SIZE, "Keyboard", [&] (Memory::AccessMode mode) {
-        if (mode == Memory::ACCESS_AFTER_READ) {
-            queue[0] = 0;
-        }
-    });
+    mem = memory.allocate(KEYBOARD_QUEUE_SIZE, "Keyboard");
 
-    memset(queue, 0, KEYBOARD_QUEUE_SIZE);
+    memset(mem, 0, KEYBOARD_QUEUE_SIZE);
 }
 
 void Keyboard::input(const unsigned int unicode) {
-    // Coloca no primeiro espaço encontrado
-    for (size_t i=0;i<KEYBOARD_QUEUE_SIZE;i++) {
-        if (queue[i] == 0) {
-            // TODO: escrever como UTF8
-            queue[i] = (char)unicode;
-            break;
-        }
+    charQueue.push((char)unicode);
+}
+
+void Keyboard::update() {
+    size_t i = 0;
+
+    for (;!charQueue.empty();i++)  {
+        mem[i+1] = charQueue.front();
+        charQueue.pop();
     }
+
+    mem[0] = i;
 }
