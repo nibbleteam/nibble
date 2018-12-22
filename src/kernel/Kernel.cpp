@@ -7,9 +7,17 @@
 #include <kernel/mmap/Image.hpp>
 #include <kernel/mmap/Binary.hpp>
 
+#include <IL/il.h>
+
 using namespace std;
 
 Kernel::Kernel() {
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        cout << "SDL_Init: " << SDL_GetError() << endl;
+    }
+
+    ilInit();
+
     // Cria dispositivos
     gpu = make_unique<GPU>(memory);
     audio = make_unique<Audio>(memory);
@@ -23,6 +31,8 @@ Kernel::Kernel() {
 
 Kernel::~Kernel() {
     shutdown();
+
+    SDL_Quit();
 }
 
 void Kernel::startup() {
@@ -91,109 +101,113 @@ void Kernel::shutdown() {
 }
 
 void Kernel::loop() {
-    sf::Clock clock;
     float lastTime = 0;
     
-    while (gpu->window.isOpen()) {
-        float currentTime = clock.getElapsedTime().asSeconds();
-        float delta = currentTime - lastTime;
+    while (true) {
+        float currentTime = SDL_GetTicks();
+        float delta = (currentTime - lastTime)/1000;
         //float fps = 1.f / delta;
         lastTime = currentTime;
 
-        sf::Event event;
+        SDL_Event event;
 
         // Event handling
         controller->update();
         mouse->update();
         keyboard->update();
-        while (gpu->window.pollEvent(event)) {
+        while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 // Fecha a janela no "x" ou alt-f4 etc
-            case sf::Event::Closed: {
-                gpu->window.close();
-            }
-                break;
-                // Redimensiona e centraliza o vídeo
-            case sf::Event::Resized: {
-                gpu->resize();
-            }
-                break;
+                case SDL_QUIT: {
+                    return;
+                } break;
+
+                case SDL_WINDOWEVENT: {
+                    switch (event.window.event) {
+                        // Redimensiona e centraliza o vídeo
+                        case SDL_WINDOWEVENT_RESIZED:
+                        case SDL_WINDOWEVENT_SIZE_CHANGED: {
+                            gpu->resize();
+                        } break;
+                        // Solta botões ao perder foco
+                        case SDL_WINDOWEVENT_FOCUS_LOST: {
+                            controller->allReleased();
+                            mouse->released(0);
+                            mouse->released(1);
+                        } break;
+                        // Solta botões do mouse ao sair
+                        case SDL_WINDOWEVENT_LEAVE: {
+                            mouse->released(0);
+                            mouse->released(1);
+                        } break;
+                    }
+                } break;
+
                 // Teclado
-            case sf::Event::TextEntered: {
-                keyboard->input(event.text.unicode);
-            }
-                break;
-                // Controle
-            case sf::Event::LostFocus: {
-                controller->allReleased();
-                mouse->released(0);
-                mouse->released(1);
-            }
-                break;
-            case sf::Event::KeyPressed: {
-                if (event.key.code == sf::Keyboard::R &&
-                    event.key.control) {
-                    shutdown();
-                    startup();
-                } else if (event.key.code == sf::Keyboard::M &&
-                    event.key.control) {
-                    menu();
-                } else {
-                    controller->kbdPressed(event);
-                }
-            }
-                break;
-            case sf::Event::KeyReleased: {
-                controller->kbdReleased(event);
-            }
-                break;
-            case sf::Event::JoystickButtonPressed: {
-                if (event.joystickButton.button == 9) {
-                    menu();
-                } else {
-                    controller->joyPressed(event);
-                }
-            }
-                break;
-            case sf::Event::JoystickButtonReleased: {
-                controller->joyReleased(event);
-            }
-                break;
-            case sf::Event::JoystickMoved: {
-                controller->joyMoved(event);
-            }
-                break;
-            case sf::Event::JoystickConnected: {
-                controller->joyConnected(event);
-            }
-                break;
-            case sf::Event::JoystickDisconnected: {
-                controller->joyDisconnected(event);
-            }
-                break;
-            // Mouse
-            case sf::Event::MouseButtonPressed: {
-                mouse->pressed(event.mouseButton.button != sf::Mouse::Button::Left);
-            }
-                break;
-            case sf::Event::MouseButtonReleased: {
-                mouse->released(event.mouseButton.button != sf::Mouse::Button::Left);
-            }
-                break;
-            case sf::Event::MouseLeft: {
-                mouse->released(0);
-                mouse->released(1);
-            }
-                break;
-            case sf::Event::MouseMoved: {
-                int16_t x = event.mouseMove.x;
-                int16_t y = event.mouseMove.y;
-                gpu->transformMouse(x, y);
-                mouse->moved(x, y);
-            }
-                break;
-            default:
-                break;
+                case SDL_TEXTINPUT: {
+                    // TODO: Enviar toda a string (em utf-8)
+                    keyboard->input(event.text.text[0]);
+                } break;
+
+                case SDL_KEYDOWN: {
+                    if (event.key.keysym.sym == SDLK_r &&
+                        event.key.keysym.mod&KMOD_LCTRL) {
+                        shutdown();
+                        startup();
+                    } else if (event.key.keysym.sym == SDLK_ESCAPE) {
+                        menu();
+                    } else {
+                        controller->kbdPressed(event);
+                    }
+                } break;
+
+                case SDL_KEYUP: {
+                    controller->kbdReleased(event);
+                } break;
+
+                case SDL_JOYBUTTONDOWN: {
+                    if (event.jbutton.button == 9) {
+                        menu();
+                    } else {
+                        controller->joyPressed(event);
+                    }
+                } break;
+
+                case SDL_JOYBUTTONUP: {
+                    controller->joyReleased(event);
+                } break;
+
+                case SDL_JOYAXISMOTION: {
+                    controller->joyMoved(event);
+                } break;
+
+                case SDL_JOYDEVICEADDED: {
+                    controller->joyConnected(event);
+                } break;
+
+                case SDL_JOYDEVICEREMOVED: {
+                    controller->joyDisconnected(event);
+                } break;
+
+                // Mouse
+                case SDL_MOUSEBUTTONDOWN: {
+                    mouse->pressed(event.button.button != SDL_BUTTON_LEFT);
+                } break;
+
+                case SDL_MOUSEBUTTONUP: {
+                    mouse->released(event.button.button != SDL_BUTTON_LEFT);
+                } break;
+
+                case SDL_MOUSEMOTION: {
+                    int16_t x = event.motion.x;
+                    int16_t y = event.motion.y;
+
+                    gpu->transformMouse(x, y);
+                    mouse->moved(x, y);
+                } break;
+
+                default:
+                    break;
             }
         }
 
@@ -224,6 +238,8 @@ void Kernel::loop() {
             }
         }
         audioMutex.unlock();
+
+        SDL_Delay(max<int>(32-(SDL_GetTicks()-lastTime), 0));
 
         gpu->draw();
     }

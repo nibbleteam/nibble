@@ -43,23 +43,3 @@ const int16_t Wave::operator[](uint16_t t) const {
 
     return b*d0+a*(1-d0);
 }
-
-//const int16_t Wave::operator[](float t) const {
-//    float t0 = floor(t);
-//    float t1 = t0+1;
-//
-//    float d0 = t-t0;
-//
-//    float ya = _at(t0-1);
-//    float yb = _at(t0);
-//    float yc = _at(t1);
-//    float yd = _at(t1+1);
-//    // Linear
-//    return yc*d0+yb*(1.0-d0);
-//    // Hermite
-//    //float c0 = yb;
-//    //float c1 = .5F * (yc - ya);
-//    //float c2 = ya - (2.5F * yb) + (2 * yc) - (.5F * yd);
-//    //float c3 = (.5F * (yd - ya)) + (1.5F * (yb - yc));
-//    //return (((((c3 * d0) + c2) * d0) + c1) * d0) + c0;
-//}

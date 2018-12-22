@@ -3,7 +3,7 @@ local Widget = require 'nibui.Widget'
 local Easing = require 'nibui.Easing'
 local d = NOM.dynamic
 
-local line_height = 12
+local line_height = 8
 local cell_width = 24
 
 local colors = {1, 3}
@@ -15,7 +15,7 @@ local notes = {
 }
 
 music = {}
-music_period = 8
+music_period = 16
 
 return {
     id = 'score',

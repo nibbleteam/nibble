@@ -6,6 +6,9 @@
 using namespace std;
 
 Wave FMSynthesizer::wave;
+SquareWave FMSynthesizer::squareWave;
+SawWave FMSynthesizer::sawWave;
+TriangleWave FMSynthesizer::triangleWave;
 
 FMSynthesizer::FMSynthesizer(MemoryLayout &memory, uint8_t note): memory(memory) {
     for (size_t op=0;op<AUDIO_OPERATOR_AMOUNT;op++) {
@@ -26,9 +29,9 @@ bool FMSynthesizer::done() {
     return true;
 }
 
-void FMSynthesizer::on() {
+void FMSynthesizer::on(uint8_t intensity) {
     for (size_t e=0;e<AUDIO_OPERATOR_AMOUNT;e++) {
-        envelopes[e]->on();
+        envelopes[e]->on(intensity);
     }
 }
 
@@ -75,7 +78,21 @@ int16_t FMSynthesizer::synthesize() {
             phase += outputs[o2]*Audio::tof16(memory.amplitudes[FM_MATRIX(o2, o1)]);
         }
 
-        outputs[o1] = wave[phase] * envelopes[o1]->getAmplitude();
+        switch (memory.waveTypes[o1]) {
+            default:
+            case SINE:
+                outputs[o1] = wave[phase] * envelopes[o1]->getAmplitude();
+                break;
+            case SQUARE:
+                outputs[o1] = squareWave[phase] * envelopes[o1]->getAmplitude();
+                break;
+            case SAW:
+                outputs[o1] = sawWave[phase] * envelopes[o1]->getAmplitude();
+                break;
+            case TRIANGLE:
+                outputs[o1] = triangleWave[phase] * envelopes[o1]->getAmplitude();
+                break;
+        }
     }
 
     int16_t output = 0;

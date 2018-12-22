@@ -111,33 +111,33 @@ void Controller::release(uint8_t c, uint8_t b) {
     }
 }
 
-void Controller::kbdPressed(sf::Event& event) {
-    switch (event.key.code) {
-    case sf::Keyboard::Up:
+void Controller::kbdPressed(SDL_Event& event) {
+    switch (event.key.keysym.sym) {
+    case SDLK_UP:
         press(0, 0);
         break;
-    case sf::Keyboard::Right:
+    case SDLK_RIGHT:
         press(0, 1);
         break;
-    case sf::Keyboard::Down:
+    case SDLK_DOWN:
         press(0, 2);
         break;
-    case sf::Keyboard::Left:
+    case SDLK_LEFT:
         press(0, 3);
         break;
-    case sf::Keyboard::X:
+    case SDLK_x:
         press(0, 4);
         break;
-    case sf::Keyboard::C:
+    case SDLK_c:
         press(0, 5);
         break;
-    case sf::Keyboard::S:
+    case SDLK_s:
         press(0, 6);
         break;
-    case sf::Keyboard::D:
+    case SDLK_d:
         press(0, 7);
         break;
-    case sf::Keyboard::P:
+    case SDLK_p:
         press(0, 8);
         break;
     default:
@@ -145,33 +145,33 @@ void Controller::kbdPressed(sf::Event& event) {
     }
 }
 
-void Controller::kbdReleased(sf::Event& event) {
-    switch (event.key.code) {
-    case sf::Keyboard::Up:
+void Controller::kbdReleased(SDL_Event& event) {
+    switch (event.key.keysym.sym) {
+    case SDLK_UP:
         release(0, 0);
         break;
-    case sf::Keyboard::Right:
+    case SDLK_RIGHT:
         release(0, 1);
         break;
-    case sf::Keyboard::Down:
+    case SDLK_DOWN:
         release(0, 2);
         break;
-    case sf::Keyboard::Left:
+    case SDLK_LEFT:
         release(0, 3);
         break;
-    case sf::Keyboard::X:
+    case SDLK_x:
         release(0, 4);
         break;
-    case sf::Keyboard::C:
+    case SDLK_c:
         release(0, 5);
         break;
-    case sf::Keyboard::S:
+    case SDLK_s:
         release(0, 6);
         break;
-    case sf::Keyboard::D:
+    case SDLK_d:
         release(0, 7);
         break;
-    case sf::Keyboard::P:
+    case SDLK_p:
         release(0, 8);
         break;
     default:
@@ -179,27 +179,25 @@ void Controller::kbdReleased(sf::Event& event) {
     }
 }
 
-void Controller::joyMoved(sf::Event& event) {
-    unsigned int c = sfml2nibble[event.joystickMove.joystickId];
+void Controller::joyMoved(SDL_Event& event) {
+    unsigned int c = sfml2nibble[event.jaxis.which];
 
-    if (event.joystickMove.axis == sf::Joystick::X ||
-        event.joystickMove.axis == sf::Joystick::PovX) {
-        if (abs(event.joystickMove.position) < 10) {
+    if (event.jaxis.axis == 0) {
+        if (abs(event.jaxis.value) < 10) {
             release(c, 1);
             release(c, 3);
-        } else if (event.joystickMove.position > 0) {
+        } else if (event.jaxis.value> 0) {
             press(c, 1);
         } else {
             press(c, 3);
         }
     }
 
-    if (event.joystickMove.axis == sf::Joystick::Y ||
-        event.joystickMove.axis == sf::Joystick::PovY) {
-        if (abs(event.joystickMove.position) < 10) {
+    if (event.jaxis.axis == 1) {
+        if (abs(event.jaxis.value) < 10) {
             release(c, 0);
             release(c, 2);
-        } else if (event.joystickMove.position > 0) {
+        } else if (event.jaxis.value > 0) {
             press(c, 2);
         } else {
             press(c, 0);
@@ -207,10 +205,10 @@ void Controller::joyMoved(sf::Event& event) {
     }
 }
 
-void Controller::joyPressed(sf::Event& event) {
-    unsigned int c = sfml2nibble[event.joystickButton.joystickId];
+void Controller::joyPressed(SDL_Event& event) {
+    unsigned int c = sfml2nibble[event.jbutton.which];
 
-    switch (event.joystickButton.button) {
+    switch (event.jbutton.button) {
     case J_BLUE:
         press(c, 4);
         break;
@@ -231,10 +229,10 @@ void Controller::joyPressed(sf::Event& event) {
     }
 }
 
-void Controller::joyReleased(sf::Event& event) {
-    unsigned int c = sfml2nibble[event.joystickButton.joystickId];
+void Controller::joyReleased(SDL_Event& event) {
+    unsigned int c = sfml2nibble[event.jbutton.which];
 
-    switch (event.joystickButton.button) {
+    switch (event.jbutton.button) {
     case J_BLUE:
         release(c, 4);
         break;
@@ -255,17 +253,17 @@ void Controller::joyReleased(sf::Event& event) {
     }
 }
 
-void Controller::joyConnected(sf::Event& event) {
+void Controller::joyConnected(SDL_Event& event) {
     unsigned int slot = getOpenSlot();
 
-    sfml2nibble[event.joystickConnect.joystickId] = slot;
+    sfml2nibble[event.jdevice.which] = slot;
 
     setState(slot, BUTTON_OFF_ON);
 } 
 
-void Controller::joyDisconnected(sf::Event& event) {
-    unsigned int slot = sfml2nibble[event.joystickConnect.joystickId];
-    sfml2nibble.erase(event.joystickConnect.joystickId);
+void Controller::joyDisconnected(SDL_Event& event) {
+    unsigned int slot = sfml2nibble[event.jdevice.which];
+    sfml2nibble.erase(event.jdevice.which);
 
     setState(slot, BUTTON_ON_OFF);
 } 

@@ -7,9 +7,6 @@
 using namespace std;
 
 Audio::Audio(Memory &memory): nextTick(0), t(0) {
-    // Aloca memória
-    samples = (int16_t*)memory.allocate(AUDIO_SAMPLE_MEM_SIZE, "Audio Samples Buffer");
-
     // Cria canais
     for (size_t ch=0;ch<AUDIO_CHANNEL_AMOUNT;ch++) {
         channels[ch] = make_unique<Channel>(memory);
@@ -18,20 +15,49 @@ Audio::Audio(Memory &memory): nextTick(0), t(0) {
     // Calcula velocidade da sincronização
     calculateTickPeriod(AUDIO_UPDATE_RATE);
 
-    // Inicializa a placa de áudio
-    initialize(1, AUDIO_SAMPLE_RATE);
+    device = initialize();
+}
+
+Audio::~Audio() {
+    SDL_CloseAudioDevice(device);
+}
+
+SDL_AudioDeviceID Audio::initialize() {
+  SDL_AudioDeviceID device;
+  // Especifificações que queremos, especificações que conseguimos
+  SDL_AudioSpec specIn, specOut;
+  // Limpa os specs
+  SDL_zero(specIn);
+  // Escolhe nosso spec
+  specIn.freq     = AUDIO_SAMPLE_RATE;
+  specIn.format   = AUDIO_S16;
+  specIn.channels = 2;
+  specIn.samples  = AUDIO_SAMPLE_AMOUNT;
+
+  specIn.callback = [] (void *udata, Uint8 *stream, int len) {
+    ((Audio*)udata)->fill((int16_t*)stream, len/2);
+  };
+  specIn.userdata = (void*)this;
+
+  // Open the device
+  device = SDL_OpenAudioDevice(nullptr, 0, &specIn, &specOut, SDL_AUDIO_ALLOW_ANY_CHANGE);
+
+  if (!device) {
+      /* TODO: Error!! */
+  }
+
+  return device;
 }
 
 void Audio::startup() {
-    play();
+    SDL_PauseAudioDevice(device, 0);
 }
 
 void Audio::shutdown() {
-    stop();
+    SDL_PauseAudioDevice(device, 1);
 }
 
-bool Audio::onGetData(Audio::Chunk& chunk) {
-    unsigned int missingSampleCount = AUDIO_SAMPLE_AMOUNT;
+void Audio::fill(int16_t *samples, int missingSampleCount) {
     unsigned int initialT = t;
 
     memset(samples, 0, AUDIO_SAMPLE_MEM_SIZE);
@@ -63,12 +89,6 @@ bool Audio::onGetData(Audio::Chunk& chunk) {
             break;
         }
     } while (missingSampleCount > 0);
-
-    // Passa informações sobre os samples para a placa de áudio
-    chunk.samples = samples;
-    chunk.sampleCount = AUDIO_SAMPLE_AMOUNT;
-
-    return true;
 }
 
 void Audio::mix(int16_t* samples, unsigned int sampleCount) {
@@ -77,8 +97,6 @@ void Audio::mix(int16_t* samples, unsigned int sampleCount) {
         channels[c]->fill(samples, sampleCount);
     }
 }
-
-void Audio::onSeek(sf::Time) { }
 
 void Audio::calculateTickPeriod(const double frequency) {
     // Período em segundos

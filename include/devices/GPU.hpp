@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include <SFML/Graphics.hpp>
+#include <SDL2/SDL.h>
 
 #include <gif_lib.h>
 
@@ -30,7 +30,7 @@
 #define TRANSPARENT(c)      !paletteMemory[(c<<2)+3]
 #define COLMAP1(c)          paletteMemory[512+((c)&0x7F)]
 
-class GPU : public Device {
+class GPU: public Device {
     // Pointeiros para memória
     uint8_t *commandMemory;
     uint8_t *videoMemory;
@@ -41,12 +41,6 @@ class GPU : public Device {
     uint8_t *target;
     int16_t targetW, targetH;
 
-    // Código e o shader utilizado para desenhar mixar texturas
-    // e expandir para a tela
-    const static string shaderVertex;
-    const static string toRGBAShaderFragment;
-    sf::Shader toRGBAShader;
-
     // Arquivo para salvar gifs
     GifFileType *gif;
     // Paleta do gif
@@ -56,19 +50,18 @@ class GPU : public Device {
     double screenScale;
     double screenOffsetX, screenOffsetY;
 
+    SDL_Renderer *renderer;
     // Framebuffer da imagem final
-    sf::Texture framebuffer;
-    // Textura utilizada como paleta pelo shader
-    sf::Texture paletteTex;
-
-    // Áreas para desenho do framebuffer
-    sf::Sprite framebufferSpr;
+    SDL_Texture *framebuffer;
+    
+    SDL_Rect framebufferDst, framebufferSrc;
 protected:
     friend class Kernel;
 
-    sf::RenderWindow window;
+    SDL_Window* window;
 public:
     GPU(Memory&);
+    ~GPU();
 
     void startup();
 

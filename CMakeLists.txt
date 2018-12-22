@@ -36,17 +36,17 @@ set(PROJECT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 set(PROJECT_EXTERN_DIR ${CMAKE_SOURCE_DIR}/extern)
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 
-# SFML and Lua
+# SDL2 and Lua
 include(ExternalProject)
 
-if (WIN32)
-    add_definitions(-DSFML_STATIC)
-endif (WIN32)
+ExternalProject_Add(DEVIL
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/devil/DevIL/"
+                    CMAKE_ARGS
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 
-ExternalProject_Add(SFML
-                SOURCE_DIR "${PROJECT_EXTERN_DIR}/sfml/"
-                CMAKE_ARGS
-                    "-DBUILD_SHARED_LIBS=false"
+ExternalProject_Add(SDL2
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/SDL2/"
+                    CMAKE_ARGS
                     "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 
 ExternalProject_Add(LUA
@@ -85,6 +85,12 @@ add_executable(nibble
                 ${PROJECT_HEADER_DIR}/kernel/Memory.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Wave.cpp
                 ${PROJECT_HEADER_DIR}/kernel/Wave.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/SquareWave.cpp
+                ${PROJECT_HEADER_DIR}/kernel/SquareWave.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/SawWave.cpp
+                ${PROJECT_HEADER_DIR}/kernel/SawWave.hpp
+                ${PROJECT_SOURCE_DIR}/kernel/TriangleWave.cpp
+                ${PROJECT_HEADER_DIR}/kernel/TriangleWave.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/FMSynthesizer.cpp
                 ${PROJECT_HEADER_DIR}/kernel/FMSynthesizer.hpp
                 ${PROJECT_SOURCE_DIR}/kernel/Envelope.cpp
@@ -108,7 +114,7 @@ add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/kernel/filesystem.cpp
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
               )
-add_dependencies(nibble SFML LUA GIF LuaCartsBin LuaCartsBuild)
+add_dependencies(nibble SDL2 DEVIL LUA GIF LuaCartsBin LuaCartsBuild)
 
 if ( MSVC )
     set_target_properties(nibble PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
@@ -119,15 +125,11 @@ endif ( MSVC )
 
 if (WIN32)
     set_target_properties(nibble PROPERTIES WIN32_EXECUTABLE true)
-    target_link_libraries(nibble debug sfml-main-d optimized sfml-main)
 endif (WIN32)
 
 # Linking
-target_link_libraries(nibble debug sfml-window-s-d optimized sfml-window-s)
-target_link_libraries(nibble debug sfml-graphics-s-d optimized sfml-graphics-s)
-target_link_libraries(nibble debug sfml-audio-s-d optimized sfml-audio-s)
-target_link_libraries(nibble debug sfml-network-s-d optimized sfml-network-s)
-target_link_libraries(nibble debug sfml-system-s-d optimized sfml-system-s)
+target_link_libraries(nibble IL)
+target_link_libraries(nibble 'SDL2')
 target_link_libraries(nibble lualib)
 target_link_libraries(nibble giflib)
 

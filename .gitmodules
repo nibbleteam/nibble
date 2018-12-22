@@ -1,3 +1,6 @@
-[submodule "extern/sfml"]
-	path = extern/sfml
-	url = https://github.com/SFML/SFML/
+[submodule "extern/SDL2"]
+	path = extern/SDL2
+	url = https://github.com/spurious/SDL-mirror
+[submodule "extern/devil"]
+	path = extern/devil
+	url = https://github.com/DentonW/DevIL

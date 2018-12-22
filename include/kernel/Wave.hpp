@@ -16,7 +16,7 @@ public:
 
     const int16_t operator[](uint16_t) const;
 private:
-    const int16_t valueAt(uint8_t) const; 
+    virtual const int16_t valueAt(uint8_t) const; 
 };
 
 #endif /* WAVE_H */

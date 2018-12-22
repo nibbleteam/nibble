@@ -20,7 +20,6 @@
 #include <devices/Mouse.hpp>
 #include <devices/Controller.hpp>
 
-#include <SFML/Graphics.hpp>
 #include <LuaBridge/LuaBridge.h>
 
 using namespace std;

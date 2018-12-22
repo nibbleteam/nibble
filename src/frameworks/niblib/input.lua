@@ -1,19 +1,21 @@
 local input = {}
 
-CONTROLLER = 81596
+CONTROLLER  = 78816
+KEYBOARD    = 78826
+MOUSE       = 78858
 
-input.STUP = 0
-input.STPRESSED = 1
-input.STDOWN = 2
+input.STUP       = 0
+input.STPRESSED  = 1
+input.STDOWN     = 2
 input.STRELEASED = 3
 
-input.UP = 0
+input.UP    = 0
 input.RIGHT = 1
-input.DOWN = 2
-input.LEFT = 3
+input.DOWN  = 2
+input.LEFT  = 3
 
-input.RED = 4
-input.BLUE = 5
+input.RED   = 4
+input.BLUE  = 5
 
 input.BLACK = 6
 input.WHITE = 7

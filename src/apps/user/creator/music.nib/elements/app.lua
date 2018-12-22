@@ -6,5 +6,5 @@ return {
     w = d'^' 'w', h = d'-' (d'^' 'h', 25),
     background = 0,
     d'=>' 'elements.timeline',
-    d'=>' 'elements.score'
+    d'=>' 'elements.score',
 }

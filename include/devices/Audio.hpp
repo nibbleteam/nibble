@@ -3,7 +3,7 @@
 
 #include <array>
 
-#include <SFML/Audio.hpp>
+#include <SDL2/SDL.h>
 
 #include <Specs.hpp>
 
@@ -13,22 +13,26 @@
 
 using namespace std;
 
-class Audio : public Device, public sf::SoundStream {
-    // Samples
-    int16_t* samples;
-
+class Audio : public Device {
 	// Canais FM
 	array<unique_ptr<Channel>, AUDIO_CHANNEL_AMOUNT> channels;
 
     // Tick
 	unsigned long nextTick, tickPeriod;
 	unsigned long t;
+
+    // ID da placa de áudio
+    SDL_AudioDeviceID device;
 public:
     Audio(Memory&);
+    ~Audio();
 
     void startup();
     void shutdown();
 private:
+    // Inicializa placa de áudio
+    SDL_AudioDeviceID initialize();
+
 	// Sinal de clock para mudar os parâmetros da onda
     // chama uma callback no cart atual
 	void calculateTickPeriod(const double);
@@ -37,8 +41,8 @@ private:
     // Prepara samples mixados
     void mix(int16_t*, unsigned int);
 
-    bool onGetData(Chunk&);
-    void onSeek(sf::Time);
+    // TODO
+    void fill(int16_t*, int);
 public:
     static float tof(uint8_t);
     static float tof16(const uint8_t*);

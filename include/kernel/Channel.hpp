@@ -27,6 +27,7 @@ public:
     typedef struct CmdLayout {
         uint8_t cmd;
         uint8_t note;
+        uint8_t intensity;
     }CmdLayout;
 #pragma pack(pop)
 
@@ -52,7 +53,7 @@ public:
 
 	void fill(int16_t*, const unsigned int); 
 
-    void press(uint8_t);
+    void press(uint8_t, uint8_t);
     void release(uint8_t);
 private:
     void reverb(int16_t*, int16_t*, const unsigned int);

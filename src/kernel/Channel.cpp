@@ -28,7 +28,7 @@ void Channel::fill(int16_t* output, const unsigned int sampleCount) {
     for (size_t i=0;i<AUDIO_CMD_AMOUNT;i++) {
         switch (memory.commands[i].cmd) {
             case NoteOn:
-                press(memory.commands[i].note);
+                press(memory.commands[i].note, memory.commands[i].intensity);
                 memory.commands[i].cmd = 0;
                 break;
             case NoteOff:
@@ -93,11 +93,12 @@ void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
     }
 }
 
-void Channel::press(uint8_t note) {
+void Channel::press(uint8_t note, uint8_t intensity) {
     if (synthesizers.find(note) == synthesizers.end()) {
         synthesizers.emplace(note, make_unique<FMSynthesizer>(memory.synthesizer, note));
+        synthesizers[note]->on(intensity);
     } else {
-        synthesizers[note]->on();
+        synthesizers[note]->on(intensity);
     }
 }
 

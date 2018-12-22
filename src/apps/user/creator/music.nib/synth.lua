@@ -2,19 +2,34 @@ function audio_init()
     -- Primeiro canal
     channel(CH1)
     -- Frequências
-    freqs(0.9, 0.98, 0.94, 0.93)
+    freqs(1.0, 1.0, 1.0, 2.0)
     -- Envelopes
-    envelope(OP1, 0, 1, 0.5, 0.01, 1, 0.4)
-    envelope(OP2, 0, 1, 0.5, 0.01, 0.2, 0.4)
-    envelope(OP3, 0, 1, 0.5, 0.01, 0.2, 0.4)
-    envelope(OP4, 0, 1, 0.5, 0.01, 0.2, 0.4)
+    envelope(OP1, 0, 1, 0.9, 0.01, 0.1, 0.5, 0)
+    envelope(OP2, 0, 1, 0.5, 0.01, 0.2, 0.1, 0)
+    --envelope(OP3, 0, 1, 0.9, 0.0, 0.1, 0, 0)
+    --envelope(OP4, 0, 1, 0.9, 0.0, 0.1, 0, 0)
     -- Roteia
-    route(OP1, OUT, 0.1)
-    route(OP2, OP1, 0.8)
-    route(OP3, OP2, 0.2)
-    route(OP4, OP3, 0.5)
+    route(OP1, OUT, 0.5)
+    route(OP1, OP1, 0.5)
+    route(OP2, OP1, 1.0)
+    --route(OP3, OUT, 0.1)
+    --route(OP4, OUT, 0.2)
     -- Reverb
     --reverb(32, 0.6)
+    --
+    channel(CH2)
+    -- Frequências
+    freqs(1.0, 1.0, 1.0, 2.0)
+    -- Envelopes
+    envelope(OP1, 0, 1, 0.9, 0.01, 0.3, 0.2, 0)
+    envelope(OP2, 0, 1, 0.5, 0.01, 0.3, 0.2, 0)
+    envelope(OP3, 0, 1, 0.9, 0.01, 0.3, 0.2, 2)
+    envelope(OP4, 0, 1, 0.9, 0.01, 0.3, 0.2, 0)
+    -- Roteia
+    route(OP1, OUT, 0.1)
+    route(OP2, OP1, 2.0)
+    route(OP3, OP1, 0.1)
+    route(OP4, OP1, 0.1)
 end
 
 local base = 39-12
@@ -34,6 +49,7 @@ function audio_tick()
             if music[tick] then
                 for n=0,12*6-1 do
                     if music[tick][n] then
+                        channel(CH2)
                         noteon(n, writep%16)
                         writep += 1
                     end
@@ -56,10 +72,10 @@ function audio_tick()
 end
 
 function audio_update(dt)
-    local input = kernel.read(81606, 1)
+    local input = kernel.read(KEYBOARD, 1)
 
     if input:byte() > 0 then
-        local input = kernel.read(81606+1, input:byte())
+        local input = kernel.read(KEYBOARD+1, input:byte())
 
         for k=1,#input do
             -- Encontra a nota
@@ -69,6 +85,7 @@ function audio_update(dt)
                 n += base-1
 
                 -- Toca
+                channel(CH1)
                 noteon(n, writep%16)
                 writep += 1
             end

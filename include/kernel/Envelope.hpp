@@ -27,13 +27,15 @@ public:
 #pragma pack(pop)
 
     MemoryLayout &memory;
+
+    uint8_t intensity;
 public:
     float amplitude;
     bool done;
 
     Envelope(MemoryLayout&);
 
-    void on();
+    void on(uint8_t);
     void off();
 
     float getAmplitude();

@@ -4,12 +4,12 @@
 #include <map>
 #include <cstdint>
 
-#include <SFML/Window.hpp>
-
 #include <kernel/Memory.hpp>
 #include <kernel/Device.hpp>
 
 #include <Specs.hpp>
+
+#include <SDL2/SDL.h>
 
 using namespace std;
 
@@ -73,13 +73,13 @@ public:
     Controller(Memory&);
 
     void update();
-    void kbdPressed(sf::Event&);
-    void kbdReleased(sf::Event&);
-    void joyPressed(sf::Event&);
-    void joyReleased(sf::Event&);
-    void joyConnected(sf::Event&);
-    void joyDisconnected(sf::Event&);
-    void joyMoved(sf::Event&);
+    void kbdPressed(SDL_Event&);
+    void kbdReleased(SDL_Event&);
+    void joyPressed(SDL_Event&);
+    void joyReleased(SDL_Event&);
+    void joyConnected(SDL_Event&);
+    void joyDisconnected(SDL_Event&);
+    void joyMoved(SDL_Event&);
     void allReleased();
 private:
     unsigned int getOpenSlot();

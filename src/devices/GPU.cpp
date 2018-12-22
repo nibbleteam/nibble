@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <cstring>
 #include <cmath>
@@ -8,146 +9,54 @@
 
 using namespace std;
 
-// Vertex shader padrão do SFML sem alterações
-const string GPU::shaderVertex = R"(
-void main()
-{
-    // transform the vertex position
-    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-
-    // transform the texture coordinates
-    gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
-
-    // forward the vertex color
-    gl_FrontColor = gl_Color;
-}
-)";
-
-// Recebe duas texturas com 1/4 do comprimento da tela
-// esticada para o tamanho da tela e endereça cada 
-// pixel na imagem como 4 pixels na tela.
-// Para fazer isso considera cada canal como
-// um pixel
-const string GPU::toRGBAShaderFragment = R"(
-const float screen_w = 320.0;
-// 4 canais na textura (RGBA)
-const float bytes_per_pixel = 4.0;
-
-// Textura comprimida onde 1 pixel real são 4 pixels virtuais
-uniform sampler2D source;
-// Textura 1xN da paleta
-uniform sampler2D palette;
-
-vec4 get_pix(int p) {
-    float fp = float(p)/192.0;
-
-    return texture2D(palette, vec2(fp+0.5/192.0, 0.5));
-}
-
-float color_routing2(float i) {
-    int p = int(i*2.0*128.0);
-    vec4 pix = get_pix(p/4+160);
-    int byte = int(mod(float(p), 4.0));
-    float source = 0.0;
-
-    if (byte == 0) {
-        source = pix.r;
-    } else if (byte == 1) {
-        source = pix.g;
-    } else if (byte == 2) {
-        source = pix.b;
-    } else {
-        source = pix.a;
-    }
-
-    return source;
-}
-
-void main()
-{
-    // Coordenadas no espaço da textura
-    vec2 coord = gl_TexCoord[0].xy;
-    // Em qual byte do pixel estamos
-    int byte = int(mod(coord.x*screen_w, bytes_per_pixel));
-
-    // Cor do pixel na textura
-    vec4 pixel = texture2D(source, coord);
-
-    // Qual canal do pixel da textura vamos
-    // usar para o pixel na tela
-    float source;
-    // Primeiro byte, segundo byte etc
-    // Os módulos limitam a 8 paletas
-    if (byte == 0)
-        source = pixel.r;
-    else if (byte == 1)
-        source = pixel.g; 
-    else if (byte == 2)
-        source = pixel.b;
-    else if (byte == 3)
-        source = pixel.a;
-
-    float rt2 = color_routing2(mod(source, 0.5));
-    vec4 color = texture2D(palette, vec2(mod(rt2, 1.0)*4.0/3.0, 0.0));
-    
-    gl_FragColor = vec4(color.rgb, 1.0);
-}
-)";
-
 GPU::GPU(Memory& memory):
-    colormap(NULL), screenScale(2), screenOffsetX(0), screenOffsetY(0),
-    window(sf::VideoMode(GPU_VIDEO_WIDTH*GPU_DEFAULT_SCALING,
-                         GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING),
-           "Nibble") {
+    colormap(NULL), screenScale(GPU_DEFAULT_SCALING), screenOffsetX(0), screenOffsetY(0) {
+
+    window = SDL_CreateWindow("Nibble",
+                              SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED,
+                              GPU_VIDEO_WIDTH*GPU_DEFAULT_SCALING,
+                              GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING,
+                              SDL_WINDOW_SHOWN);
+
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
     commandMemory = memory.allocate(GPU_COMMAND_MEM_SIZE, "GPU Commands", [&] (Memory::AccessMode mode) {
         if (mode == Memory::ACCESS_WRITE) {
             this->execGpuCommand(this->commandMemory);
         }
     });
-    // TODO: esse não é o tamanho certo
+
     paletteMemory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
     videoMemory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
 
+    // TODO
     // FPS Máximo 
-    window.setFramerateLimit(GPU_FRAMERATE);
+    // window.setFramerateLimit(GPU_FRAMERATE);
 
-    // O tamanho virtual da janela é sempre fixo
-    window.setView(sf::View(sf::FloatRect(0, 0, GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT)));
-
+    // TODO
     // Não gera múltiplos keypresses se a tecla ficar apertada
-    window.setKeyRepeatEnabled(false);
+    // window.setKeyRepeatEnabled(false);
 
     // Não mostra o cursor
-    window.setMouseCursorVisible(false);
+    SDL_ShowCursor(SDL_DISABLE);
 
+    // TODO
     // Coloca o ícone
-    sf::Image Icon;
-	if (Icon.loadFromMemory(icon_png, icon_png_len)) {
-        window.setIcon(icon_width, icon_height, Icon.getPixelsPtr());
-    }
+    // sf::Image Icon;
+	// if (Icon.loadFromMemory(icon_png, icon_png_len)) {
+    //    window.setIcon(icon_width, icon_height, Icon.getPixelsPtr());
+    //}
 
-    // Tamanho da textura é 1/4 do tamanho da tela
-    // uma vez que um pixel no sfml são quatro bytes
-    // e no console é apenas um
-    framebuffer.create(GPU_VIDEO_WIDTH/BYTES_PER_TEXEL, GPU_VIDEO_HEIGHT);
+    framebuffer = SDL_CreateTexture(renderer,
+                                    SDL_PIXELFORMAT_ABGR8888,
+                                    SDL_TEXTUREACCESS_STREAMING,
+                                    GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT);
 
-    // Sprite para desenhar o framebuffer na tela
-    framebufferSpr = sf::Sprite(framebuffer);
-    framebufferSpr.setScale(BYTES_PER_TEXEL, 1);
-    
-    // Cria a textura da palleta
-    paletteTex.create(GPU_PALETTE_MEM_SIZE/BYTES_PER_TEXEL, 1);
-
-    // Shader de final de pipeline
-    if (!toRGBAShader.loadFromMemory(shaderVertex, toRGBAShaderFragment)) {
-        cout << "video " << "error loading toRGBA shader" << endl;
-        exit(1);
-    }
-    else {
-        // Passa textura do framebuffer e paleta
-        toRGBAShader.setUniform("source", framebuffer);
-        toRGBAShader.setUniform("palette", paletteTex);
-    }
+    framebufferSrc = SDL_Rect {0, 0, GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT};
+    framebufferDst = SDL_Rect {0, 0,
+                               int(GPU_VIDEO_WIDTH*screenScale),
+                               int(GPU_VIDEO_HEIGHT*screenScale)};
 
     // Inicializa a memória
     for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
@@ -155,22 +64,19 @@ GPU::GPU(Memory& memory):
       videoMemory[i] = (i%320+rand()%4)%8 == 0 ? (rand()%0x10) : (0);
     }
 
-    // Inicializa com bytes não inicializados
-    framebuffer.update(videoMemory);
-
     // Aspect-ratio correto
     resize();
 
-    // Configura os buffers padrões:
     //  - target -> video
-    //  - source -> spritesheet
-    source = videoMemory; // TODO
-    sourceW = GPU_VIDEO_WIDTH;
-    sourceH = GPU_VIDEO_HEIGHT;
-
     target = videoMemory;
     targetW = GPU_VIDEO_WIDTH;
     targetH = GPU_VIDEO_HEIGHT;
+}
+
+GPU::~GPU() {
+    SDL_DestroyTexture(framebuffer);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
 }
 
 void GPU::startup() {
@@ -205,9 +111,16 @@ void GPU::startup() {
 }
 
 void GPU::draw() {
-    paletteTex.update(paletteMemory);
-    // Atualiza resultado do render da CPU
-    framebuffer.update(videoMemory);
+    // Atualiza a memória de vídeo
+    void *data;
+    int pitch;
+    SDL_LockTexture(framebuffer, NULL, &data, &pitch);
+
+    for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
+        memcpy(((uint8_t*)data)+i*4, paletteMemory+(videoMemory[i]*4), 4);
+    }
+
+    SDL_UnlockTexture(framebuffer);
 
     // Grava a frame
     if (colormap != NULL) {
@@ -216,18 +129,21 @@ void GPU::draw() {
 
     // Só limpa a tela se tivermos barras horizontais ou verticais
     if (screenOffsetX != 0 || screenOffsetY != 0) {
-        window.clear();
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
     }
 
-    // Desenha o framebuffer na tela, usando o shader para converter do
-    // formato 1byte por pixel para cores RGBA nos pixels
-    window.draw(framebufferSpr, &toRGBAShader);
+    // Desenha o framebuffer na tela
+    SDL_RenderCopy(renderer, framebuffer, &framebufferSrc, &framebufferDst);
 
     // Mostra o resultado na janela
-    window.display();
+    SDL_RenderPresent(renderer);
 }
 
 void GPU::resize() {
+    /*
+    TODO
+
     // Mantém o aspect ratio
     auto windowSize = window.getSize();
     auto screenRatio = float(GPU_VIDEO_WIDTH)/float(GPU_VIDEO_HEIGHT);
@@ -254,15 +170,16 @@ void GPU::resize() {
         framebufferSpr.setScale(BYTES_PER_TEXEL, spriteHeight);
         framebufferSpr.setPosition(0, screenOffsetY);
     }
+    */
 }
 
 void GPU::transformMouse(int16_t &x, int16_t &y) {
-    auto windowSize = window.getSize();
-
     x /= screenScale;
     y /= screenScale;
-    x -= (windowSize.x/screenScale-GPU_VIDEO_WIDTH)/2;
-    y -= (windowSize.y/screenScale-GPU_VIDEO_HEIGHT)/2;
+
+    // TODO
+    //x -= (w/screenScale-GPU_VIDEO_WIDTH)/2;
+    //y -= (h/screenScale-GPU_VIDEO_HEIGHT)/2;
 }
 
 /*
@@ -358,6 +275,9 @@ bool GPU::captureFrame() {
 }
 
 ColorMapObject* GPU::getColorMap() {
+    /*
+    TODO
+
     // "Paleta" do GIF
     GifColorType colors[GPU_PALETTE_LENGTH*GPU_PALETTE_AMOUNT];
     auto image = paletteTex.copyToImage();
@@ -375,6 +295,7 @@ ColorMapObject* GPU::getColorMap() {
     colormap = GifMakeMapObject(GPU_PALETTE_LENGTH*GPU_PALETTE_AMOUNT, colors);
 
     return colormap;
+    */
 }
 
 // Render de Software

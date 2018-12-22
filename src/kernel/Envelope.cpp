@@ -4,37 +4,49 @@
 #include <iostream>
 using namespace std;
 
-Envelope::Envelope(MemoryLayout &memory): memory(memory), amplitude(0), status(ATTACK), done(false) { }
+Envelope::Envelope(MemoryLayout &memory):
+    status(ATTACK),
+    memory(memory),
+    intensity(255),
+    amplitude(0),
+    done(false) { }
 
 float Envelope::getAmplitude() {
+    float level = Audio::tof16(memory.level)*float(intensity)/255.0;
+    float sustain = Audio::tof16(memory.sustain);
+
+    float attack = Audio::tof16(memory.attack);
+    float decay = Audio::tof16(memory.decay);
+    float release = Audio::tof16(memory.release);
+
     switch (status) {
         case ATTACK:
             if (memory.attack == 0) {
-                amplitude = Audio::tof16(memory.level);
+                amplitude = level;
             } else {
-                amplitude += Audio::tof16(memory.level)/Audio::tof16(memory.attack)/44100.0;
+                amplitude += level/attack/44100.0;
             }
 
-            if (amplitude >= Audio::tof16(memory.level)) {
-                amplitude = Audio::tof16(memory.level);
+            if (amplitude >= level) {
+                amplitude = level;
                 status = DECAY;
             }
             break;
         case DECAY:
             if (memory.decay == 0) {
-                amplitude = Audio::tof16(memory.sustain);
+                amplitude = sustain;
             } else {
-                amplitude -= (Audio::tof16(memory.level)-Audio::tof16(memory.sustain))/Audio::tof16(memory.decay)/44100;
+                amplitude -= (level-sustain)/decay/44100;
             }
 
-            if (amplitude <= Audio::tof16(memory.sustain)) {
-                amplitude = Audio::tof16(memory.sustain);
+            if (amplitude <= sustain) {
+                amplitude = sustain;
                 status = SUSTAIN;
             }
             break;
         case SUSTAIN:
             if (!memory.sustained) {
-                amplitude = Audio::tof16(memory.sustain);
+                amplitude = sustain;
                 status = RELEASE;
             }
             break;
@@ -42,7 +54,7 @@ float Envelope::getAmplitude() {
             if (memory.release == 0) {
                 amplitude = 0;
             } else {
-                amplitude -= Audio::tof16(memory.sustain)/Audio::tof16(memory.release)/44100;
+                amplitude -= sustain/release/44100;
             }
 
             if (amplitude <= 0) {
@@ -55,7 +67,7 @@ float Envelope::getAmplitude() {
     return amplitude;
 }
 
-void Envelope::on() {
+void Envelope::on(uint8_t intensity) {
     status = ATTACK;
 }
 

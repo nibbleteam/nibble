@@ -1,6 +1,6 @@
 local audio = {}
 
-local audio_addr = 80540
+local audio_addr = 77600
 
 local NOTE_TABLE = {
   A= 0,
@@ -50,30 +50,34 @@ audio.CH7 = CH7
 audio.CH8 = CH8
 
 local FREQ_SIZE = 4*2
-local CH_SIZE = 256
+local CH_SIZE = 152
 local ENV_SIZE = 6*2
 local ENVS_SIZE = ENV_SIZE*4
 local LINE_SIZE = 5*2
 local MAT_SIZE = LINE_SIZE*4
 local CELL_SIZE = 2
+local TYPES_SIZE = 4
 
 local function encode(n)
     return u16(n*255.0)
 end
 
 local function channel(c)
-    audio.ch = c
+    ch = c
 end
 
-local function envelope(op, sustain, volume, a, d, s, r)
+local function envelope(op, sustain, volume, a, d, s, r, wave)
     local str = encode(sustain)..encode(volume)
     str = str..encode(a)..encode(d)..encode(s)..encode(r)
     
     kernel.write(audio_addr+ch*CH_SIZE+FREQ_SIZE+op*ENV_SIZE, str)
+    kernel.write(audio_addr+ch*CH_SIZE+FREQ_SIZE+op*ENV_SIZE+MAT_SIZE+16*3+op, string.char(wave))
 end
 
 local function freqs(op1, op2, op3, op4)
     local str = encode(op1)..encode(op2)..encode(op3)..encode(op4)
+
+    dprint(audio_addr+ch*CH_SIZE)
 
     kernel.write(audio_addr+ch*CH_SIZE, str)
 end
@@ -81,7 +85,7 @@ end
 local function reverb(delay, feedback)
     local str = string.char(delay)..encode(feedback)
 
-    kernel.write(audio_addr+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+16*2, str)
+    kernel.write(audio_addr+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+4+16*3, str)
 end
 
 local function route(from, to, amplitude)
@@ -89,11 +93,11 @@ local function route(from, to, amplitude)
 end
 
 local function noteon(n, i)
-    kernel.write(audio_addr+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+i*2, '\x01'..string.char(n));
+    kernel.write(audio_addr+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+TYPES_SIZE+i*3, '\x01'..string.char(n));
 end
 
 local function noteoff(n, i)
-    kernel.write(audio_addr+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+i*2, '\x02'..string.char(n));
+    kernel.write(audio_addr+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+TYPES_SIZE+i*3, '\x02'..string.char(n));
 end
 
 audio.encode = encode

@@ -4,7 +4,8 @@
 
 #include <cstdint>
 
-#include <SFML/Graphics.hpp>
+#include <SDL2/SDL.h>
+#include <IL/il.h>
 
 #include <kernel/Memory.hpp>
 #include <kernel/filesystem.hpp>
@@ -17,11 +18,11 @@ namespace mmap {
 #define SPRITESHEET_W 4096
 #define SPRITESHEET_H 1024
 
-uint8_t color2index(const sf::Color& color) {
+uint8_t color2index(const SDL_Color& color) {
     return (color.r/16+color.g/16+color.b/16)/3;
 }
 
-sf::Color index2color(const uint8_t index) {
+SDL_Color index2color(const uint8_t index) {
     uint8_t gray = index*16;
 
     return {gray, gray, gray, 255};
@@ -32,31 +33,34 @@ size_t read_image(Memory &memory, Path &path) {
         cout << "mapping image to memory " << path.getPath() << endl;
 
         // Carrega a imagem
-        sf::Image img;
-        if (!img.loadFromFile(path.getPath())) {
+        if (!ilLoadImage(path.getPath().c_str())) {
             cout << "could not load image!" << endl;
             return -1;
         }
 
+        size_t w = ilGetInteger(IL_IMAGE_WIDTH);
+        size_t h = ilGetInteger(IL_IMAGE_HEIGHT);
+
         // Verifica o tamanho
-        auto size = img.getSize();
-        if (size.x > SPRITESHEET_W || size.y > SPRITESHEET_H) {
+        if (w > SPRITESHEET_W || h > SPRITESHEET_H) {
             cout << "spritesheet is too big" << endl;   
             return -1;
         }
 
-        auto info = memory.allocateWithPosition(sizeof(ImageMetadata)+size.x*size.y, "Memory Mapped Image");
+        auto info = memory.allocateWithPosition(sizeof(ImageMetadata)+w*h, "Memory Mapped Image");
         ImageMetadata *meta = (ImageMetadata*)get<0>(info);
 
-        meta->w = size.x;
-        meta->h = size.y;
+        meta->w = w;
+        meta->h = h;
+
+        auto imgData = ilGetData();
 
         // Converte a imagem e escreve array data
-        for (size_t y=0;y<size.y;y++) {
-            for (size_t x=0;x<size.x;x++) {
-                uint8_t pix = color2index(img.getPixel(x, y));
+        for (size_t y=0;y<h;y++) {
+            for (size_t x=0;x<w;x++) {
+                uint8_t pix = imgData[y*w+x+0];
 
-                get<0>(info)[sizeof(ImageMetadata)+y*size.x+x] = pix&0x0F;
+                get<0>(info)[sizeof(ImageMetadata)+y*w+x] = pix&0x0F;
             }
         }
 
@@ -67,6 +71,9 @@ size_t read_image(Memory &memory, Path &path) {
 }
 
 void write_image(Memory &memory, size_t pos, Path &path) {
+    /*
+    TODO
+
     sf::Image img;
     auto *ptr = memory.toPtr(pos);
     auto *meta = (ImageMetadata*)ptr;
@@ -81,6 +88,7 @@ void write_image(Memory &memory, size_t pos, Path &path) {
     }
 
     img.saveToFile(path.getPath());
+    */
 }
 
 }

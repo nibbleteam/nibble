@@ -218,11 +218,9 @@ function NOM:draw_cursor()
 end
 
 function NOM:update_mouse()
-    local maddr = 81638
-
-    local x, y = read16(maddr), read16(maddr+2)
+    local x, y = read16(MOUSE), read16(MOUSE+2)
     local drag = false
-    self.mouse.click = read8(maddr+4)
+    self.mouse.click = read8(MOUSE+4)
 
     if self.mouse.click == 1 then
         self:click({ x = x, y = y }, true)
