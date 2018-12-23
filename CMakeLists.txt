@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 project(nibble)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
+set(BUILD_SHARED_LIBS OFF)
+
 # Warnings
 if(MSVC)
   # Force to always compile with W4
@@ -39,25 +41,27 @@ set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 # SDL2 and Lua
 include(ExternalProject)
 
-ExternalProject_Add(DEVIL
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/devil/DevIL/"
+ExternalProject_Add(PNG
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/libpng/"
                     CMAKE_ARGS
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
+                    "-DBUILD_SHARED_LIBS=OFF")
 
 ExternalProject_Add(SDL2
                     SOURCE_DIR "${PROJECT_EXTERN_DIR}/SDL2/"
                     CMAKE_ARGS
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
+                    "-DBUILD_SHARED_LIBS=OFF")
 
 ExternalProject_Add(LUA
                     SOURCE_DIR "${PROJECT_EXTERN_DIR}/lua/"
                     CMAKE_ARGS
-                        "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 
 ExternalProject_Add(GIF
                     SOURCE_DIR "${PROJECT_EXTERN_DIR}/giflib/"
                     CMAKE_ARGS
-                        "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 
 include_directories("${PROJECT_HEADER_DIR}")
 include_directories("${PROJECT_BUILD_DIR}/include")
@@ -114,7 +118,7 @@ add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/kernel/filesystem.cpp
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
               )
-add_dependencies(nibble SDL2 DEVIL LUA GIF LuaCartsBin LuaCartsBuild)
+add_dependencies(nibble SDL2 PNG LUA GIF LuaCartsBin LuaCartsBuild)
 
 if ( MSVC )
     set_target_properties(nibble PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
@@ -128,15 +132,21 @@ if (WIN32)
 endif (WIN32)
 
 # Linking
-target_link_libraries(nibble IL)
-target_link_libraries(nibble 'SDL2')
+set(CMAKE_LIBRARY_PATH "${PROJECT_BUILD_DIR}/lib")
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+
+find_library(PNG_LIB png)
+find_library(SDL2_LIB SDL2)
+
+target_link_libraries(nibble ${PNG_LIB})
+target_link_libraries(nibble ${SDL2_LIB})
 target_link_libraries(nibble lualib)
 target_link_libraries(nibble giflib)
 
 if (UNIX)
-    target_link_libraries(nibble pthread udev X11 Xrandr GL openal FLAC ogg vorbis vorbisenc vorbisfile)
+    target_link_libraries(nibble pthread z X11 sndio dl)
 endif (UNIX)
 
 if (WIN32)
-    target_link_libraries(nibble opengl32 winmm openal32 FLAC ogg vorbis vorbisenc vorbisfile)
+    target_link_libraries(nibble winmm)
 endif (WIN32)

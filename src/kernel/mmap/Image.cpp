@@ -5,7 +5,7 @@
 #include <cstdint>
 
 #include <SDL2/SDL.h>
-#include <IL/il.h>
+#include <png.h>
 
 #include <kernel/Memory.hpp>
 #include <kernel/filesystem.hpp>
@@ -18,7 +18,7 @@ namespace mmap {
 #define SPRITESHEET_W 4096
 #define SPRITESHEET_H 1024
 
-uint8_t color2index(const SDL_Color& color) {
+uint8_t color2index(const SDL_Color color) {
     return (color.r/16+color.g/16+color.b/16)/3;
 }
 
@@ -33,37 +33,55 @@ size_t read_image(Memory &memory, Path &path) {
         cout << "mapping image to memory " << path.getPath() << endl;
 
         // Carrega a imagem
-        if (!ilLoadImage(path.getPath().c_str())) {
-            cout << "could not load image!" << endl;
+        png_image img;
+        png_bytep imgData;
+
+        memset(&img, 0, sizeof(png_image));
+        img.version = PNG_IMAGE_VERSION;
+
+        if (!png_image_begin_read_from_file(&img, path.getPath().c_str())) {
+            cout << "Could not load image (header): " << path.getPath() << endl;
             return -1;
         }
 
-        size_t w = ilGetInteger(IL_IMAGE_WIDTH);
-        size_t h = ilGetInteger(IL_IMAGE_HEIGHT);
+        img.format = PNG_FORMAT_RGBA;
+
+        imgData = new uint8_t[PNG_IMAGE_SIZE(img)];
+
+        if (png_image_finish_read(&img, NULL, imgData, 0, NULL) == 0) {
+            cout << "Could not load image: " << path.getPath() << endl;
+            return -1;
+        }
 
         // Verifica o tamanho
-        if (w > SPRITESHEET_W || h > SPRITESHEET_H) {
+        if (img.width > SPRITESHEET_W || img.height > SPRITESHEET_H) {
             cout << "spritesheet is too big" << endl;   
+            delete imgData;
             return -1;
         }
 
-        auto info = memory.allocateWithPosition(sizeof(ImageMetadata)+w*h, "Memory Mapped Image");
+        auto info = memory.allocateWithPosition(sizeof(ImageMetadata)+img.width*img.height, "Memory Mapped Image");
         ImageMetadata *meta = (ImageMetadata*)get<0>(info);
 
-        meta->w = w;
-        meta->h = h;
-
-        auto imgData = ilGetData();
+        meta->w = img.width;
+        meta->h = img.height;
 
         // Converte a imagem e escreve array data
-        for (size_t y=0;y<h;y++) {
-            for (size_t x=0;x<w;x++) {
-                uint8_t pix = imgData[y*w+x+0];
+        for (size_t y=0;y<img.height;y++) {
+            for (size_t x=0;x<img.width;x++) {
+                auto p = (y*img.width+x)*4;
+                uint8_t pix = color2index(SDL_Color {
+                                            imgData[p+0],
+                                            imgData[p+1],
+                                            imgData[p+2],
+                                            imgData[p+3]
+                                          });
 
-                get<0>(info)[sizeof(ImageMetadata)+y*w+x] = pix&0x0F;
+                get<0>(info)[sizeof(ImageMetadata)+y*img.width+x] = pix&0x0F;
             }
         }
 
+        delete imgData;
         return get<1>(info);
     }
 

@@ -7,16 +7,12 @@
 #include <kernel/mmap/Image.hpp>
 #include <kernel/mmap/Binary.hpp>
 
-#include <IL/il.h>
-
 using namespace std;
 
 Kernel::Kernel() {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         cout << "SDL_Init: " << SDL_GetError() << endl;
     }
-
-    ilInit();
 
     // Cria dispositivos
     gpu = make_unique<GPU>(memory);
