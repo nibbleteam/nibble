@@ -83,7 +83,7 @@ local function freqs(op1, op2, op3, op4)
 end
 
 local function reverb(delay, feedback)
-    local str = string.char(delay)..encode(feedback)
+    local str = string.char(delay)..'\00'..encode(feedback)
 
     kernel.write(audio_addr+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+4+16*3, str)
 end

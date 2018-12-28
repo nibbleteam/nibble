@@ -42,6 +42,10 @@ SDL_AudioDeviceID Audio::initialize() {
   // Open the device
   device = SDL_OpenAudioDevice(nullptr, 0, &specIn, &specOut, SDL_AUDIO_ALLOW_ANY_CHANGE);
 
+  cout << "[nibble] audio: freq: " << specOut.freq << endl;
+  cout << "[nibble] audio: ch: " << (int)specOut.channels << endl;
+  cout << "[nibble] audio: samples: " << specOut.samples << endl;
+
   if (!device) {
       /* TODO: Error!! */
   }
@@ -67,11 +71,11 @@ void Audio::fill(int16_t *samples, int missingSampleCount) {
         // Caso o tick precise ser rodado antes
         // de completar todos os samples
         if (t+missingSampleCount > nextTick) {
-            unsigned int finalSampleCount = nextTick-t;
+            unsigned int finalSampleCount = ((nextTick-t)/2)*2;
 
             mix(samples+(t-initialT), finalSampleCount);
 
-            t = nextTick;
+            t += finalSampleCount;
             missingSampleCount -= finalSampleCount;
 
             auto kernel = KernelSingleton.lock();

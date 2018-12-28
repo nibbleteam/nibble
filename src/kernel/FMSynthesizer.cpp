@@ -42,7 +42,7 @@ void FMSynthesizer::off() {
 }
 
 void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCount) {
-    for (size_t s=0;s<sampleCount;s++) {
+    for (size_t s=0;s<sampleCount;s+=2) {
         int16_t delta = synthesize();
         int out;
 
@@ -57,6 +57,8 @@ void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCo
             samples[s] = out;
         }
 
+        samples[s+1] = samples[s];
+
         out = int(delta) + int(clean[s]);
 
         if (out < INT16_MIN) {
@@ -66,6 +68,8 @@ void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCo
         } else {
             clean[s] = out;
         }
+
+        clean[s+1] = clean[s];
     }
 }
 

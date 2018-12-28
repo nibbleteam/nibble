@@ -135,11 +135,8 @@ endif (WIN32)
 set(CMAKE_LIBRARY_PATH "${PROJECT_BUILD_DIR}/lib")
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
-find_library(PNG_LIB png)
-find_library(SDL2_LIB SDL2)
-
-target_link_libraries(nibble ${PNG_LIB})
-target_link_libraries(nibble ${SDL2_LIB})
+target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib64/libpng.a")
+target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib/libSDL2.a")
 target_link_libraries(nibble lualib)
 target_link_libraries(nibble giflib)
 

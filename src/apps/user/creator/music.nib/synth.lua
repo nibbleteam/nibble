@@ -2,20 +2,20 @@ function audio_init()
     -- Primeiro canal
     channel(CH1)
     -- Frequências
-    freqs(1.0, 1.0, 1.0, 2.0)
+    freqs(1.0, 0.87, 1.0, 2.0)
     -- Envelopes
-    envelope(OP1, 0, 1, 0.9, 0.01, 0.1, 0.5, 0)
-    envelope(OP2, 0, 1, 0.5, 0.01, 0.2, 0.1, 0)
-    --envelope(OP3, 0, 1, 0.9, 0.0, 0.1, 0, 0)
-    --envelope(OP4, 0, 1, 0.9, 0.0, 0.1, 0, 0)
+    envelope(OP1, 0, 1, 0.9, 0.8, 0.4, 0.5, 0)
+    envelope(OP2, 0, 1, 0.5, 0.8, 0.2, 1.0, 0)
+    envelope(OP3, 0, 1, 0.9, 0.0, 0.1, 0, 0)
+    envelope(OP4, 0, 1, 0.9, 0.0, 0.1, 0, 0)
     -- Roteia
-    route(OP1, OUT, 0.5)
-    route(OP1, OP1, 0.5)
-    route(OP2, OP1, 1.0)
-    --route(OP3, OUT, 0.1)
-    --route(OP4, OUT, 0.2)
+    route(OP1, OUT, 0.4)
+    route(OP1, OP1, 0.0)
+    route(OP2, OP1, 0.0)
+    route(OP3, OUT, 0.1)
+    route(OP4, OUT, 0.2)
     -- Reverb
-    --reverb(32, 0.6)
+    reverb(8, 0.5)
     --
     channel(CH2)
     -- Frequências
@@ -26,10 +26,10 @@ function audio_init()
     envelope(OP3, 0, 1, 0.9, 0.01, 0.3, 0.2, 2)
     envelope(OP4, 0, 1, 0.9, 0.01, 0.3, 0.2, 0)
     -- Roteia
-    route(OP1, OUT, 0.1)
+    route(OP1, OUT, 0.05)
     route(OP2, OP1, 2.0)
-    route(OP3, OP1, 0.1)
-    route(OP4, OP1, 0.1)
+    route(OP3, OP1, 0.01)
+    route(OP4, OP1, 0.01)
 end
 
 local base = 39-12
@@ -37,7 +37,7 @@ local octs = 'zsxdcvgbhnjmq2w3er5t6y7ui9o0p'
 
 local writep = 0
 
-music_size = 128
+music_size = 16
 tick = 0
 subtick = 0
 
