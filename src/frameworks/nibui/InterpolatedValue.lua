@@ -46,11 +46,11 @@ function InterpolatedValue:set(v, time, easing)
 
     -- From
     self.interpolation.from.v = self.value
-    self.interpolation.from.t = clock()
+    self.interpolation.from.t = clock()*10
 
     -- To
     self.interpolation.to.v = v
-    self.interpolation.to.t = clock()+time
+    self.interpolation.to.t = clock()*10+time
 
     -- Using easing
     self.interpolation.easing = easing
@@ -58,7 +58,7 @@ end
 
 function InterpolatedValue:update(dt, w)
     -- Elapsed time
-    local et = clock() - self.interpolation.from.t
+    local et = clock()*10 - self.interpolation.from.t
     -- Total time
     local t = self.interpolation.to.t-self.interpolation.from.t
     -- Interpolated value (0-1)
@@ -70,8 +70,13 @@ function InterpolatedValue:update(dt, w)
     -- Interpolation delta
     local dv = self:get(self.interpolation.to.v, w)-iv
 
+    -- For change test
+    local prev = self.value
+
     -- Set interpolated value
     self.value = iv+dv*i
+
+    return self.value ~= prev
 end
 
 return InterpolatedValue

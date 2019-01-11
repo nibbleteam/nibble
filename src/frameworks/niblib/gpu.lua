@@ -30,9 +30,10 @@ local GPU_RECT = string.char(0x06)
 local GPU_QUAD = string.char(0x07)
 local GPU_TRI = string.char(0x08)
 local GPU_CIRC = string.char(0x09)
-local GPU_SPRITE = string.char(0x0a)
-local GPU_START_CAPTURE = string.char(0x0b)
-local GPU_STOP_CAPTURE = string.char(0x0c)
+local GPU_CLIP = string.char(0x0a)
+local GPU_SPRITE = string.char(0x0b)
+local GPU_START_CAPTURE = string.char(0x0c)
+local GPU_STOP_CAPTURE = string.char(0x0d)
 
 function round(x)
   return math.floor(x)
@@ -127,6 +128,20 @@ function gpu.pspr(x, y, sx, sy, w, h, pal)
                GPU_SPRITE..
                  string.char(pal)..
                  gpu6(sx, sy, x, y, w, h))
+end
+
+-- Retângulo de corte
+function gpu.clip(x, y, w, h)
+  assert(x, "clip() needs a x value")
+  assert(y, "clip() needs a y value")
+  assert(w, "clip() needs a w value")
+  assert(h, "clip() needs a h value")
+
+  x, y = math.floor(x), math.floor(y)
+  w, h = math.floor(w), math.floor(h)
+
+  kernel.write(GPU_CMD,
+               GPU_CLIP..gpu4(x, y, w, h))
 end
 
 -- Paleta

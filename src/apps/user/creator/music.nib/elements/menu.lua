@@ -34,7 +34,7 @@ local nom = {
 for i, settings in ipairs(settings) do
     table.insert(nom, {
         x = d'+' (d'^' 'x', (i-1)*12+1),
-        y = d'+' (d'^' 'y', 1),
+        y = d'+' (d'^' 'y', 2),
         w = 9, h = 9,
         radius = 2,
         border_color = settings.border_color or 0,

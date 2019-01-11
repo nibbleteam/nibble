@@ -14,6 +14,7 @@ function init()
 
         -- Roda a taskbar do creator
         kernel.exec("apps/user/creator/taskbar.nib", {})
+        --kernel.exec("apps/user/test.nib", {})
     else
         -- Inicializa o launcher
         kernel.exec("apps/system/core/launcher.nib", {})

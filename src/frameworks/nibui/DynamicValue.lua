@@ -45,7 +45,7 @@ function DynamicValue:get(w)
 end
 
 function DynamicValue:update(dt, w)
-    self.value:update(dt, w)
+    return self.value:update(dt, w)
 end
 
 return DynamicValue

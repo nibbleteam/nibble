@@ -20,12 +20,12 @@
 #define SPRITESHEET_H       1024
 #define SPRITESHEET_LENGTH  SPRITESHEET_W*SPRITESHEET_H*BYTES_PER_PIXEL
 
-#define OUT_OF_BOUNDS(x,y)              ((x)<0 || (y)<0 ||\
-                                         (x)>=targetW || (y)>=targetH) 
+#define OUT_OF_BOUNDS(x,y)              ((x)<targetClipStartX || (y)<targetClipStartY ||\
+                                         (x)>=targetClipEndX || (y)>=targetClipEndY) 
 
-#define SCAN_OUT_OF_BOUNDS(x1,x2,y)     ((y)<0 || (y)>=targetH ||\
-                                         ((x1)<0 && (x2)<0) ||\
-                                         ((x1)>=targetW && (x2)>=targetW))
+#define SCAN_OUT_OF_BOUNDS(x1,x2,y)     ((y)<targetClipStartY || (y)>=targetClipEndY ||\
+                                         ((x1)<targetClipStartX && (x2)<targetClipStartX) ||\
+                                         ((x1)>=targetClipEndX && (x2)>=targetClipEndX))
 
 #define TRANSPARENT(c)      !paletteMemory[(c<<2)+3]
 #define COLMAP1(c)          paletteMemory[512+((c)&0x7F)]
@@ -40,6 +40,8 @@ class GPU: public Device {
     int16_t sourceW, sourceH;
     uint8_t *target;
     int16_t targetW, targetH;
+    int16_t targetClipStartX, targetClipStartY;
+    int16_t targetClipEndX, targetClipEndY;
 
     // Arquivo para salvar gifs
     GifFileType *gif;
@@ -87,6 +89,8 @@ protected:
     void circleFill(int16_t, int16_t, int16_t, uint8_t);
 
     void sprite(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
+
+    void clip(int16_t, int16_t, int16_t, int16_t);
 
     void execGpuCommand(uint8_t*);
 private:

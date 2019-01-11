@@ -31,10 +31,6 @@ GPU::GPU(Memory& memory):
     videoMemory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
 
     // TODO
-    // FPS Máximo 
-    // window.setFramerateLimit(GPU_FRAMERATE);
-
-    // TODO
     // Não gera múltiplos keypresses se a tecla ficar apertada
     // window.setKeyRepeatEnabled(false);
 
@@ -653,28 +649,28 @@ void GPU::sprite(int16_t sx, int16_t sy,
                  int16_t dx, int16_t dy,
                  int16_t w, int16_t h,
                  uint8_t pal) {
-    if (dy >= targetH || dx >= targetW) {
+    if (dy >= targetClipEndY || dx >= targetClipEndX) {
         return;
     }
 
-    if (dx < 0) {
-        w = max(w+dx, 0);
-        sx -= dx;
-        dx = 0;
+    if (dx < targetClipStartX) {
+        w = max(w+dx-targetClipStartX, 0);
+        sx -= dx-targetClipStartX;
+        dx = targetClipStartX;
     }
 
-    if (dy < 0) {
-        h = max(h+dy, 0);
-        sy -= dy;
-        dy = 0;
+    if (dy < targetClipStartY) {
+        h = max(h+dy-targetClipStartY, 0);
+        sy -= dy-targetClipStartY;
+        dy = targetClipStartY;
     }
 
-    if (dy+h >= targetH) {
-        h = targetH-dy;
+    if (dy+h >= targetClipEndY) {
+        h = targetClipEndY-dy;
     }
 
-    if (dx+w >= targetW) {
-        w = targetW-dx;
+    if (dx+w >= targetClipEndX) {
+        w = targetClipEndX-dx;
     }
 
     if (sx < 0) {
@@ -694,6 +690,33 @@ void GPU::sprite(int16_t sx, int16_t sy,
     for(;ptr < ptrF;ptr+=targetW,src+=sourceW) {
         copyScanLine(ptr, src, w, pal);
     }
+}
+
+void GPU::clip(int16_t x, int16_t y,
+               int16_t w, int16_t h) {
+    if (x >= targetW || y >= targetH) {
+        targetClipStartX = 0; targetClipStartY = 0;
+        targetClipEndX = 0; targetClipEndY = 0;
+        return;
+    }
+
+    auto dx = x+w, dy = y+h;
+
+    if (dx < 0 || dy < 0) {
+        targetClipStartX = 0; targetClipStartY = 0;
+        targetClipEndX = 0; targetClipEndY = 0;
+        return;
+    }
+
+    x = x < 0 ? 0 : x;
+    y = y < 0 ? 0 : y;
+    dx = dx > targetW ? targetW : dx;
+    dy = dy > targetH ? targetH : dy;
+
+    targetClipStartX = x;
+    targetClipStartY = y;
+    targetClipEndX = dx;
+    targetClipEndY = dy;
 }
 
 uint8_t GPU::next8Arg(uint8_t *&arg) {
@@ -735,6 +758,7 @@ void GPU::execGpuCommand(uint8_t *cmd) {
         Quad,
         Tri,
         Circle,
+        Clip,
         Sprite,
         StartCapture,
         StopCapture
@@ -852,6 +876,12 @@ void GPU::execGpuCommand(uint8_t *cmd) {
             auto w = next16Arg(cmd), h = next16Arg(cmd);
 
             sprite(sx, sy, x, y, w, h, pal);
+        } break;
+        case Clip: {
+            auto x = next16Arg(cmd), y = next16Arg(cmd);
+            auto w = next16Arg(cmd), h = next16Arg(cmd);
+
+            clip(x, y, w, h);
         } break;
         case StartCapture: {
             if (colormap == NULL) {

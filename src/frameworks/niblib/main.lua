@@ -42,9 +42,11 @@ spr = gpu.spr
 pspr = gpu.pspr
 
 -- Cores
-pal = gpu.pal
+mask = gpu.mask
+setcol = gpu.setcol
+cppal = gpu.cppal
 col = gpu.col
-mix = gpu.mix
+screen = gpu.screen
 
 -- Formas
 rectf = gpu.rectf
@@ -56,11 +58,9 @@ circ = gpu.circ
 rect = gpu.rect
 quad = gpu.quad
 tri = gpu.tri
-mask = gpu.mask
-setcol = gpu.setcol
-cppal = gpu.cppal
-col = gpu.col
-screen = gpu.screen
+
+-- Clip
+clip = gpu.clip
 
 -- GIF
 start_recording = gpu.start_recording

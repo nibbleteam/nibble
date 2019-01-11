@@ -4,8 +4,8 @@ function audio_init()
     -- Frequências
     freqs(1.0, 0.87, 1.0, 2.0)
     -- Envelopes
-    envelope(OP1, 0, 1, 0.9, 0.8, 0.4, 0.5, 0)
-    envelope(OP2, 0, 1, 0.5, 0.8, 0.2, 1.0, 0)
+    envelope(OP1, 0, 1, 0.9, 0.2, 0.4, 0.1, 0)
+    envelope(OP2, 0, 1, 0.5, 0.2, 0.2, 0.1, 0)
     envelope(OP3, 0, 1, 0.9, 0.0, 0.1, 0, 0)
     envelope(OP4, 0, 1, 0.9, 0.0, 0.1, 0, 0)
     -- Roteia
@@ -15,7 +15,7 @@ function audio_init()
     route(OP3, OUT, 0.1)
     route(OP4, OUT, 0.2)
     -- Reverb
-    reverb(8, 0.5)
+    reverb(8, 0.1)
     --
     channel(CH2)
     -- Frequências
@@ -23,7 +23,7 @@ function audio_init()
     -- Envelopes
     envelope(OP1, 0, 1, 0.9, 0.01, 0.3, 0.2, 0)
     envelope(OP2, 0, 1, 0.5, 0.01, 0.3, 0.2, 0)
-    envelope(OP3, 0, 1, 0.9, 0.01, 0.3, 0.2, 2)
+    envelope(OP3, 0, 1, 0.9, 0.01, 0.3, 0.2, 0)
     envelope(OP4, 0, 1, 0.9, 0.01, 0.3, 0.2, 0)
     -- Roteia
     route(OP1, OUT, 0.05)

@@ -161,6 +161,7 @@ end
 
 function NOM:draw()
     self.root:draw()
+    clip(0, 0, 320, 240)
 
     if self.features.cursor then
         self:draw_cursor()

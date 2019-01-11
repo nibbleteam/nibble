@@ -29,6 +29,8 @@ return {
     ioffset = { x = 0, y = 0 },
     mouse = { x = 0, y = 0, drag = false},
 
+    dirty_notes = 0,
+
     set_time = function(self, t)
         tick = math.floor(t*music_size)
         self.offset.x = -tick*cell_width
@@ -63,6 +65,13 @@ return {
     end,
 
     draw = function (self)
+        if not self.dirty then
+            return
+        else
+            self.dirty = false
+            clip(self.x, self.y, self.w, self.h)
+        end
+
         if not (self.mouse.x or self.mouse.y) then
             self.mouse.x, self.mouse.y = 0, 0
         end
@@ -75,6 +84,7 @@ return {
 
         for n=start_note,end_note do
             local _, y = self:note2screen(n, 0)
+            local original_y = y
 
             local coffset = 0
             
@@ -101,11 +111,10 @@ return {
 
             line(timeline, math.max(y, self.y), timeline, math.min(missing, line_height)+math.max(y, self.y)-1, 15)
             rectf(self.x, math.max(y, self.y), cell_width, math.min(missing, line_height), note_colors[n%2+1])
-            if y > self.y then
-                local octave = math.floor(n/12)
 
-                print(tostring(octave)..notes[n%12+1], self.x, y+2)
-            end
+            local octave = math.floor(n/12)
+
+            print(tostring(octave)..notes[n%12+1], self.x, original_y)
 
             missing -= math.min(line_height, self.y+self.h-y)
         end
@@ -124,6 +133,8 @@ return {
             else
                 music[time] = { [note]=true }
             end
+
+            self.dirty_notes += 1
         end
 
         self.mouse.drag = false

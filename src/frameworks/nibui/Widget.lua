@@ -27,6 +27,8 @@ function Widget:new(config, document, parent)
         onenter = function() end,
         onleave = function() end,
         onmove = function() end,
+        -- Redraw
+        dirty = true,
     }
 
     for k, _ in zip(config, defaults) do
@@ -56,6 +58,7 @@ end
 
 -- Acesso
 
+-- Leitura
 function Widget:__index(k)
     if self.props[k] then
         return self.props[k]:get(self)
@@ -70,6 +73,7 @@ function Widget:__index(k)
     end
 end
 
+-- Escrita
 function Widget:__newindex(k, v)
     if self.props[k] then
         self.props[k]:set(v, self)
@@ -84,13 +88,21 @@ function Widget:__newindex(k, v)
             self.props[k] = DynamicValue:new('static', v)
         end
     end
+
+    self:set_dirty()
 end
 
 function Widget:update(dt)
     -- Atualiza interpolated values
     for name, prop in pairs(self.props) do
         if prop.kind == 'interpolated' then
-            prop:update(dt, self)
+            if prop:update(dt, self) then
+                if self.parent.set_dirty then
+                    self.parent:set_dirty()
+                else
+                    self:set_dirty()
+                end
+            end
         end
     end
 
@@ -103,86 +115,92 @@ end
 -- Loop
 
 function Widget:draw()
-    local x, y = self.x, self.y
-    local w, h = self.w, self.h
-    local r = math.floor(self.radius)
-    local content = self.content
-    local shadow_color = math.floor(self.shadow_color)
-    local border_color = math.floor(self.border_color)
-    local z = math.floor(self.z)
+    if self.dirty then
+        self.dirty = false
 
-    if z ~= 0 then
-      rectf(x+r, y+z, w-r*2, h, shadow_color)
-      rectf(x, y+r+z, w, h-r*2, shadow_color)
+        local x, y = self.x, self.y
+        local w, h = self.w, self.h
+        local r = math.floor(self.radius)
+        local content = self.content
+        local shadow_color = math.floor(self.shadow_color)
+        local border_color = math.floor(self.border_color)
+        local z = math.floor(self.z)
 
-      if r ~= 0 then
-        circf(x+r, y+r+z, r, shadow_color)
-        circf(x+w-r-1, y+r+z, r, shadow_color)
-        circf(x+r, y+h-r+z-1, r, shadow_color)
-        circf(x+w-r-1, y+h-r+z-1, r, shadow_color)
-      end
-    end
+        clip(x, y, w, h)
 
-    rect(x+r-1, y-1, w-r*2+2, h+2, border_color)
-    rect(x-1, y+r-1, w+2, h-r*2+2, border_color)
+        if z ~= 0 then
+          rectf(x+r, y+z, w-r*2, h, shadow_color)
+          rectf(x, y+r+z, w, h-r*2, shadow_color)
 
-    if r ~= 0 then
-        circf(x+r, y+r, r+1, border_color)
-        circf(x+w-r-1, y+r, r+1, border_color)
-        circf(x+r, y+h-r-1, r+1, border_color)
-        circf(x+w-r-1, y+h-r-1, r+1, border_color)
-    end
+          if r ~= 0 then
+            circf(x+r, y+r+z, r, shadow_color)
+            circf(x+w-r-1, y+r+z, r, shadow_color)
+            circf(x+r, y+h-r+z-1, r, shadow_color)
+            circf(x+w-r-1, y+h-r+z-1, r, shadow_color)
+          end
+        end
 
-    -- TODO: use decorated text
-    col(15, math.floor(self.color))
-
-    if type(self.background) ~= 'table' then
-        local background = math.floor(self.background)
-
-        rectf(x+r, y, w-r*2, h, background)
-        rectf(x, y+r, w, h-r*2, background)
+        rect(x+r-1, y-1, w-r*2+2, h+2, border_color)
+        rect(x-1, y+r-1, w+2, h-r*2+2, border_color)
 
         if r ~= 0 then
-            circf(x+r, y+r, r, background)
-            circf(x+w-r-1, y+r, r, background)
-            circf(x+r, y+h-r-1, r, background)
-            circf(x+w-r-1, y+h-r-1, r, background)
+            circf(x+r, y+r, r+1, border_color)
+            circf(x+w-r-1, y+r, r+1, border_color)
+            circf(x+r, y+h-r-1, r+1, border_color)
+            circf(x+w-r-1, y+h-r-1, r+1, border_color)
         end
-    else
-        if #self.background == 2 then
-            local spr_x, spr_y = self.background[1], self.background[2]
 
-            spr(x, y, spr_x, spr_y)
-        elseif #self.background == 4 then
-            local spr_x, spr_y, spr_w, spr_h = self.background[1], self.background[2],
-                                               self.background[3], self.background[4]
+        -- TODO: use decorated text
+        col(15, math.floor(self.color))
 
-            pspr(x, y, spr_x, spr_y, spr_w, spr_h)
+        if type(self.background) ~= 'table' then
+            local background = math.floor(self.background)
+
+            rectf(x+r, y, w-r*2, h, background)
+            rectf(x, y+r, w, h-r*2, background)
+
+            if r ~= 0 then
+                circf(x+r, y+r, r, background)
+                circf(x+w-r-1, y+r, r, background)
+                circf(x+r, y+h-r-1, r, background)
+                circf(x+w-r-1, y+h-r-1, r, background)
+            end
+        else
+            if #self.background == 2 then
+                local spr_x, spr_y = self.background[1], self.background[2]
+
+                spr(x, y, spr_x, spr_y)
+            elseif #self.background == 4 then
+                local spr_x, spr_y, spr_w, spr_h = self.background[1], self.background[2],
+                                                   self.background[3], self.background[4]
+
+                pspr(x, y, spr_x, spr_y, spr_w, spr_h)
+            end
         end
+
+
+        local tx, ty = 0, 0
+
+        if self.text_align == 'left' then
+            tx = self.padding_left
+        elseif self.text_align == 'center' then
+            tx = x+w/2-#content/2*8
+        elseif self.text_align == 'right' then
+            tx = w-#content*8-self.padding_right
+        end
+
+        if self.vertical_align == 'top' then
+            ty = self.padding_top
+        elseif self.vertical_align == 'middle' then
+            ty = y+h/2-4
+        elseif self.vertical_align == 'bottom' then
+            ty = h-8-self.padding_bottom
+        end
+        
+        print(content, tx, ty, self.text_palette)
+
+        col(15, 15)
     end
-
-
-    local tx, ty = 0, 0
-
-    if self.text_align == 'left' then
-        tx = self.padding_left
-    elseif self.text_align == 'center' then
-        tx = x+w/2-#content/2*8
-    elseif self.text_align == 'right' then
-        tx = w-#content*8-self.padding_right
-    end
-
-    if self.vertical_align == 'top' then
-        ty = self.padding_top
-    elseif self.vertical_align == 'middle' then
-        ty = y+h/2-4
-    elseif self.vertical_align == 'bottom' then
-        ty = h-8-self.padding_bottom
-    end
-    
-    print(content, tx, ty, self.text_palette)
-
-    col(15, 15)
 
     for _, child in ipairs(self.children) do
         child:draw()
@@ -219,6 +237,9 @@ end
 
 function Widget:move(event)
     if self:in_bounds(event) then
+        -- TODO: Checar se não só o hotpoint, mas o SPRITE INTEIRO estão dentro
+        self:set_dirty()
+
         if not self.mouse.inside then
             self.mouse.inside = true
 
@@ -245,6 +266,8 @@ end
 
 function Widget:leave(event)
     if self.mouse.inside then
+        self:set_dirty()
+
         self.mouse.inside = false
 
         if self.onleave then
@@ -273,6 +296,14 @@ function Widget.inside_rect(e, x, y, w, h)
     return e.x >= x and e.y >= y and
            e.x < x+w and
            e.y < y+h
+end
+
+function Widget:set_dirty()
+    self.dirty = true
+
+    for _, child in ipairs(self.children) do
+        child:set_dirty()
+    end
 end
 
 return Widget

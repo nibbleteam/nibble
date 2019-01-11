@@ -22,13 +22,19 @@ return {
     end,
 
     draw = function (self)
+        local dirty = self.dirty
+
         Widget.draw(self)
 
-        rect(self.view_position, self.y, self.view_size, self.h-1, 10)
+        if dirty then
+            clip(self.x, self.y, self.w, self.h)
 
-        line(self.timeline, self.y, self.timeline, self.y+self.h, 15)
+            rect(self.view_position, self.y, self.view_size, self.h-1, 10)
 
-        line(self.x, self.y+self.h-1, self.w+self.x, self.y+self.h-1, 6)
+            line(self.timeline, self.y, self.timeline, self.y+self.h*8, 15)
+
+            line(self.x, self.y+self.h-1, self.w+self.x, self.y+self.h-1, 6)
+        end
     end,
 
     onclick = function (self, event)
