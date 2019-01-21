@@ -10,6 +10,8 @@
 using namespace std;
 
 GPU::GPU(Memory& memory):
+    targetClipStartX(0), targetClipStartY(0),
+    targetClipEndX(GPU_VIDEO_WIDTH), targetClipEndY(GPU_VIDEO_HEIGHT),
     colormap(NULL), screenScale(GPU_DEFAULT_SCALING), screenOffsetX(0), screenOffsetY(0) {
 
     window = SDL_CreateWindow("Nibble",
@@ -271,27 +273,23 @@ bool GPU::captureFrame() {
 }
 
 ColorMapObject* GPU::getColorMap() {
-    /*
-    TODO
-
     // "Paleta" do GIF
-    GifColorType colors[GPU_PALETTE_LENGTH*GPU_PALETTE_AMOUNT];
-    auto image = paletteTex.copyToImage();
+    GifColorType colors[GPU_PALETTE_SIZE];
 
     // Preenche o color map no formato do GIF
     // a partir do formato de paleta do console
-    for (uint64_t i=0;i<GPU_PALETTE_LENGTH*GPU_PALETTE_AMOUNT;i++) {
-        sf::Color color = image.getPixel(i, 0);
+    for (uint64_t i=0;i<GPU_PALETTE_SIZE;i++) {
         // Remove o alpha
         colors[i] = GifColorType {
-            color.r, color.g, color.b
+            paletteMemory[i*GPU_PALETTE_DEPTH+0],
+            paletteMemory[i*GPU_PALETTE_DEPTH+1],
+            paletteMemory[i*GPU_PALETTE_DEPTH+2]
         };
     }
 
-    colormap = GifMakeMapObject(GPU_PALETTE_LENGTH*GPU_PALETTE_AMOUNT, colors);
+    colormap = GifMakeMapObject(GPU_PALETTE_SIZE, colors);
 
     return colormap;
-    */
 }
 
 // Render de Software
@@ -497,7 +495,6 @@ start:
 
             if (y1 >= y1b) {
                 D2b = Db<<1;
-                D2a = Da<<1;
 
                 if (D2b >= dyb) {
                     if (x1b == x2 && firstLine) goto prepareSecondLine;

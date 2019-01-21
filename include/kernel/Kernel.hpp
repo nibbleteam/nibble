@@ -7,6 +7,7 @@
 #include <set>
 #include <string>
 #include <mutex>
+#include <atomic>
 #include <list>
 
 #include <kernel/filesystem.hpp>
@@ -38,7 +39,7 @@ private:
     PID lastProcess;
     // Processo atual, usado para saber quem
     // chamou as chamadas de sistema
-    PID runningProcess;
+    atomic<PID> runningProcess;
     // Lista de processos executando ou bloqueando
     map <PID, shared_ptr<Process>> processes;
     // Tabela de esperas
