@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 project(nibble)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
-
 set(BUILD_SHARED_LIBS OFF)
 
 # Warnings
@@ -37,6 +36,7 @@ set(PROJECT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(PROJECT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 set(PROJECT_EXTERN_DIR ${CMAKE_SOURCE_DIR}/extern)
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
+
 
 # SDL2 and Lua
 include(ExternalProject)
@@ -76,6 +76,10 @@ add_custom_target(LuaCartsBuild
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/apps ${PROJECT_BUILD_DIR}/apps
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/frameworks ${PROJECT_BUILD_DIR}/frameworks
 )
+
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_INSTALL_RPATH "$ORIGIN/libraries")
 
 # Exe
 add_executable(nibble
@@ -132,7 +136,6 @@ if (WIN32)
 endif (WIN32)
 
 # Linking
-set(CMAKE_LIBRARY_PATH "${PROJECT_BUILD_DIR}/lib")
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
 target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib64/libpng.a")
