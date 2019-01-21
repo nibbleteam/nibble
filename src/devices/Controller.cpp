@@ -8,7 +8,7 @@ Controller::Controller(Memory& memory):
     // Zera todos os botões
     memset(&controllers, 0, CONTROLLER_MEM_SIZE);
     // O primeiro controle está sempre conectado 
-    controllers.connected = 0b10000000;
+    controllers.connected = 0b00000000;
 }
 
 uint8_t Controller::get(uint8_t c, uint8_t b) {
@@ -215,10 +215,10 @@ void Controller::joyPressed(SDL_Event& event) {
     case J_RED:
         press(c, 5);
         break;
-    case J_BLACK:
+    case J_BLACK: case J_BLACK_ALT:
         press(c, 6);
         break;
-    case J_WHITE:
+    case J_WHITE: case J_WHITE_ALT:
         press(c, 7);
         break;
     case J_PAUSE:
@@ -254,9 +254,13 @@ void Controller::joyReleased(SDL_Event& event) {
 }
 
 void Controller::joyConnected(SDL_Event& event) {
+    cout << "[nibble] " << "joystick connected" << endl;
+
     unsigned int slot = getOpenSlot();
 
     sfml2nibble[event.jdevice.which] = slot;
+
+    SDL_JoystickOpen(event.jdevice.which);
 
     setState(slot, BUTTON_OFF_ON);
 } 

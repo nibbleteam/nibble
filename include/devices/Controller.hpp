@@ -25,6 +25,8 @@ using namespace std;
 #define J_LEFT 11
 #define J_RED 0
 #define J_BLUE 3
+#define J_BLACK_ALT 4
+#define J_WHITE_ALT 5
 #define J_BLACK 6
 #define J_WHITE 7
 #define J_PAUSE 8
