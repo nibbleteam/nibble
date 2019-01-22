@@ -4,6 +4,3 @@
 [submodule "extern/libpng"]
 	path = extern/libpng
 	url = https://github.com/glennrp/libpng
-[submodule "extern/zlib"]
-	path = extern/zlib
-	url = https://github.com/madler/zlib
