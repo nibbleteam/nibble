@@ -29,6 +29,8 @@ install:
     - mkdir build
     - cd build
     - cmake ..
+build:
+    project: nibble.sln
 after_build:
     - cd C:\projects\nibble
     - copy build\bin\openal32.dll bin\
