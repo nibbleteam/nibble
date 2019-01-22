@@ -48,6 +48,11 @@ add_subdirectory("${PROJECT_EXTERN_DIR}/giflib/" EXCLUDE_FROM_ALL)
 
 include_directories("${PROJECT_HEADER_DIR}")
 include_directories("${PROJECT_BUILD_DIR}/include")
+include_directories("${PROJECT_EXTERN_DIR}/zlib/include")
+include_directories("${PROJECT_EXTERN_DIR}/libpng/include")
+include_directories("${PROJECT_EXTERN_DIR}/SDL2/include")
+include_directories("${PROJECT_EXTERN_DIR}/lua/include")
+include_directories("${PROJECT_EXTERN_DIR}/giflib/include")
 link_directories("${PROJECT_BUILD_DIR}/lib")
 
 # Copy lua carts
