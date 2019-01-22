@@ -39,8 +39,7 @@ set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 
 add_subdirectory("${PROJECT_EXTERN_DIR}/zlib/" EXCLUDE_FROM_ALL)
 set(ZLIB_INCLUDE_DIR "${PROJECT_EXTERN_DIR}/zlib/" "${CMAKE_CURRENT_BINARY_DIR}/zlib_build")
-#set(ZLIB_LIBRARY "${PROJECT_EXTERN_DIR}/zlib/")
-set(ZLIB_LIBRARY "")
+set(ZLIB_LIBRARY "${PROJECT_EXTERN_DIR}/zlib/")
 
 add_subdirectory("${PROJECT_EXTERN_DIR}/libpng/" EXCLUDE_FROM_ALL)
 add_subdirectory("${PROJECT_EXTERN_DIR}/SDL2/" EXCLUDE_FROM_ALL)
@@ -136,5 +135,3 @@ endif (UNIX)
 if (WIN32)
     target_link_libraries(nibble winmm)
 endif (WIN32)
-
-#set_target_properties(genfiles minigzip64 png example64 zlib example minigzip PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
