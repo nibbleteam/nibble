@@ -37,38 +37,11 @@ set(PROJECT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 set(PROJECT_EXTERN_DIR ${CMAKE_SOURCE_DIR}/extern)
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 
-
-# SDL2 and Lua
-include(ExternalProject)
-
-ExternalProject_Add(ZLIB
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/zlib/"
-                    CMAKE_ARGS
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
-                    "-DBUILD_SHARED_LIBS=OFF")
-
-ExternalProject_Add(PNG
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/libpng/"
-                    CMAKE_ARGS
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
-                    "-DBUILD_SHARED_LIBS=OFF")
-add_dependencies(PNG ZLIB)
-
-ExternalProject_Add(SDL2
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/SDL2/"
-                    CMAKE_ARGS
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
-                    "-DBUILD_SHARED_LIBS=OFF")
-
-ExternalProject_Add(LUA
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/lua/"
-                    CMAKE_ARGS
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
-
-ExternalProject_Add(GIF
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/giflib/"
-                    CMAKE_ARGS
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
+add_subdirectory("${PROJECT_EXTERN_DIR}/zlib/")
+add_subdirectory("${PROJECT_EXTERN_DIR}/libpng/")
+add_subdirectory("${PROJECT_EXTERN_DIR}/SDL2/")
+add_subdirectory("${PROJECT_EXTERN_DIR}/lua/")
+add_subdirectory("${PROJECT_EXTERN_DIR}/giflib/")
 
 include_directories("${PROJECT_HEADER_DIR}")
 include_directories("${PROJECT_BUILD_DIR}/include")
@@ -129,7 +102,7 @@ add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/kernel/filesystem.cpp
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
               )
-add_dependencies(nibble SDL2 ZLIB PNG LUA GIF LuaCartsBin LuaCartsBuild)
+add_dependencies(nibble LuaCartsBin LuaCartsBuild)
 
 if ( MSVC )
     set_target_properties(nibble PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
@@ -142,14 +115,15 @@ if (WIN32)
     set_target_properties(nibble PROPERTIES WIN32_EXECUTABLE true)
 endif (WIN32)
 
-# Linking
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+if (UNIX)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+endif (UNIX)
 
 target_link_libraries(nibble lualib)
 target_link_libraries(nibble giflib)
-target_link_libraries(nibble z)
-target_link_libraries(nibble 'SDL2')
-target_link_libraries(nibble png)
+target_link_libraries(nibble SDL2-static)
+target_link_libraries(nibble png_static)
+target_link_libraries(nibble zlibstatic)
 
 if (UNIX)
     target_link_libraries(nibble pthread X11 sndio dl)
