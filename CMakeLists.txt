@@ -37,13 +37,38 @@ set(PROJECT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 set(PROJECT_EXTERN_DIR ${CMAKE_SOURCE_DIR}/extern)
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 
+include(ExternalProject)
+
 add_subdirectory("${PROJECT_EXTERN_DIR}/zlib/" EXCLUDE_FROM_ALL)
 set(ZLIB_INCLUDE_DIR "${PROJECT_EXTERN_DIR}/zlib/" "${CMAKE_CURRENT_BINARY_DIR}/zlib_build")
 set(ZLIB_LIBRARY "${PROJECT_EXTERN_DIR}/zlib/")
 
+ExternalProject_Add(EPNG
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/libpng/"
+                    CMAKE_ARGS
+                    "-DBUILD_SHARED_LIBS=false"
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 add_subdirectory("${PROJECT_EXTERN_DIR}/libpng/" EXCLUDE_FROM_ALL)
+
+ExternalProject_Add(ESDL2
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/SDL2/"
+                    CMAKE_ARGS
+                    "-DBUILD_SHARED_LIBS=false"
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 add_subdirectory("${PROJECT_EXTERN_DIR}/SDL2/" EXCLUDE_FROM_ALL)
+
+ExternalProject_Add(ELUA
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/lua/"
+                    CMAKE_ARGS
+                    "-DBUILD_SHARED_LIBS=false"
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 add_subdirectory("${PROJECT_EXTERN_DIR}/lua/" EXCLUDE_FROM_ALL)
+
+ExternalProject_Add(EGIF
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/giflib/"
+                    CMAKE_ARGS
+                    "-DBUILD_SHARED_LIBS=false"
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 add_subdirectory("${PROJECT_EXTERN_DIR}/giflib/" EXCLUDE_FROM_ALL)
 
 include_directories("${PROJECT_HEADER_DIR}")
