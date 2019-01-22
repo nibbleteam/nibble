@@ -39,12 +39,7 @@ set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 
 add_subdirectory("${PROJECT_EXTERN_DIR}/zlib/")
 set(ZLIB_INCLUDE_DIR "${PROJECT_EXTERN_DIR}/zlib/" "${CMAKE_CURRENT_BINARY_DIR}/zlib_build")
-
-if (UNIX)
-    set(ZLIB_LIBRARY z)
-else (UNIX)
-    set(ZLIB_LIBRARY zlib)
-endif (UNIX)
+set(ZLIB_LIBRARY "${ZLIB_INSTALL}")
 
 add_subdirectory("${PROJECT_EXTERN_DIR}/libpng/")
 add_subdirectory("${PROJECT_EXTERN_DIR}/SDL2/")
