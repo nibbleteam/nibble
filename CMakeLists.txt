@@ -145,16 +145,19 @@ endif (WIN32)
 # Linking
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
-target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib64/libpng.a")
-target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib/libSDL2.a")
-target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib/libz.a")
 target_link_libraries(nibble lualib)
 target_link_libraries(nibble giflib)
 
 if (UNIX)
+    target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib64/libpng.a")
+    target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib/libSDL2.a")
+    target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib/libz.a")
     target_link_libraries(nibble pthread X11 sndio dl)
 endif (UNIX)
 
 if (WIN32)
+    target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib/libSDL2.lib")
+    target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib/libz.lib")
+    target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib64/libpng.lib")
     target_link_libraries(nibble winmm)
 endif (WIN32)
