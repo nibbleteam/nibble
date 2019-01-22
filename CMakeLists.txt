@@ -37,8 +37,9 @@ set(PROJECT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 set(PROJECT_EXTERN_DIR ${CMAKE_SOURCE_DIR}/extern)
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 
-set(ZLIB_ROOT "${PROJECT_EXTERN_DIR}/zlib/")
 add_subdirectory("${PROJECT_EXTERN_DIR}/zlib/")
+set(ZLIB_INCLUDE_DIR "${PROJECT_EXTERN_DIR}/zlib/" "${PROJECT_BUILD_DIR}/zlib/")
+set(ZLIB_LIBRARY z)
 
 add_subdirectory("${PROJECT_EXTERN_DIR}/libpng/")
 add_subdirectory("${PROJECT_EXTERN_DIR}/SDL2/")
