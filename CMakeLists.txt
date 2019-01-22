@@ -41,11 +41,18 @@ set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 # SDL2 and Lua
 include(ExternalProject)
 
+ExternalProject_Add(ZLIB
+                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/zlib/"
+                    CMAKE_ARGS
+                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
+                    "-DBUILD_SHARED_LIBS=OFF")
+
 ExternalProject_Add(PNG
                     SOURCE_DIR "${PROJECT_EXTERN_DIR}/libpng/"
                     CMAKE_ARGS
                     "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}"
                     "-DBUILD_SHARED_LIBS=OFF")
+add_dependencies(PNG ZLIB)
 
 ExternalProject_Add(SDL2
                     SOURCE_DIR "${PROJECT_EXTERN_DIR}/SDL2/"
@@ -122,7 +129,7 @@ add_executable(nibble
                 ${PROJECT_SOURCE_DIR}/kernel/filesystem.cpp
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
               )
-add_dependencies(nibble SDL2 PNG LUA GIF LuaCartsBin LuaCartsBuild)
+add_dependencies(nibble SDL2 ZLIB PNG LUA GIF LuaCartsBin LuaCartsBuild)
 
 if ( MSVC )
     set_target_properties(nibble PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
@@ -140,11 +147,12 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
 target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib64/libpng.a")
 target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib/libSDL2.a")
+target_link_libraries(nibble "${PROJECT_BUILD_DIR}/lib/libz.a")
 target_link_libraries(nibble lualib)
 target_link_libraries(nibble giflib)
 
 if (UNIX)
-    target_link_libraries(nibble pthread z X11 sndio dl)
+    target_link_libraries(nibble pthread X11 sndio dl)
 endif (UNIX)
 
 if (WIN32)
