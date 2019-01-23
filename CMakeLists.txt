@@ -72,6 +72,11 @@ add_custom_target(LuaCartsBuild
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/frameworks ${PROJECT_BUILD_DIR}/frameworks
 )
 
+# Copy the prebuild pnglibconf.h
+add_custom_target(CopyPngConfigure
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_EXTERN_DIR}/libpng/scripts/pnglibconf.h.prebuilt ${PROJECT_EXTERN_DIR}/libpng/pnglibconf.h
+)
+
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH "$ORIGIN/libraries")
@@ -118,6 +123,7 @@ add_executable(nibble
                 ${PROJECT_HEADER_DIR}/kernel/filesystem.hpp
               )
 add_dependencies(nibble LuaCartsBin LuaCartsBuild)
+add_dependencies(png_static CopyPngConfigure)
 
 if ( MSVC )
     set_target_properties(nibble PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
