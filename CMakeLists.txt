@@ -43,41 +43,21 @@ add_subdirectory("${PROJECT_EXTERN_DIR}/zlib/" EXCLUDE_FROM_ALL)
 set(ZLIB_INCLUDE_DIR "${PROJECT_EXTERN_DIR}/zlib/" "${CMAKE_CURRENT_BINARY_DIR}/zlib_build")
 set(ZLIB_LIBRARY "${PROJECT_EXTERN_DIR}/zlib/")
 
-ExternalProject_Add(EPNG
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/libpng/"
-                    CMAKE_ARGS
-                    "-DBUILD_SHARED_LIBS=false"
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 add_subdirectory("${PROJECT_EXTERN_DIR}/libpng/" EXCLUDE_FROM_ALL)
 
-ExternalProject_Add(ESDL2
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/SDL2/"
-                    CMAKE_ARGS
-                    "-DBUILD_SHARED_LIBS=false"
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 add_subdirectory("${PROJECT_EXTERN_DIR}/SDL2/" EXCLUDE_FROM_ALL)
 
-ExternalProject_Add(ELUA
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/lua/"
-                    CMAKE_ARGS
-                    "-DBUILD_SHARED_LIBS=false"
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 add_subdirectory("${PROJECT_EXTERN_DIR}/lua/" EXCLUDE_FROM_ALL)
 
-ExternalProject_Add(EGIF
-                    SOURCE_DIR "${PROJECT_EXTERN_DIR}/giflib/"
-                    CMAKE_ARGS
-                    "-DBUILD_SHARED_LIBS=false"
-                    "-DCMAKE_INSTALL_PREFIX=${PROJECT_BUILD_DIR}")
 add_subdirectory("${PROJECT_EXTERN_DIR}/giflib/" EXCLUDE_FROM_ALL)
 
 include_directories("${PROJECT_HEADER_DIR}")
 include_directories("${PROJECT_BUILD_DIR}/include")
-include_directories("${PROJECT_EXTERN_DIR}/zlib/include")
-include_directories("${PROJECT_EXTERN_DIR}/libpng/include")
+include_directories("${PROJECT_EXTERN_DIR}/zlib/")
+include_directories("${PROJECT_EXTERN_DIR}/libpng/")
 include_directories("${PROJECT_EXTERN_DIR}/SDL2/include")
-include_directories("${PROJECT_EXTERN_DIR}/lua/include")
-include_directories("${PROJECT_EXTERN_DIR}/giflib/include")
+include_directories("${PROJECT_EXTERN_DIR}/lua/")
+include_directories("${PROJECT_EXTERN_DIR}/giflib/")
 link_directories("${PROJECT_BUILD_DIR}/lib")
 
 # Copy lua carts
@@ -147,10 +127,6 @@ endif ( MSVC )
 if (WIN32)
     set_target_properties(nibble PROPERTIES WIN32_EXECUTABLE true)
 endif (WIN32)
-
-if (UNIX)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-endif (UNIX)
 
 target_link_libraries(nibble lualib)
 target_link_libraries(nibble giflib)

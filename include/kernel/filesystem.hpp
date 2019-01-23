@@ -12,8 +12,6 @@
 #define WIN32
 #endif
 
-//#define WIN32
-
 #include <iostream>
 #include <fcntl.h>			// Low level file creation
 #include <sys/types.h>		// For Linux/Windows
