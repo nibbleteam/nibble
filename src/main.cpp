@@ -3,7 +3,7 @@
 
 weak_ptr<Kernel> KernelSingleton;
 
-int main() {
+int main(int, char**) {
     auto kernel = make_shared<Kernel>();
 
     KernelSingleton = kernel;
