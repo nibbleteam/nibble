@@ -1,4 +1,3 @@
-#define SDL_MAIN_HANDLED
 #include <kernel/Kernel.hpp>
 
 weak_ptr<Kernel> KernelSingleton;
