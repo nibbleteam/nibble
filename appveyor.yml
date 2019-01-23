@@ -33,7 +33,7 @@ build:
     project: build\nibble.sln
 after_build:
     - cd C:\projects\nibble
-    - copy build\bin\openal32.dll bin\
+#    - copy build\bin\openal32.dll bin\
     - move bin nibble
     - rmdir nibble\Release /s /q
     - rcedit "nibble/nibble.exe" --set-icon "assets/icon.ico"
