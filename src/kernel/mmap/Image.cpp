@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <png.h>
 
 #include <kernel/Memory.hpp>
