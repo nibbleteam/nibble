@@ -139,6 +139,7 @@ endif (WIN32)
 target_link_libraries(nibble lualib)
 target_link_libraries(nibble giflib)
 target_link_libraries(nibble SDL2-static)
+target_link_libraries(nibble SDL2main)
 target_link_libraries(nibble png_static)
 target_link_libraries(nibble zlibstatic)
 
