@@ -4,6 +4,8 @@ project(nibble)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 set(BUILD_SHARED_LIBS OFF)
 
+#set(CMAKE_EXE_LINKER_FLAGS "-static")
+
 # Warnings
 if(MSVC)
   # Force to always compile with W4

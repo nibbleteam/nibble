@@ -8,7 +8,6 @@ two modules will be linked.  Preserve this property!
 
 *****************************************************************************/
 
-#include <unistd.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>

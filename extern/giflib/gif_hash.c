@@ -11,7 +11,6 @@ This module is used to hash the GIF codes during encoding.
 
 *****************************************************************************/
 
-#include <unistd.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <fcntl.h>
