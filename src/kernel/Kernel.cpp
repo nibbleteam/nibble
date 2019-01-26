@@ -10,7 +10,7 @@
 using namespace std;
 
 Kernel::Kernel() {
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
         cout << "SDL_Init: " << SDL_GetError() << endl;
     }
 
@@ -97,9 +97,11 @@ void Kernel::shutdown() {
 }
 
 void Kernel::loop() {
-    float lastTime = 0;
+    static float lastTime = 0;
     
+#ifndef EMSCRIPTEN
     while (true) {
+#endif
         float currentTime = SDL_GetTicks();
         float delta = (currentTime - lastTime)/1000;
         //float fps = 1.f / delta;
@@ -152,7 +154,15 @@ void Kernel::loop() {
                         startup();
                     } else if (event.key.keysym.sym == SDLK_ESCAPE) {
                         menu();
-                    } else {
+                    }
+#ifdef EMSCRIPTEN
+                    else if (event.key.keysym.sym == SDLK_RETURN) {
+                        keyboard->input(13);
+                    } else if (event.key.keysym.sym == SDLK_BACKSPACE) {
+                        keyboard->input(8);
+                    }
+#endif
+                    else {
                         controller->kbdPressed(event);
                     }
                 } break;
@@ -238,7 +248,9 @@ void Kernel::loop() {
         SDL_Delay(max<int>(32-(SDL_GetTicks()-lastTime), 0));
 
         gpu->draw();
+#ifndef EMSCRIPTEN
     }
+#endif
 }
 
 // Executa "executable" passando "environment"

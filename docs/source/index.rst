@@ -11,7 +11,8 @@ Além disso, a principal caracterísica do Nibble é ter um baixo custo de desen
     :maxdepth: 2
 
     características
-    cartridges 
+    apps
     game loop
     niblib
     hardware/index
+    tutorial1/index.rst

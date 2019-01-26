@@ -9,6 +9,7 @@ two modules will be linked.  Preserve this property!
 *****************************************************************************/
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <limits.h>
 #include <stdint.h>
 #include <fcntl.h>

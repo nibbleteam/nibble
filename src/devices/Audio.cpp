@@ -62,6 +62,8 @@ void Audio::shutdown() {
 }
 
 void Audio::fill(int16_t *samples, int missingSampleCount) {
+    return;
+
     unsigned int initialT = t;
 
     memset(samples, 0, AUDIO_SAMPLE_MEM_SIZE);

@@ -15,7 +15,9 @@ function InterpolatedValue:new(v, w)
                 v = v, t = 0
             },
             easing = Easing.Linear
-        }
+        },
+
+        _clock = 0
     }
 
     instanceof(instance, InterpolatedValue)
@@ -46,19 +48,21 @@ function InterpolatedValue:set(v, time, easing)
 
     -- From
     self.interpolation.from.v = self.value
-    self.interpolation.from.t = clock()*10
+    self.interpolation.from.t = self._clock*10
 
     -- To
     self.interpolation.to.v = v
-    self.interpolation.to.t = clock()*10+time
+    self.interpolation.to.t = self._clock*10+time
 
     -- Using easing
     self.interpolation.easing = easing
 end
 
 function InterpolatedValue:update(dt, w)
+    self._clock += dt
+
     -- Elapsed time
-    local et = clock()*10 - self.interpolation.from.t
+    local et = self._clock*10 - self.interpolation.from.t
     -- Total time
     local t = self.interpolation.to.t-self.interpolation.from.t
     -- Interpolated value (0-1)

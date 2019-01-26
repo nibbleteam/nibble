@@ -18,5 +18,5 @@ end
 
 function update(dt)
     nom:update(dt)
-    audio_update(dt)
+    --audio_update(dt)
 end

@@ -260,7 +260,7 @@ void Controller::joyConnected(SDL_Event& event) {
 
     sfml2nibble[event.jdevice.which] = slot;
 
-    SDL_JoystickOpen(event.jdevice.which);
+    //SDL_JoystickOpen(event.jdevice.which);
 
     setState(slot, BUTTON_OFF_ON);
 } 

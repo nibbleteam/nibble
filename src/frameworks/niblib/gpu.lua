@@ -57,7 +57,7 @@ function u16(x)
     signal = 0
   end
 
-  return string.char(round(x/256)%128+signal, round(x)%256)
+  return string.char(math.abs(round(x/256)%128+signal)%256, round(x)%256)
 end
 
 -- Parâmetros de 16 bits

@@ -14,6 +14,8 @@ Keyboard::Keyboard(Memory &memory) {
 }
 
 void Keyboard::input(const unsigned int unicode) {
+    cout << unicode << endl;
+
     charQueue.push((char)unicode);
 }
 
