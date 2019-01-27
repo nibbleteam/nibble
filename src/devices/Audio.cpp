@@ -40,10 +40,11 @@ SDL_AudioDeviceID Audio::initialize() {
   specIn.userdata = (void*)this;
 
   // Open the device
-  device = SDL_OpenAudioDevice(nullptr, 0, &specIn, &specOut, SDL_AUDIO_ALLOW_ANY_CHANGE);
+  device = SDL_OpenAudioDevice(nullptr, 0, &specIn, &specOut, 0);
 
   cout << "[nibble] audio: freq: " << specOut.freq << endl;
   cout << "[nibble] audio: ch: " << (int)specOut.channels << endl;
+  cout << "[nibble] audio: format: " << (int)specOut.format << ", " << (int)specIn.format << endl;
   cout << "[nibble] audio: samples: " << specOut.samples << endl;
 
   if (!device) {
@@ -62,11 +63,9 @@ void Audio::shutdown() {
 }
 
 void Audio::fill(int16_t *samples, int missingSampleCount) {
-    return;
-
     unsigned int initialT = t;
 
-    memset(samples, 0, AUDIO_SAMPLE_MEM_SIZE);
+    memset(samples, 0, AUDIO_SAMPLE_MEM_SIZE*2);
 
     // Preenche o buffer "samples"
     do {
