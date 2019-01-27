@@ -113,7 +113,7 @@ void Process::init() {
     if (!initialized) {
         lua_getglobal(st, "init");
         if (lua_isfunction(st, -1)) {
-            if (lua_pcall(st, 0, 0, 0) != 0) {
+            if (callWithTraceback(st, 0, 0) != 0) {
                 cout << "pid " << pid << " init(): " << lua_tostring(st, -1) << endl;
                 KernelSingleton.lock()->kill(pid);
             }
@@ -127,7 +127,7 @@ void Process::update(float dt) {
     lua_getglobal(st, "update");
     if (lua_isfunction(st, -1)) {
         lua_pushnumber(st, dt);
-        if (lua_pcall(st, 1, 0, 0) != 0) {
+        if (callWithTraceback(st, 1, 0) != 0) {
             cout << "pid " << pid << " update(): " << lua_tostring(st, -1) << endl;
             KernelSingleton.lock()->kill(pid);
         }
@@ -137,7 +137,7 @@ void Process::update(float dt) {
 void Process::draw() {
     lua_getglobal(st, "draw");
     if (lua_isfunction(st, -1)) {
-        if (lua_pcall(st, 0, 0, 0) != 0) {
+        if (callWithTraceback(st, 0, 0) != 0) {
             cout << "pid " << pid << " draw(): " << lua_tostring(st, -1) << endl;
             KernelSingleton.lock()->kill(pid);
         }
@@ -147,7 +147,7 @@ void Process::draw() {
 void Process::audio_tick() {
     lua_getglobal(st, "audio_tick");
     if (lua_isfunction(st, -1)) {
-        if (lua_pcall(st, 0, 0, 0) != 0) {
+        if (callWithTraceback(st, 0, 0) != 0) {
             cout << "pid " << pid << " audio_tick(): " << lua_tostring(st, -1) << endl;
             KernelSingleton.lock()->kill(pid);
         }
@@ -222,6 +222,25 @@ void Process::writeMessage(luabridge::LuaRef msg) {
         // Coloca  tabela convertida na nossa lista de mensagens
         receivedMessages.push(table);
     }
+}
+
+int Process::callWithTraceback(lua_State* l, int args, int rets) {
+  int handlerPosition = lua_gettop(l)-args;
+  int status;
+
+  lua_pushcfunction(l, [](lua_State* l) -> int {
+    luaL_traceback(l, l, lua_tostring(l, -1), 1);
+
+    return 1;
+  });
+
+  lua_insert(l, handlerPosition);
+
+  status = lua_pcall(l, args, rets, handlerPosition);
+
+  lua_remove(l, handlerPosition);
+
+  return status;
 }
 
 // Copia um valor de from para to, que está na posição p de from

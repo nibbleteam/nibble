@@ -85,6 +85,7 @@ public:
     bool operator < (const Process&);
 private:
     void copyLuaValue(lua_State*, lua_State*, int);
+    int callWithTraceback(lua_State*, int, int);
 };
 
 #endif /* PROCESS_H */
