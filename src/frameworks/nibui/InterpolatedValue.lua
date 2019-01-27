@@ -61,8 +61,15 @@ function InterpolatedValue:update(dt, w)
     local et = clock()*10 - self.interpolation.from.t
     -- Total time
     local t = self.interpolation.to.t-self.interpolation.from.t
+    -- Position
+    local p = et/t
+
+    if p ~= p then
+        p = 0
+    end
+
     -- Interpolated value (0-1)
-    local i = self.interpolation.easing(et/t)
+    local i = self.interpolation.easing(p)
 
     -- Initial value
     local iv = self:get(self.interpolation.from.v, w)
