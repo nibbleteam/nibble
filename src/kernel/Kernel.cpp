@@ -380,7 +380,7 @@ void Kernel::updateWaitTable() {
 void Kernel::audioTick() {
     audioMutex.lock();
     auto pcopy = processes;
-    for (auto &pair :processes) {
+    for (auto &pair :pcopy) {
         auto &pid = pair.first;
         auto &p = pair.second;
         
