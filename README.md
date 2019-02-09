@@ -44,7 +44,7 @@ Console Fantasia feito para funcionar em hardware real.
 
 3. Instale as dependências
 
-        sudo apt install libx11-dev libxrandr-dev libgl-dev libudev-dev libopenal-dev libflac-dev libvorbis-dev libfreetype6-dev
+        sudo apt install libx11-dev libxrandr-dev libgl-dev libudev-dev libopenal-dev libflac-dev libvorbis-dev libfreetype6-dev libsdl2-2.0 libsdl2-dev
 
 4. Entre no build e rode o cmake e make
 
