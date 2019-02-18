@@ -18,7 +18,7 @@ O game loop é um conjunto de duas funções::
     function draw()
     end
 
-    function update()
+    function update(dt)
     end
 
-na `draw()` é adicionado todo o código de renderização do seu cartridge. Na `update()` vai o código de entrada e atualização do estado do jogo.
+na `draw()` é adicionado todo o código de renderização do seu cartridge. Na `update(dt)` vai o código de entrada e atualização do estado do jogo.
