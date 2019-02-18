@@ -237,7 +237,6 @@ end
 
 function Widget:move(event)
     if self:in_bounds(event) then
-        -- TODO: Checar se não só o hotpoint, mas o SPRITE INTEIRO estão dentro
         self:set_dirty()
 
         if not self.mouse.inside then
@@ -261,6 +260,16 @@ function Widget:move(event)
         end
     else
         self:leave(event)
+    end
+
+    if self:mouse_sprite_in_bounds(event) then
+        self.mouse.sprite_inside = true
+
+        self:set_dirty()
+    elseif self.mouse.sprite_inside then
+        self.mouse.sprite_inside = false
+
+        self:set_dirty()
     end
 end
 
@@ -286,10 +295,24 @@ function Widget:init()
     end
 end
 
+function Widget:in_point(x, y)
+    return x >= self.x and y >= self.y and
+           x < self.x+self.w and
+           y < self.y+self.h
+end
+
+function Widget:mouse_sprite_in_bounds(e)
+    e.x -= 1
+    e.y -= 3
+
+    return self:in_point(e.x, e.y) or
+           self:in_point(e.x+8, e.y) or
+           self:in_point(e.x+8, e.y+8) or
+           self:in_point(e.x, e.y+8)
+end
+
 function Widget:in_bounds(e)
-    return e.x >= self.x and e.y >= self.y and
-           e.x < self.x+self.w and
-           e.y < self.y+self.h
+    return self:in_point(e.x, e.y)
 end
 
 function Widget.inside_rect(e, x, y, w, h)

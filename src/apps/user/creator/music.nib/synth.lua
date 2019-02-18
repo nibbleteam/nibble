@@ -10,8 +10,8 @@ function audio_init()
     envelope(OP4, 0, 1, 0.9, 0.0, 0.1, 0, 0)
     -- Roteia
     route(OP1, OUT, 0.4)
-    route(OP1, OP1, 0.0)
-    route(OP2, OP1, 0.0)
+    route(OP1, OP1, 0.2)
+    route(OP2, OP1, 0.4)
     route(OP3, OUT, 0.1)
     route(OP4, OUT, 0.2)
     -- Reverb
@@ -42,6 +42,10 @@ tick = 0
 subtick = 0
 
 function audio_tick()
+    if not RUNNING then
+        return
+    end
+
     if playing then
         subtick += 1
 

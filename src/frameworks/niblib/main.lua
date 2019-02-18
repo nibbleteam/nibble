@@ -2,12 +2,11 @@
 -- Biblioteca de API utilitária para o Nibble
 -- https://github.com/pongboy/nibble
 
--- Apaga variáveis globais desnecessárias
+-- Aliases para algumas variáveis de sistema
 time = os.time
 clock = os.clock
-
-os = nil
 dprint = print
+pprint = require('frameworks/niblib/pprint')
 
 -- Cria esqueleto de funções
 function init()

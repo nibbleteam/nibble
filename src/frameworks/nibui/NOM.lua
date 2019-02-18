@@ -39,8 +39,8 @@ NOM.helpers = {
             return widget[prop]
         end)
     end,
-    ['fn'] = function (fn)
-        return DynamicValue:new('dynamic', fn)
+    ['fn'] = function (f)
+        return DynamicValue:new('dynamic', f)
     end,
     ['+'] = function (a, b)
         return DynamicValue:new('dynamic', function(w)
@@ -201,7 +201,7 @@ function NOM:find(selector, node)
             local found = self:find(selector, self.root)
 
             if not found then
-                dprint('nom:', 'could not find', selector, id)
+                dprint('nom:', 'could not find', selector, '('..id..')')
             else
                 return found
             end
