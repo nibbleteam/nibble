@@ -980,7 +980,7 @@ static void simpleexp (LexState *ls, expdesc *v) {
       constructor(ls, v);
       return;
     }
-    case TK_FUNCTION: {
+    case TK_FUNCTION: case TK_FN: {
       luaX_next(ls);
       body(ls, v, 0, ls->linenumber);
       return;
@@ -1632,13 +1632,13 @@ static void statement (LexState *ls) {
       repeatstat(ls, line);
       break;
     }
-    case TK_FUNCTION: {  /* stat -> funcstat */
+    case TK_FUNCTION: case TK_FN: {  /* stat -> funcstat */
       funcstat(ls, line);
       break;
     }
     case TK_LOCAL: {  /* stat -> localstat */
       luaX_next(ls);  /* skip LOCAL */
-      if (testnext(ls, TK_FUNCTION))  /* local function? */
+      if (testnext(ls, TK_FUNCTION) || testnext(ls, TK_FN))  /* local function? */
         localfunc(ls);
       else
         localstat(ls);
