@@ -118,7 +118,7 @@ function Textarea:advance_cursor(text)
     self.cursor_x += #by*CHAR_W
     
     if self.cursor_x > self.x+self.w then
-        local overflow = (self.cursor_x-(self.x+self.w))/CHAR_W
+        local overflow = math.ceil((self.cursor_x-(self.x+self.w))/CHAR_W)
 
         self.cursor_x = self.x
         self.cursor_y += self.line_height

@@ -25,7 +25,7 @@
 
 using namespace std;
 
-#define NIBBLE_APP_MENU     "apps/system/core/menu.nib"
+#define NIBBLE_APP_MENU     "apps/system/menu.nib"
 
 // Simula o hardware do console e um kernel.
 class Kernel {

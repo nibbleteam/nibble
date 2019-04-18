@@ -1,0 +1,17 @@
+all_sources += files(
+  's_scalbn.c',
+  's_fabs.c',
+  'k_rem_pio2.c',
+  'e_rem_pio2.c',
+  'k_cos.c',
+  'e_pow.c',
+  'k_sin.c',
+  's_copysign.c',
+  'e_log.c',
+  's_sin.c',
+  'e_atan2.c',
+  'e_sqrt.c',
+  's_floor.c',
+  's_cos.c',
+  's_atan.c',
+)

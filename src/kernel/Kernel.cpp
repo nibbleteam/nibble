@@ -43,7 +43,7 @@ void Kernel::startup() {
 
     auto initEnv = map<string, string>();
 
-    if (get<0>(exec("apps/system/core/init.nib", initEnv)) > 0) {
+    if (get<0>(exec("apps/system/init.nib", initEnv)) > 0) {
         cout << "[kernel] " << "process started" << endl;
     }
 }
@@ -265,10 +265,12 @@ tuple<int32_t, string> Kernel::exec(const string &executable, map<string, string
         // ao ambiente lua do processo
         process->addSyscalls();
 
-        return tuple<int, string> (lastProcess++, "");
+        //return tuple<int, string> (lastProcess++, "");
     } else {
-        return tuple<int, string> (-4, process->error);
+        //return tuple<int, string> (-4, process->error);
     }
+    
+    return tuple<int, string> (0, "");
 }
 
 // Espera "wait" sair
@@ -476,21 +478,23 @@ int kernel_api_exec(lua_State* L) {
     int args = lua_gettop(L);
 
     if (args >= 2) {
-        if (lua_istable(L, 2)) {
+        luaL_checktype(L, 2, LUA_TTABLE);
+
+        if (true) {
             const string executable = string(lua_tostring(L, 1));
             map <string, string> environment;
 
-            lua_gettable(L, 2);
-            lua_pushnil(L);
+            //lua_gettable(L, 2);
+            //lua_pushnil(L);
 
-            while (lua_next(L, -2) != 0) {
-                if (lua_isstring(L, -2) && lua_isstring(L, -1)) {
-                    environment.emplace(lua_tostring(L, -2), lua_tostring(L, -1));
-                }
-                lua_pop(L, 1);
-            }
+            //while (lua_next(L, -2) == 0) {
+            //    if (lua_isstring(L, -2) && lua_isstring(L, -1)) {
+            //        environment.emplace(lua_tostring(L, -2), lua_tostring(L, -1));
+            //    }
+            //    lua_pop(L, 1);
+            //}
          
-            lua_pop(L, 1);
+            //lua_pop(L, 1);
 
             auto result = KernelSingleton.lock()->exec(executable, environment);
 

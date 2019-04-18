@@ -95,7 +95,7 @@ void Process::addSyscalls() {
         .beginNamespace("kernel")
         .addFunction("read", &kernel_api_read)
         .addFunction("write", &kernel_api_write)
-        .addCFunction("exec", &kernel_api_exec)
+        //.addCFunction("exec", &kernel_api_exec)
         .addFunction("wait", &kernel_api_wait)
         .addFunction("kill", &kernel_api_kill)
         .addFunction("setenv", &kernel_api_setenv)
@@ -107,6 +107,8 @@ void Process::addSyscalls() {
         .addFunction("memresize", &kernel_api_memresize)
         .addFunction("list", &kernel_api_list)
         .endNamespace();
+
+    lua_register(st, "exec", kernel_api_exec);
 }
 
 void Process::init() {
