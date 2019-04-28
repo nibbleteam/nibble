@@ -2,6 +2,7 @@ local lang = {}
 
 function lang.instanceof(a, b)
     setmetatable(a, {__index=b})
+    return a
 end
 
 function lang.copy(orig) -- source:  http://lua-users.org/wiki/CopyTable

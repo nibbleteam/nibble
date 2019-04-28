@@ -11,7 +11,7 @@ Envelope::Envelope(MemoryLayout &memory):
     amplitude(0),
     done(false) { }
 
-float Envelope::getAmplitude() {
+float Envelope::get_amplitude() {
     float level = Audio::tof16(memory.level)*float(intensity)/255.0;
     float sustain = Audio::tof16(memory.sustain);
 

@@ -92,7 +92,7 @@ return {
                 coffset = highlight
             end
 
-            rectf(self.x+cell_width, math.max(y, self.y), self.w-cell_width, math.min(missing, line_height), colors[n%2+1]+coffset)
+            fill_rect(self.x+cell_width, math.max(y, self.y), self.w-cell_width, math.min(missing, line_height), colors[n%2+1]+coffset)
 
             for t=start_time+1,end_time do
                 local x, _ = self:note2screen(n, t)
@@ -100,7 +100,7 @@ return {
                 y = math.max(y, self.y)
 
                 if music[t] and music[t][n] then
-                    rectf(x, y, w, h, 11)
+                    fill_rect(x, y, w, h, 11)
                     rect(x, y, w, h, 15)
                 else
                     rect(x, y, w, h, colors[(n+1)%2+1])
@@ -110,7 +110,7 @@ return {
             local timeline, _ = self:note2screen(0, tick)
 
             line(timeline, math.max(y, self.y), timeline, math.min(missing, line_height)+math.max(y, self.y)-1, 15)
-            rectf(self.x, math.max(y, self.y), cell_width, math.min(missing, line_height), note_colors[n%2+1])
+            fill_rect(self.x, math.max(y, self.y), cell_width, math.min(missing, line_height), note_colors[n%2+1])
 
             local octave = math.floor(n/12)
 

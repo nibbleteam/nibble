@@ -10,11 +10,12 @@
 using namespace std;
 
 GPU::GPU(Memory& memory):
-    targetClipStartX(0), targetClipStartY(0),
-    targetClipEndX(GPU_VIDEO_WIDTH), targetClipEndY(GPU_VIDEO_HEIGHT),
-    colormap(NULL), screenScale(GPU_DEFAULT_SCALING), screenOffsetX(0), screenOffsetY(0) {
+    target_clip_start_x(0), target_clip_start_y(0),
+    target_clip_end_x(GPU_VIDEO_WIDTH), target_clip_end_y(GPU_VIDEO_HEIGHT),
+    cycle(0),
+    colormap(NULL), screen_scale(GPU_DEFAULT_SCALING), screen_offset_x(0), screen_offset_y(0) {
 
-    window = SDL_CreateWindow("Nibble",
+    window = SDL_CreateWindow("nibble",
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
                               GPU_VIDEO_WIDTH*GPU_DEFAULT_SCALING,
@@ -23,14 +24,8 @@ GPU::GPU(Memory& memory):
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    commandMemory = memory.allocate(GPU_COMMAND_MEM_SIZE, "GPU Commands", [&] (Memory::AccessMode mode) {
-        if (mode == Memory::ACCESS_WRITE) {
-            this->execGpuCommand(this->commandMemory);
-        }
-    });
-
-    paletteMemory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
-    videoMemory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
+    palette_memory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
+    video_memory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
 
     // TODO
     // Não gera múltiplos keypresses se a tecla ficar apertada
@@ -42,7 +37,7 @@ GPU::GPU(Memory& memory):
     // TODO
     // Coloca o ícone
     // sf::Image Icon;
-	// if (Icon.loadFromMemory(icon_png, icon_png_len)) {
+	// if (Icon.load_from_memory(icon_png, icon_png_len)) {
     //    window.setIcon(icon_width, icon_height, Icon.getPixelsPtr());
     //}
 
@@ -51,24 +46,10 @@ GPU::GPU(Memory& memory):
                                     SDL_TEXTUREACCESS_STREAMING,
                                     GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT);
 
-    framebufferSrc = SDL_Rect {0, 0, GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT};
-    framebufferDst = SDL_Rect {0, 0,
-                               int(GPU_VIDEO_WIDTH*screenScale),
-                               int(GPU_VIDEO_HEIGHT*screenScale)};
-
-    // Inicializa a memória
-    for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
-      //videoMemory[i] = int(0xFF*sin(i/14))%0x10;
-      videoMemory[i] = (i%320+rand()%4)%8 == 0 ? (rand()%0x10) : (0);
-    }
-
-    // Aspect-ratio correto
-    resize();
-
-    //  - target -> video
-    target = videoMemory;
-    targetW = GPU_VIDEO_WIDTH;
-    targetH = GPU_VIDEO_HEIGHT;
+    framebuffer_src = SDL_Rect {0, 0, GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT};
+    framebuffer_dst = SDL_Rect {0, 0,
+                               int(GPU_VIDEO_WIDTH*screen_scale),
+                               int(GPU_VIDEO_HEIGHT*screen_scale)};
 }
 
 GPU::~GPU() {
@@ -78,7 +59,7 @@ GPU::~GPU() {
 }
 
 void GPU::startup() {
-    uint8_t defaultPalette[] = {
+    uint8_t default_palette[] = {
         0x14, 0x0c, 0x1c, 0xFF,
         0x44, 0x24, 0x34, 0xFF,
         0x30, 0x34, 0x6d, 0xFF,
@@ -97,42 +78,78 @@ void GPU::startup() {
         0xde, 0xee, 0xd6, 0xFF,
     };
 
-    memcpy(paletteMemory, defaultPalette, sizeof(defaultPalette));
+    memcpy(palette_memory, default_palette, sizeof(default_palette));
 
+    // Inicializa roteamento de paletas
     for (size_t i=0;i<GPU_PALETTE_TBL1_SIZE;i++) {
-        paletteMemory[i+GPU_PALETTE_SIZE*GPU_PALETTE_DEPTH] = i;
+        palette_memory[i+GPU_PALETTE_SIZE*GPU_PALETTE_DEPTH] = i;
     }
 
     for (size_t i=0;i<GPU_PALETTE_TBL2_SIZE;i++) {
-        paletteMemory[i+GPU_PALETTE_SIZE*GPU_PALETTE_DEPTH+GPU_PALETTE_TBL1_SIZE] = i;
+        palette_memory[i+GPU_PALETTE_SIZE*GPU_PALETTE_DEPTH+GPU_PALETTE_TBL1_SIZE] = i;
+    }
+
+    for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
+        //video_memory[i] = int(0xFF*sin(i/14))%0x10;
+        //video_memory[i] = ((i%320+rand()%2)%16 < 15  && i%2 == 0 ? (rand()%0x10) : (0));
+        //video_memory[i] = min(((i/17)%0x10*(i/15)%0x08+cycle*2), (size_t)0x11);
+
+        video_memory[i] = (i/20 + i/320/4)%0x10;
+    }
+
+    // Aspect-ratio correto
+    resize();
+
+    //  - target -> video
+    target = video_memory;
+    target_w = GPU_VIDEO_WIDTH;
+    target_h = GPU_VIDEO_HEIGHT;
+
+    cycle = 0;
+}
+
+void GPU::paint_boot_animation() {
+    for (size_t i=0;i<GPU_VIDEO_MEM_SIZE/4;i++) {
+        if (rand()%3 == 0) {
+            video_memory[i*4+0] = 0;
+            video_memory[i*4+1] = 0;
+            video_memory[i*4+2] = 0;
+            video_memory[i*4+3] = 0;
+        }
     }
 }
 
 void GPU::draw() {
+    if (cycle <= BOOT_CYCLES) {
+        paint_boot_animation();
+    }
+    cycle++;
+
     // Atualiza a memória de vídeo
     void *data;
     int pitch;
     SDL_LockTexture(framebuffer, NULL, &data, &pitch);
 
     for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
-        memcpy(((uint8_t*)data)+i*4, paletteMemory+(videoMemory[i]*4), 4);
+        memcpy(((uint8_t*)data)+i*4,
+                palette_memory+(COLMAP2(video_memory[i])*4), 4);
     }
 
     SDL_UnlockTexture(framebuffer);
 
     // Grava a frame
     if (colormap != NULL) {
-        captureFrame();
+        capture_frame();
     }
 
     // Só limpa a tela se tivermos barras horizontais ou verticais
-    if (screenOffsetX != 0 || screenOffsetY != 0) {
+    if (screen_offset_x != 0 || screen_offset_y != 0) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
     }
 
     // Desenha o framebuffer na tela
-    SDL_RenderCopy(renderer, framebuffer, &framebufferSrc, &framebufferDst);
+    SDL_RenderCopy(renderer, framebuffer, &framebuffer_src, &framebuffer_dst);
 
     // Mostra o resultado na janela
     SDL_RenderPresent(renderer);
@@ -171,24 +188,24 @@ void GPU::resize() {
     */
 }
 
-void GPU::transformMouse(int16_t &x, int16_t &y) {
-    x /= screenScale;
-    y /= screenScale;
+void GPU::transform_mouse(int16_t &x, int16_t &y) {
+    x /= screen_scale;
+    y /= screen_scale;
 
     // TODO
-    //x -= (w/screenScale-GPU_VIDEO_WIDTH)/2;
-    //y -= (h/screenScale-GPU_VIDEO_HEIGHT)/2;
+    //x -= (w/screen_scale-GPU_VIDEO_WIDTH)/2;
+    //y -= (h/screen_scale-GPU_VIDEO_HEIGHT)/2;
 }
 
 /*
  * GIF
  */
 
-bool GPU::startCapturing(const string& path) {
+bool GPU::start_capturing(const string& path) {
     int error;
 
     // Cria um colormap a partir da paleta
-    colormap = getColorMap();
+    colormap = get_color_map();
 
     // Abre um GIF pra salvar a tela
     gif = EGifOpenFileName(path.c_str(), false, &error);
@@ -227,7 +244,7 @@ bool GPU::startCapturing(const string& path) {
     return true;
 }
 
-bool GPU::stopCapturing() {
+bool GPU::stop_capturing() {
     int error;
     EGifCloseFile(gif, &error);
     if (error != GIF_OK) {
@@ -240,7 +257,7 @@ bool GPU::stopCapturing() {
     return true;
 }
 
-bool GPU::captureFrame() {
+bool GPU::capture_frame() {
     int error;
     char graphics[] {
         0, 4&0xFF, 4>>8, 0
@@ -262,7 +279,7 @@ bool GPU::captureFrame() {
         return false;
     }
 
-    error = EGifPutLine(gif, videoMemory, GPU_VIDEO_MEM_SIZE);
+    error = EGifPutLine(gif, video_memory, GPU_VIDEO_MEM_SIZE);
 
     if (error != GIF_OK) {
         cerr << GifErrorString(error) << endl;
@@ -272,7 +289,7 @@ bool GPU::captureFrame() {
     return true;
 }
 
-ColorMapObject* GPU::getColorMap() {
+ColorMapObject* GPU::get_color_map() {
     // "Paleta" do GIF
     GifColorType colors[GPU_PALETTE_SIZE];
 
@@ -281,9 +298,9 @@ ColorMapObject* GPU::getColorMap() {
     for (uint64_t i=0;i<GPU_PALETTE_SIZE;i++) {
         // Remove o alpha
         colors[i] = GifColorType {
-            paletteMemory[i*GPU_PALETTE_DEPTH+0],
-            paletteMemory[i*GPU_PALETTE_DEPTH+1],
-            paletteMemory[i*GPU_PALETTE_DEPTH+2]
+            palette_memory[i*GPU_PALETTE_DEPTH+0],
+            palette_memory[i*GPU_PALETTE_DEPTH+1],
+            palette_memory[i*GPU_PALETTE_DEPTH+2]
         };
     }
 
@@ -292,12 +309,13 @@ ColorMapObject* GPU::getColorMap() {
     return colormap;
 }
 
+//
 // Render de Software
 //
 
-void GPU::fixRectBounds(int16_t& x, int16_t& y,
-                        int16_t& w, int16_t& h,
-                        int16_t bw, int16_t bh) {
+void GPU::fix_rect_bounds(int16_t& x, int16_t& y,
+                          int16_t& w, int16_t& h,
+                          int16_t bw, int16_t bh) {
     if (x < 0) {
         w = max(w+x, 0);
         x = 0;
@@ -318,6 +336,9 @@ void GPU::fixRectBounds(int16_t& x, int16_t& y,
 void GPU::line(int16_t x1, int16_t y1,
                int16_t x2, int16_t y2,
                uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
     // Bresenham para inteiros
     const int16_t dx = abs(x1-x2);
     const int16_t dy = -abs(y1-y2);
@@ -328,7 +349,7 @@ void GPU::line(int16_t x1, int16_t y1,
 
     while (true) {
         if (!OUT_OF_BOUNDS(x1, y1)) {
-            target[x1+y1*targetW] = color;
+            target[x1+y1*target_w] = color;
         }
 
         D2 = D<<1;
@@ -352,7 +373,10 @@ void GPU::line(int16_t x1, int16_t y1,
 void GPU::rect(int16_t x, int16_t y,
                int16_t w, int16_t h,
                uint8_t color) {
-    fixRectBounds(x, y, w, h, targetW, targetH);
+    if (TRANSPARENT(color))
+        return;
+
+    fix_rect_bounds(x, y, w, h, target_w, target_h);
 
     auto ex = max(x+w-1, 0);
     auto ey = max(y+h-1, 0);
@@ -367,6 +391,9 @@ void GPU::tri(int16_t x1, int16_t y1,
               int16_t x2, int16_t y2,
               int16_t x3, int16_t y3,
               uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
     line(x1, y1, x2, y2, color);
     line(x2, y2, x3, y3, color);
     line(x3, y3, x1, y1, color);
@@ -377,6 +404,9 @@ void GPU::quad(int16_t x1, int16_t y1,
                int16_t x3, int16_t y3,
                int16_t x4, int16_t y4,
                uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
     line(x1, y1, x2, y2, color);
     line(x2, y2, x3, y3, color);
     line(x3, y3, x4, y4, color);
@@ -384,6 +414,9 @@ void GPU::quad(int16_t x1, int16_t y1,
 }
 
 void GPU::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
     // Decisão inicial, começamos a desenhar de (r, 0):
     // midpoint(r, 0) => (r-0.5), (0+1)
     // P do midpoint => P(r-0.5, 1) = (r-0.5)²+1²-r² = r²-r+.5²+1-r² = (1+.25)-r = 1.25-r
@@ -394,28 +427,28 @@ void GPU::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     while(x >= y) {
         // Desenha o pixel anterior, replicado em 8
         if (!OUT_OF_BOUNDS(dx+x, dy+y)) {
-            target[dx+x+(dy+y)*targetW] = color;
+            target[dx+x+(dy+y)*target_w] = color;
         }
         if (!OUT_OF_BOUNDS(dx-x, dy-y)) {
-            target[dx-x+(dy-y)*targetW] = color;
+            target[dx-x+(dy-y)*target_w] = color;
         }
         if (!OUT_OF_BOUNDS(dx+x, dy-y)) {
-            target[dx+x+(dy-y)*targetW] = color;
+            target[dx+x+(dy-y)*target_w] = color;
         }
         if (!OUT_OF_BOUNDS(dx-x, dy+y)) {
-            target[dx-x+(dy+y)*targetW] = color;
+            target[dx-x+(dy+y)*target_w] = color;
         }
         if (!OUT_OF_BOUNDS(dx+y, dy+x)) {
-            target[dx+y+(dy+x)*targetW] = color;
+            target[dx+y+(dy+x)*target_w] = color;
         }
         if (!OUT_OF_BOUNDS(dx-y, dy-x)) {
-            target[dx-y+(dy-x)*targetW] = color;
+            target[dx-y+(dy-x)*target_w] = color;
         }
         if (!OUT_OF_BOUNDS(dx+y, dy-x)) {
-            target[dx+y+(dy-x)*targetW] = color;
+            target[dx+y+(dy-x)*target_w] = color;
         }
         if (!OUT_OF_BOUNDS(dx-y, dy+x)) {
-            target[dx-y+(dy+x)*targetW] = color;
+            target[dx-y+(dy+x)*target_w] = color;
         }
 
         // Escolhe entre (x-1, y+1) e (x, y+1)
@@ -431,9 +464,12 @@ void GPU::circle(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     }
 }
 
-void GPU::rectFill(int16_t x, int16_t y,
-                   int16_t w, int16_t h,
-                   uint8_t color) {
+void GPU::rect_fill(int16_t x, int16_t y,
+                    int16_t w, int16_t h,
+                    uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
     if (w < 0) {
         x += w;
         w = -w;
@@ -447,14 +483,14 @@ void GPU::rectFill(int16_t x, int16_t y,
     const auto fy = y+h;
 
     for (;y<fy;y++) {
-        scanLine(x, x+w-1, y, color);
+        scan_line(x, x+w-1, y, color);
     }
 }
 
-void GPU::orderedTriFill(int16_t x1, int16_t y1,
-                         int16_t x2, int16_t y2,
-                         int16_t x3, int16_t y3,
-                         uint8_t color) {
+void GPU::ordered_tri_fill(int16_t x1, int16_t y1,
+                           int16_t x2, int16_t y2,
+                           int16_t x3, int16_t y3,
+                           uint8_t color) {
     // Casos especiais
     if ((x1 == x2 && x2 == x3) ||(y1 == y2 && y2 == y3)) {
         tri(x1, y1, x2, y2, x3, y3, color);
@@ -480,31 +516,31 @@ void GPU::orderedTriFill(int16_t x1, int16_t y1,
 
     int16_t x1b = x1, y1b = y1;
 
-    bool firstLine = true;
+    bool first_line = true;
 
     while (true) {
 start:
         if (x1 < x1b) {
-            scanLine(x1, x1b, y1, color);
+            scan_line(x1, x1b, y1, color);
         } else {
-            scanLine(x1b, x1, y1, color);
+            scan_line(x1b, x1, y1, color);
         }
 
         do {
-            const auto cmpA = y1 <= y1b;
+            const auto cmp_a = y1 <= y1b;
 
             if (y1 >= y1b) {
                 D2b = Db<<1;
 
                 if (D2b >= dyb) {
-                    if (x1b == x2 && firstLine) goto prepareSecondLine;
+                    if (x1b == x2 && first_line) goto prepare_second_line;
 
                     Db += dyb;
                     x1b += xib;
                 }
 
                 if (D2b <= dxb) {
-                    if (y1b == y2 && firstLine) goto prepareSecondLine;
+                    if (y1b == y2 && first_line) goto prepare_second_line;
 
                     Db += dxb;
                     y1b += yib;
@@ -512,7 +548,7 @@ start:
 
             }
             
-            if (cmpA) {
+            if (cmp_a) {
                 D2a = Da<<1;
 
                 if (D2a >= dya) {
@@ -531,8 +567,8 @@ start:
             }
         } while (y1 != y1b);
     }
-prepareSecondLine:
-    firstLine = false;
+prepare_second_line:
+    first_line = false;
 
     dxb = abs(x2-x3);
     dyb = -abs(y2-y3);
@@ -545,74 +581,86 @@ prepareSecondLine:
     goto start;
 }
 
-void GPU::triFill(int16_t x1, int16_t y1,
-                  int16_t x2, int16_t y2,
-                  int16_t x3, int16_t y3,
-                  uint8_t color) {
+void GPU::tri_fill(int16_t x1, int16_t y1,
+                   int16_t x2, int16_t y2,
+                   int16_t x3, int16_t y3,
+                   uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
     if (y1 <= y2 && y2 <= y3) {
-        orderedTriFill(x1, y1, x2, y2, x3, y3, color);
+        ordered_tri_fill(x1, y1, x2, y2, x3, y3, color);
     } else if (y1 <= y3 && y3 <= y2) {
-        orderedTriFill(x1, y1, x3, y3, x2, y2, color);
-    }else if (y3 <= y1 && y1 <= y2) {
-        orderedTriFill(x3, y3, x1, y1, x2, y2, color);
+        ordered_tri_fill(x1, y1, x3, y3, x2, y2, color);
+    } else if (y3 <= y1 && y1 <= y2) {
+        ordered_tri_fill(x3, y3, x1, y1, x2, y2, color);
     } else if (y3 <= y2 && y2 <= y1) {
-        orderedTriFill(x3, y3, x2, y2, x1, y1, color);
-    }else if (y2 <= y1 && y1 <= y3) {
-        orderedTriFill(x2, y2, x1, y1, x3, y3, color);
+        ordered_tri_fill(x3, y3, x2, y2, x1, y1, color);
+    } else if (y2 <= y1 && y1 <= y3) {
+        ordered_tri_fill(x2, y2, x1, y1, x3, y3, color);
     } else if (y2 <= y3 && y3 <= y1) {
-        orderedTriFill(x2, y2, x3, y3, x1, y1, color);
+        ordered_tri_fill(x2, y2, x3, y3, x1, y1, color);
     }
 }
 
-void GPU::quadFill(int16_t x1, int16_t y1,
-                   int16_t x2, int16_t y2,
-                   int16_t x3, int16_t y3,
-                   int16_t x4, int16_t y4,
-                   uint8_t color) {
+void GPU::quad_fill(int16_t x1, int16_t y1,
+                    int16_t x2, int16_t y2,
+                    int16_t x3, int16_t y3,
+                    int16_t x4, int16_t y4,
+                    uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
     const int16_t miny = min<int16_t>({y1, y2, y3, y4});
     const int16_t maxy = max<int16_t>({y1, y2, y3, y4});
 
     if ((miny == y1 && maxy == y2) || (miny == y2 && maxy == y1)) {
-        triFill(x1, y1, x3, y3, x4, y4, color);
-        triFill(x2, y2, x3, y3, x4, y4, color);
+        tri_fill(x1, y1, x3, y3, x4, y4, color);
+        tri_fill(x2, y2, x3, y3, x4, y4, color);
     } else if ((miny == y1 && maxy == y3) || (miny == y3 && maxy == y1)) {
-        triFill(x1, y1, x2, y2, x4, y4, color);
-        triFill(x3, y3, x2, y2, x4, y4, color);
+        tri_fill(x1, y1, x2, y2, x4, y4, color);
+        tri_fill(x3, y3, x2, y2, x4, y4, color);
     } else if ((miny == y1 && maxy == y4) || (miny == y4 && maxy == y1)) {
-        triFill(x1, y1, x2, y2, x3, y3, color);
-        triFill(x4, y4, x2, y2, x3, y3, color);
+        tri_fill(x1, y1, x2, y2, x3, y3, color);
+        tri_fill(x4, y4, x2, y2, x3, y3, color);
     } else if ((miny == y2 && maxy == y3) || (miny == y3 && maxy == y2)) {
-        triFill(x2, y2, x1, y1, x4, y4, color);
-        triFill(x3, y3, x1, y1, x4, y4, color);
+        tri_fill(x2, y2, x1, y1, x4, y4, color);
+        tri_fill(x3, y3, x1, y1, x4, y4, color);
     } else if ((miny == y2 && maxy == y4) || (miny == y4 && maxy == y2)) {
-        triFill(x2, y2, x1, y1, x3, y3, color);
-        triFill(x4, y4, x1, y1, x3, y3, color);
+        tri_fill(x2, y2, x1, y1, x3, y3, color);
+        tri_fill(x4, y4, x1, y1, x3, y3, color);
     } else if ((miny == y3 && maxy == y4) || (miny == y4 && maxy == y3)) {
-        triFill(x3, y3, x1, y1, x2, y2, color);
-        triFill(x4, y4, x1, y1, x2, y2, color);
+        tri_fill(x3, y3, x1, y1, x2, y2, color);
+        tri_fill(x4, y4, x1, y1, x2, y2, color);
     }
 }
 
-void GPU::scanLine(int16_t x1, int16_t x2, int16_t y, uint8_t color) {
+void GPU::scan_line(int16_t x1, int16_t x2, int16_t y, uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
     if (x2 >= x1) {
         if (!SCAN_OUT_OF_BOUNDS(x1, x2, y)) {
             x1 = max(x1, (int16_t)0);
-            x2 = min(x2, (int16_t)(targetW-1));
+            x2 = min(x2, (int16_t)(target_w-1));
 
-            memset(target+x1+y*targetW, color, x2-x1+1);
+            memset(target+x1+y*target_w, color, x2-x1+1);
         }
     }
 }
 
-void GPU::circleFill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
+void GPU::circle_fill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
     int16_t d = 1-abs(r);
     int16_t x = abs(r), y = 0;
 
     while(x >= y) {
-        scanLine(dx-x, dx+x, dy+y, color);
-        scanLine(dx-x, dx+x, dy-y, color);
-        scanLine(dx-y, dx+y, dy-x, color);
-        scanLine(dx-y, dx+y, dy+x, color);
+        scan_line(dx-x, dx+x, dy+y, color);
+        scan_line(dx-x, dx+x, dy-y, color);
+        scan_line(dx-y, dx+y, dy-x, color);
+        scan_line(dx-y, dx+y, dy+x, color);
 
         if (d <= 0) {
             d += ((y+1)<<1)+1;
@@ -626,7 +674,7 @@ void GPU::circleFill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     }
 }
 
-void GPU::copyScanLine(uint8_t *dst, uint8_t *src, size_t bytes, uint8_t pal) {
+void GPU::copy_scan_line(uint8_t *dst, uint8_t *src, size_t bytes, uint8_t pal) {
     const auto end_src = src+bytes;
 
     while (src < end_src) {
@@ -646,28 +694,30 @@ void GPU::sprite(int16_t sx, int16_t sy,
                  int16_t dx, int16_t dy,
                  int16_t w, int16_t h,
                  uint8_t pal) {
-    if (dy >= targetClipEndY || dx >= targetClipEndX) {
+    pal = pal&0x0F;
+
+    if (dy >= target_clip_end_y || dx >= target_clip_end_x) {
         return;
     }
 
-    if (dx < targetClipStartX) {
-        w = max(w+dx-targetClipStartX, 0);
-        sx -= dx-targetClipStartX;
-        dx = targetClipStartX;
+    if (dx < target_clip_start_x) {
+        w = max(w+dx-target_clip_start_x, 0);
+        sx -= dx-target_clip_start_x;
+        dx = target_clip_start_x;
     }
 
-    if (dy < targetClipStartY) {
-        h = max(h+dy-targetClipStartY, 0);
-        sy -= dy-targetClipStartY;
-        dy = targetClipStartY;
+    if (dy < target_clip_start_y) {
+        h = max(h+dy-target_clip_start_y, 0);
+        sy -= dy-target_clip_start_y;
+        dy = target_clip_start_y;
     }
 
-    if (dy+h >= targetClipEndY) {
-        h = targetClipEndY-dy;
+    if (dy+h >= target_clip_end_y) {
+        h = target_clip_end_y-dy;
     }
 
-    if (dx+w >= targetClipEndX) {
-        w = targetClipEndX-dx;
+    if (dx+w >= target_clip_end_x) {
+        w = target_clip_end_x-dx;
     }
 
     if (sx < 0) {
@@ -680,217 +730,61 @@ void GPU::sprite(int16_t sx, int16_t sy,
         dy = 0;
     }
 
-    auto src = source+sy*sourceW+sx;
-    auto ptr = target+dy*targetW+dx;
-    const auto ptrF = ptr+targetW*h;
+    auto src = source+sy*source_w+sx;
+    auto ptr = target+dy*target_w+dx;
+    const auto ptr_f = ptr+target_w*h;
 
-    for(;ptr < ptrF;ptr+=targetW,src+=sourceW) {
-        copyScanLine(ptr, src, w, pal);
+    for(;ptr < ptr_f;ptr+=target_w,src+=source_w) {
+        copy_scan_line(ptr, src, w, pal);
     }
 }
 
 void GPU::clip(int16_t x, int16_t y,
                int16_t w, int16_t h) {
-    if (x >= targetW || y >= targetH) {
-        targetClipStartX = 0; targetClipStartY = 0;
-        targetClipEndX = 0; targetClipEndY = 0;
+    if (x >= target_w || y >= target_h) {
+        target_clip_start_x = 0; target_clip_start_y = 0;
+        target_clip_end_x = 0; target_clip_end_y = 0;
         return;
     }
 
     auto dx = x+w, dy = y+h;
 
     if (dx < 0 || dy < 0) {
-        targetClipStartX = 0; targetClipStartY = 0;
-        targetClipEndX = 0; targetClipEndY = 0;
+        target_clip_start_x = 0; target_clip_start_y = 0;
+        target_clip_end_x = 0; target_clip_end_y = 0;
         return;
     }
 
     x = x < 0 ? 0 : x;
     y = y < 0 ? 0 : y;
-    dx = dx > targetW ? targetW : dx;
-    dy = dy > targetH ? targetH : dy;
+    dx = dx > target_w ? target_w : dx;
+    dy = dy > target_h ? target_h : dy;
 
-    targetClipStartX = x;
-    targetClipStartY = y;
-    targetClipEndX = dx;
-    targetClipEndY = dy;
+    target_clip_start_x = x;
+    target_clip_start_y = y;
+    target_clip_end_x = dx;
+    target_clip_end_y = dy;
 }
 
-uint8_t GPU::next8Arg(uint8_t *&arg) {
-    return *arg++;
+void GPU::clear(uint8_t color) {
+    if (TRANSPARENT(color))
+        return;
+
+    memset(video_memory, COLMAP1(color), GPU_VIDEO_MEM_SIZE);
 }
 
-int16_t GPU::next16Arg(uint8_t *&arg) {
-    int16_t value = int16_t(uint16_t(arg[0]&0b01111111)<<8 | uint16_t(arg[1])) * (arg[0]&0x80 ? -1 : 1);
-    arg+=sizeof(int16_t);
-    return value;
-}
-
-string GPU::nextStrArg(uint8_t *&arg) {
-    // Lê no máximo n caracteres
-    static int limit = 31;
-    string value;
-
-    for (int i=0;i<limit;i++,arg++) {
-        char c = (char)*arg;
-
-        if (c == 0)
-            break;
-
-        value += c;
-    }
-
-    return value;
-}
-
-void GPU::execGpuCommand(uint8_t *cmd) {
-    enum Commands {
-        Clear = 0x00,
-        FillRect,
-        FillQuad,
-        FillTri,
-        FillCircle,
-        Line,
-        Rect,
-        Quad,
-        Tri,
-        Circle,
-        Clip,
-        Sprite,
-        StartCapture,
-        StopCapture
-    };
-
-    switch (*cmd++) {
-        case Clear: {
-            auto color = next8Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            memset(videoMemory, COLMAP1(color), GPU_VIDEO_MEM_SIZE);
-        } break;
-        case FillRect: {
-            auto color = next8Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto w = next16Arg(cmd), h = next16Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            rectFill(x, y, w, h, COLMAP1(color));
-        } break;
-        case FillQuad: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
-            auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            quadFill(x1, y1, x2, y2, x3, y3, x4, y4, COLMAP1(color));
-        } break;
-        case FillTri: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            triFill(x1, y1, x2, y2, x3, y3, COLMAP1(color));
-        } break;
-        case Line: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            line(x1, y1, x2, y2, COLMAP1(color));
-        } break;
-        case Rect: {
-            auto color = next8Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto w = next16Arg(cmd), h = next16Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            rect(x, y, w, h, COLMAP1(color));
-        } break;
-        case Quad: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
-            auto x4 = next16Arg(cmd), y4 = next16Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            quad(x1, y1, x2, y2, x3, y3, x4, y4, COLMAP1(color));
-        } break;
-        case Tri: {
-            auto color = next8Arg(cmd);
-            auto x1 = next16Arg(cmd), y1 = next16Arg(cmd);
-            auto x2 = next16Arg(cmd), y2 = next16Arg(cmd);
-            auto x3 = next16Arg(cmd), y3 = next16Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            tri(x1, y1, x2, y2, x3, y3, COLMAP1(color));
-        } break;
-        case Circle: {
-            auto color = next8Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto r = next16Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            circle(x, y, r, COLMAP1(color));
-        } break;
-        case FillCircle: {
-            auto color = next8Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto r = next16Arg(cmd);
-
-            if (TRANSPARENT(color))
-                break;
-
-            circleFill(x, y, r, COLMAP1(color));
-        } break;
-        case Sprite: {
-            auto pal = next8Arg(cmd)&0x0F;
-            auto sx = next16Arg(cmd), sy = next16Arg(cmd);
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto w = next16Arg(cmd), h = next16Arg(cmd);
-
-            sprite(sx, sy, x, y, w, h, pal);
-        } break;
-        case Clip: {
-            auto x = next16Arg(cmd), y = next16Arg(cmd);
-            auto w = next16Arg(cmd), h = next16Arg(cmd);
-
-            clip(x, y, w, h);
-        } break;
-        case StartCapture: {
-            if (colormap == NULL) {
-                string filename = nextStrArg(cmd);
-                startCapturing(filename);
-            }
-            break;
-        }
-        case StopCapture: {
-            if (colormap != NULL) {
-                stopCapturing();
-            }
-        } break;
-    }
-}
+//void GPU::exec_gpu_command(uint8_t *cmd) {
+//        case StartCapture: {
+//            if (colormap == NULL) {
+//                string filename = next_str_arg(cmd);
+//                start_capturing(filename);
+//            }
+//            break;
+//        }
+//        case StopCapture: {
+//            if (colormap != NULL) {
+//                stop_capturing();
+//            }
+//        } break;
+//    }
+//}

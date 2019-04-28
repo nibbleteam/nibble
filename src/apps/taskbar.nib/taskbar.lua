@@ -37,7 +37,7 @@ local nom = {
 for i, icondef in ipairs(icons) do
     local name, sprite, color = icondef[1], icondef[2], icondef[3]
     
-    table.insert(nom, {
+    push(nom, {
         id = name,
         x = d'+'(d'left', 16*(i-1)),
         y = d'-'(d'top', 0),
@@ -59,12 +59,30 @@ for i, icondef in ipairs(icons) do
         onclick = function (self)
             run(name)
 
-            pprint(color)
-
             self.document:find('#line').background = color
         end
     })
 end
+
+push(nom, {
+    id = 'open',
+    x = d'-'(d'right', 16), y = d'top',
+    w = 16, h = height,
+    background = {5, 0},
+
+    onenter = function(self)
+        self.color = 14
+    end,
+
+    onleave = function(self)
+        self.color = 15
+    end,
+
+    onclick = function (self)
+        start_app('apps/system/files.nib', {})
+        run()
+    end,
+})
 
 -- Finalmente criamos o NOM:
 

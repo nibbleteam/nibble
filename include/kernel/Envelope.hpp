@@ -38,7 +38,7 @@ public:
     void on(uint8_t);
     void off();
 
-    float getAmplitude();
+    float get_amplitude();
 };
 
 #endif /* NIBBLE_ENVELOPE */

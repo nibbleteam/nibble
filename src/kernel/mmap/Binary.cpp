@@ -12,22 +12,22 @@
 namespace mmap {
 
 size_t read_binary(Memory &memory, Path &path) {
-    if (fs::fileExists(path) && !fs::isDir(path)) {
-        cout << "mapping binary to memory" << path.getPath() << endl;
+    if (fs::file_exists(path) && !fs::is_dir(path)) {
+        cout << "mapping binary to memory" << path.get_path() << endl;
 
-        auto length = fs::getFileSize(path);
+        auto length = fs::get_file_size(path);
 
-        auto area = memory.allocateWithPosition(sizeof(BinaryMetadata)+length, "Memory Mapped Binary");
+        auto area = memory.allocate_with_position(sizeof(BinaryMetadata)+length, "Memory Mapped Binary");
         auto *meta = (BinaryMetadata*)get<0>(area);
 
         meta->length = length;
 
-        char* fileData = fs::getFileData(path);
+        char* file_data = fs::get_file_data(path);
 
-        if (fileData) {
-            memcpy(get<0>(area)+sizeof(BinaryMetadata), fileData, length);
+        if (file_data) {
+            memcpy(get<0>(area)+sizeof(BinaryMetadata), file_data, length);
 
-            delete[] fileData;
+            delete[] file_data;
 
             return get<1>(area);
         } else {
@@ -39,11 +39,11 @@ size_t read_binary(Memory &memory, Path &path) {
 }
 
 void write_binary(Memory &memory, size_t pos, Path &path) {
-    auto ptr = memory.toPtr(pos);
-    auto size = memory.getSize(ptr)-sizeof(BinaryMetadata);
-    auto dataPtr = ptr+sizeof(BinaryMetadata);
+    auto ptr = memory.to_ptr(pos);
+    auto size = memory.get_size(ptr)-sizeof(BinaryMetadata);
+    auto data_ptr = ptr+sizeof(BinaryMetadata);
 
-    fs::setFileData(path, (const char*)dataPtr, size);
+    fs::set_file_data(path, (const char*)data_ptr, size);
 }
 
 }

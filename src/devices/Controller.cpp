@@ -111,7 +111,7 @@ void Controller::release(uint8_t c, uint8_t b) {
     }
 }
 
-void Controller::kbdPressed(SDL_Event& event) {
+void Controller::kbd_pressed(SDL_Event& event) {
     switch (event.key.keysym.sym) {
     case SDLK_UP:
         press(0, 0);
@@ -145,7 +145,7 @@ void Controller::kbdPressed(SDL_Event& event) {
     }
 }
 
-void Controller::kbdReleased(SDL_Event& event) {
+void Controller::kbd_released(SDL_Event& event) {
     switch (event.key.keysym.sym) {
     case SDLK_UP:
         release(0, 0);
@@ -179,8 +179,8 @@ void Controller::kbdReleased(SDL_Event& event) {
     }
 }
 
-void Controller::joyMoved(SDL_Event& event) {
-    unsigned int c = sfml2nibble[event.jaxis.which];
+void Controller::joy_moved(SDL_Event& event) {
+    unsigned int c = sdl2nibble[event.jaxis.which];
 
     if (event.jaxis.axis == 0) {
         if (abs(event.jaxis.value) < 10) {
@@ -205,8 +205,8 @@ void Controller::joyMoved(SDL_Event& event) {
     }
 }
 
-void Controller::joyPressed(SDL_Event& event) {
-    unsigned int c = sfml2nibble[event.jbutton.which];
+void Controller::joy_pressed(SDL_Event& event) {
+    unsigned int c = sdl2nibble[event.jbutton.which];
 
     switch (event.jbutton.button) {
     case J_BLUE:
@@ -229,8 +229,8 @@ void Controller::joyPressed(SDL_Event& event) {
     }
 }
 
-void Controller::joyReleased(SDL_Event& event) {
-    unsigned int c = sfml2nibble[event.jbutton.which];
+void Controller::joy_released(SDL_Event& event) {
+    unsigned int c = sdl2nibble[event.jbutton.which];
 
     switch (event.jbutton.button) {
     case J_BLUE:
@@ -253,34 +253,34 @@ void Controller::joyReleased(SDL_Event& event) {
     }
 }
 
-void Controller::joyConnected(SDL_Event& event) {
+void Controller::joy_connected(SDL_Event& event) {
     cout << "[nibble] " << "joystick connected" << endl;
 
-    unsigned int slot = getOpenSlot();
+    unsigned int slot = get_open_slot();
 
-    sfml2nibble[event.jdevice.which] = slot;
+    sdl2nibble[event.jdevice.which] = slot;
 
     SDL_JoystickOpen(event.jdevice.which);
 
-    setState(slot, BUTTON_OFF_ON);
+    set_state(slot, BUTTON_OFF_ON);
 } 
 
-void Controller::joyDisconnected(SDL_Event& event) {
-    unsigned int slot = sfml2nibble[event.jdevice.which];
-    sfml2nibble.erase(event.jdevice.which);
+void Controller::joy_disconnected(SDL_Event& event) {
+    unsigned int slot = sdl2nibble[event.jdevice.which];
+    sdl2nibble.erase(event.jdevice.which);
 
-    setState(slot, BUTTON_ON_OFF);
+    set_state(slot, BUTTON_ON_OFF);
 } 
 
-unsigned int Controller::getState(const unsigned int c) {
+unsigned int Controller::get_state(const unsigned int c) {
     return (controllers.connected>>((CONTROLLER_AMOUNT-c)*2-2))&3;
 }
 
-void Controller::setState(const unsigned int c, const unsigned int value) {
+void Controller::set_state(const unsigned int c, const unsigned int value) {
     controllers.connected |= value << ((CONTROLLER_AMOUNT-c)*2-2);
 }
 
-unsigned int Controller::getOpenSlot() {
+unsigned int Controller::get_open_slot() {
     for (unsigned int i=0;i<CONTROLLER_AMOUNT;i++) {
         unsigned int connected = (controllers.connected>>((CONTROLLER_AMOUNT-i)*2-2))&3;
         if (connected == BUTTON_OFF ||
@@ -292,7 +292,7 @@ unsigned int Controller::getOpenSlot() {
     return 0;
 }
 
-void Controller::allReleased() {
+void Controller::all_released() {
     for (unsigned int c=0;c<CONTROLLER_AMOUNT;c++) {
         for (unsigned int b=0; b<8; b++) {
             release(c, b);
@@ -302,12 +302,12 @@ void Controller::allReleased() {
 
 void Controller::update() {
     for (unsigned int c=0;c<CONTROLLER_AMOUNT;c++) {
-        int controllerState = getState(c);
+        int controller_state = get_state(c);
 
-        if (controllerState == BUTTON_ON_OFF)
-            setState(c, BUTTON_OFF);
-        else if (controllerState == BUTTON_OFF_ON)
-            setState(c, BUTTON_ON);
+        if (controller_state == BUTTON_ON_OFF)
+            set_state(c, BUTTON_OFF);
+        else if (controller_state == BUTTON_OFF_ON)
+            set_state(c, BUTTON_ON);
 
         for (unsigned int b=0; b<8; b++) {
             int state = get(c, b);

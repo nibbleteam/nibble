@@ -16,7 +16,7 @@ class Channel {
     int16_t *buffer;
 
     // Reverb
-    int reverbPosition;
+    int reverb_position;
 public:
     enum Cmd {
         NoteOn = 1,

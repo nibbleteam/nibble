@@ -8,10 +8,10 @@ local d = NOM.dynamic
 local editor_margin = 1
 
 local function read_file(file)
-    local f = assert(io.open(file, "rb"))
-    local content = f:read("*all")
-    f:close()
-    return content
+    --local f = assert(io.open(file, "rb"))
+    --local content = f:read("*all")
+    --f:close()
+    return ""
 end
 
 local code = read_file('apps/code.nib/editor.lua')

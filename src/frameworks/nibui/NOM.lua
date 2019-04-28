@@ -118,7 +118,7 @@ function NOM:make_document(desc, parent)
             local child = self:make_document(v, widget)
 
             -- Relationships
-            table.insert(widget.children, child)
+            push(widget.children, child)
         end
     end
 
@@ -129,7 +129,8 @@ function NOM:new(desc)
     local instance = {
         features = {},
         cursor = {
-            offset = { x = -3, y = -1 },
+            --offset = { x = -6, y = -8 },
+            offset = { x = -1, y = 0 },
             normal = {
                 x = 56, y = 80,
                 w = 8, h = 8
@@ -214,32 +215,31 @@ end
 function NOM:draw_cursor()
     local c = self.cursor[self.cursor.state]
 
-    pspr(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
+    custom_sprite(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
          c.x, c.y, c.w, c.h)
 end
 
 function NOM:update_mouse()
-    local x, y = read16(MOUSE), read16(MOUSE+2)
+    local x, y = mouse_position()
     local drag = false
-    self.mouse.click = read8(MOUSE+4)
 
-    if self.mouse.click == 1 then
+    if mouse_button_press(MOUSE_LEFT) then
         self:click({ x = x, y = y }, true)
     end
 
-    if self.mouse.click == 2 then
+    if mouse_button_down(MOUSE_LEFT) then
         self.cursor.state = 'pressing'
         drag = true
     else
         self.cursor.state = 'normal'
     end
 
-    if self.mouse.click == 3 then
+    if mouse_button_release(MOUSE_LEFT) then
         self:click({ x = x, y = y })
     end
 
     if self.mouse.x ~= x or self.mouse.y ~= y then
-        self:move({ x = x, y = y, drag = drag })
+        self:move({ x = x, y = y, drag = drag }, self.cursor.offset)
         self.mouse.x, self.mouse.y = x, y
     end
 end
@@ -248,8 +248,8 @@ function NOM:click(event, press)
     self.root:click(event, press)
 end
 
-function NOM:move(event)
-    self.root:move(event)
+function NOM:move(event, offset)
+    self.root:move(event, offset)
 end
 
 return NOM

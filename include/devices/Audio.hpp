@@ -13,12 +13,12 @@
 
 using namespace std;
 
-class Audio : public Device {
+class Audio: public Device {
 	// Canais FM
 	array<unique_ptr<Channel>, AUDIO_CHANNEL_AMOUNT> channels;
 
     // Tick
-	unsigned long nextTick, tickPeriod;
+	unsigned long next_tick, tick_period;
 	unsigned long t;
 
     // ID da placa de áudio
@@ -35,13 +35,14 @@ private:
 
 	// Sinal de clock para mudar os parâmetros da onda
     // chama uma callback no cart atual
-	void calculateTickPeriod(const double);
-	void calculateNextTick();
+	void calc_tick_period(const double);
+	void calc_next_tick();
 
     // Prepara samples mixados
     void mix(int16_t*, unsigned int);
-
-    // TODO
+    
+    // Preenche buffer com samples e chama o tick de áudio para
+    // mudar parâmetros, se necessário (usando as funções calc_*)
     void fill(int16_t*, int);
 public:
     static float tof(uint8_t);

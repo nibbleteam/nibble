@@ -10,8 +10,6 @@ extern "C" {
 #include <cstdint>
 #include <string>
 #include <vector>
-#include <map>
-#include <queue>
 
 #include <LuaBridge/LuaBridge.h>
 
@@ -24,17 +22,8 @@ using namespace std;
 class Process {
     // RAM e estado da vm Lua
     lua_State *st;
-    // Variáveis ambiente
-    map<string, string> environment;
-    // IPC
-    // Através de tabelas Lua
-    queue<luabridge::LuaRef> receivedMessages;
 protected:
     friend class Kernel;
-
-    // ID
-    const PID pid;
-    const PID parent;
 
     bool initialized;
     bool ok;
@@ -43,49 +32,21 @@ protected:
     // String de erros Lua
     string error;
 
-    // Dados do app
-#pragma pack(push, 1)
-    struct MemoryLayout {
-        // Ponteiro para a spritesheet
-        size_t spritesheet;
-        // TODO: música, mapas
-    };
-#pragma pack(pop)
-
     Memory &memory;
-    MemoryLayout &layout;
 public:
     Path executable;
-    const static string LuaEntryPoint;
-    const static string AssetsEntryPoint;
-    const static string NiblibEntryPoint;
+    const static string lua_entry_point;
 
-    Process(Memory&, Path&, map<string, string>, const PID, const PID);
+    Process(Memory&, Path&);
     ~Process();
 
     // Roda o processo
     void init();
     void update(float);
     void audio_tick();
-    void draw();
-
-    void addSyscalls();
-
-    // Controle de environment
-    void setEnvVar(const string&, const string&);
-    string getEnvVar(const string&);
-    map<string, string> getEnv();
-
-    // IPC
-    luabridge::LuaRef readMessage();
-    void writeMessage(luabridge::LuaRef);
-    void clearMessages();
-
-    // Utilizado pelo kernel (com std::set) para ordenar processos
-    bool operator < (const Process&);
+    void menu();
 private:
-    void copyLuaValue(lua_State*, lua_State*, int);
-    int callWithTraceback(lua_State*, int, int);
+    int call_with_traceback(lua_State*, int, int);
 };
 
 #endif /* PROCESS_H */

@@ -6,7 +6,7 @@
 class SawWave: public Wave {
 public:
 private:
-    const int16_t valueAt(uint8_t) const;
+    const int16_t value_at(uint8_t) const;
 };
 
 #endif /* SAW_WAVE_H */

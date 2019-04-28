@@ -8,6 +8,8 @@
 
 class Device {
 public:
+    virtual ~Device() {};
+
     virtual void startup() {};
     virtual void shutdown() {};
 };

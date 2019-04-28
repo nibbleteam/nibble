@@ -9,7 +9,7 @@
 using namespace std;
 
 class Keyboard : public Device {
-    queue<char> charQueue;
+    queue<char> char_queue;
     uint8_t *mem;
 public:
     Keyboard(Memory&);

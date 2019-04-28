@@ -11,9 +11,13 @@
 #ifndef SPECS_H
 #define SPECS_H
 
+#define VERSION_STRING          "0.1.0"
+
 /*
  * GPU
  */
+
+#define BOOT_CYCLES             8
 
 #define GPU_PALETTE_DEPTH       4
 

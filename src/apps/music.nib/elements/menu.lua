@@ -32,7 +32,7 @@ local nom = {
 }
 
 for i, settings in ipairs(settings) do
-    table.insert(nom, {
+    push(nom, {
         x = d'+' (d'^' 'x', (i-1)*12+1),
         y = d'+' (d'^' 'y', 2),
         w = 9, h = 9,

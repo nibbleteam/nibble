@@ -28,54 +28,54 @@ using namespace std;
 
 class Path {
 	string path; // plataform-specific string
-	string oPath; // non plataform-specific string
+	string original_path; // non plataform-specific string
 	
 	class Terminal {
 		string value;
 	public:
 		Terminal(string);
-		string getValue();
-		string getLiteralValue();
+		string get_value();
+		string get_literal_value();
 	};
 public:
 	Path (string="");
 	~Path ();
 
-	void setPath(string);   // set path in non-plataform-specific way (using '/' )
-	string getPath(); // get plataform specific path
-	string getExtension();
-	string getName();
-	string getOriginalPath();
-	bool isEqual(Path);
+	void set_path(string);   // set path in non-plataform-specific way (using '/' )
+	string get_path(); // get plataform specific path
+	string get_extension();
+	string get_name();
+	string get_original_path();
+	bool is_equal(Path);
 	void normalize();
 	Path resolve(Path);
 	Path resolve(const string);
-    vector<Path> getTree();
+    vector<Path> get_tree();
 private:
-	void setWindowsPath(string);
-	void setLinuxPath(string);
-	//setMacOsPath();
-	//setAndroidPath();
-	//setiOSPath();
+	void set_windows_path(string);
+	void set_linux_path(string);
+	//set_mac_os_path();
+	//set_android_path();
+	//set_ios_path();
 };
 
 class fs {
-	static const int bufferSize = 4096; // 4 K of memory
+	static const int buffer_size = 4096; // 4 K of memory
 public:
 	fs ();
 	~fs	 ();
 
-    static bool touchFile (Path&);
-	static bool fileExists (Path);
-	static bool copyFile (Path,Path,bool);
-	static bool renameFile (Path,Path);
-	static bool deleteFile (Path);
-	static bool createFile (Path);
-    static bool createDirectory (Path&);
-	static bool isDir (Path);
-	static size_t getFileSize (Path);
-	static char* getFileData (Path);
-	static bool setFileData(Path, const char*, size_t);
-	static vector <Path> listDirectory (Path,bool&);
+    static bool touch_file (Path&);
+	static bool file_exists (Path);
+	static bool copy_file (Path,Path,bool);
+	static bool rename_file (Path,Path);
+	static bool delete_file (Path);
+	static bool create_file (Path);
+    static bool create_directory (Path&);
+	static bool is_dir (Path);
+	static size_t get_file_size (Path);
+	static char* get_file_data (Path);
+	static bool set_file_data(Path, const char*, size_t);
+	static vector <Path> list_directory (Path, bool&);
 };
 #endif /* BAZINGA_FILESYSTEM_H */

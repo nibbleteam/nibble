@@ -6,9 +6,9 @@
 using namespace std;
 
 Wave FMSynthesizer::wave;
-SquareWave FMSynthesizer::squareWave;
-SawWave FMSynthesizer::sawWave;
-TriangleWave FMSynthesizer::triangleWave;
+SquareWave FMSynthesizer::square_wave;
+SawWave FMSynthesizer::saw_wave;
+TriangleWave FMSynthesizer::triangle_wave;
 
 FMSynthesizer::FMSynthesizer(MemoryLayout &memory, uint8_t note): memory(memory) {
     for (size_t op=0;op<AUDIO_OPERATOR_AMOUNT;op++) {
@@ -41,8 +41,8 @@ void FMSynthesizer::off() {
     }
 }
 
-void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sampleCount) {
-    for (size_t s=0;s<sampleCount;s+=2) {
+void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sample_count) {
+    for (size_t s=0;s<sample_count;s+=2) {
         int16_t delta = synthesize();
         int out;
 
@@ -82,19 +82,19 @@ int16_t FMSynthesizer::synthesize() {
             phase += outputs[o2]*Audio::tof16(memory.amplitudes[FM_MATRIX(o2, o1)]);
         }
 
-        switch (memory.waveTypes[o1]) {
+        switch (memory.wave_types[o1]) {
             default:
             case SINE:
-                outputs[o1] = wave[phase] * envelopes[o1]->getAmplitude();
+                outputs[o1] = wave[phase] * envelopes[o1]->get_amplitude();
                 break;
             case SQUARE:
-                outputs[o1] = squareWave[phase] * envelopes[o1]->getAmplitude();
+                outputs[o1] = square_wave[phase] * envelopes[o1]->get_amplitude();
                 break;
             case SAW:
-                outputs[o1] = sawWave[phase] * envelopes[o1]->getAmplitude();
+                outputs[o1] = saw_wave[phase] * envelopes[o1]->get_amplitude();
                 break;
             case TRIANGLE:
-                outputs[o1] = triangleWave[phase] * envelopes[o1]->getAmplitude();
+                outputs[o1] = triangle_wave[phase] * envelopes[o1]->get_amplitude();
                 break;
         }
     }

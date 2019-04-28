@@ -1,23 +1,23 @@
 function audio_init()
     -- Primeiro canal
-    channel(CH1)
+    channel(CH2)
     -- Frequências
-    freqs(1.0, 0.87, 1.0, 2.0)
+    freqs(1.0, 1.0, 1.0, 2.0)
     -- Envelopes
-    envelope(OP1, 0, 1, 0.9, 0.2, 0.4, 0.1, 0)
-    envelope(OP2, 0, 1, 0.5, 0.2, 0.2, 0.1, 0)
-    envelope(OP3, 0, 1, 0.9, 0.0, 0.1, 0, 0)
+    envelope(OP1, 0, 1, 0.2, 2.0, 0.1, 0.1, 1)
+    envelope(OP2, 0, 1, 0.2, 2.0, 0.1, 0.3, 0)
+    envelope(OP3, 0, 1, 0.9, 0.0, 0.3, 0.5, 2)
     envelope(OP4, 0, 1, 0.9, 0.0, 0.1, 0, 0)
     -- Roteia
     route(OP1, OUT, 0.4)
-    route(OP1, OP1, 0.2)
-    route(OP2, OP1, 0.4)
-    route(OP3, OUT, 0.1)
-    route(OP4, OUT, 0.2)
+    route(OP1, OP1, 0.0)
+    route(OP2, OP1, 0.2)
+    route(OP3, OUT, 1.0)
+    route(OP4, OUT, 0.0)
     -- Reverb
     reverb(8, 0.1)
     --
-    channel(CH2)
+    channel(CH1)
     -- Frequências
     freqs(1.0, 1.0, 1.0, 2.0)
     -- Envelopes
@@ -76,23 +76,19 @@ function audio_tick()
 end
 
 function audio_update(dt)
-    local input = kernel.read(KEYBOARD, 1)
+    local input = read_keys()
 
-    if input:byte() > 0 then
-        local input = kernel.read(KEYBOARD+1, input:byte())
+    for k=1,#input do
+        -- Encontra a nota
+        local n = octs:find(input:sub(k, k))
 
-        for k=1,#input do
-            -- Encontra a nota
-            local n = octs:find(input:sub(k, k))
+        if n ~= nil then
+            n += base-1
 
-            if n ~= nil then
-                n += base-1
-
-                -- Toca
-                channel(CH1)
-                noteon(n, writep%16)
-                writep += 1
-            end
+            -- Toca
+            channel(CH1)
+            noteon(n, writep%16)
+            writep += 1
         end
     end
 end

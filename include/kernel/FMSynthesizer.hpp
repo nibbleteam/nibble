@@ -36,9 +36,9 @@ using namespace std;
 class FMSynthesizer {
     // Osciladores
     static Wave wave;
-    static SquareWave squareWave;
-    static SawWave sawWave;
-    static TriangleWave triangleWave;
+    static SquareWave square_wave;
+    static SawWave saw_wave;
+    static TriangleWave triangle_wave;
     // Acumuladores
     uint16_t times[AUDIO_OPERATOR_AMOUNT];
     // Envelopes
@@ -60,7 +60,7 @@ public:
         int16_t frequencies[AUDIO_OPERATOR_AMOUNT];
         Envelope::MemoryLayout envelopes[AUDIO_OPERATOR_AMOUNT];
         int16_t amplitudes[AUDIO_OPERATOR_AMOUNT*AUDIO_OPERATOR_AMOUNT+AUDIO_OPERATOR_AMOUNT];
-        uint8_t waveTypes[AUDIO_OPERATOR_AMOUNT];
+        uint8_t wave_types[AUDIO_OPERATOR_AMOUNT];
     }MemoryLayout;
 #pragma pack(pop)
 

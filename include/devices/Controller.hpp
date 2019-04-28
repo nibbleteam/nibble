@@ -31,7 +31,7 @@ using namespace std;
 #define J_WHITE 7
 #define J_PAUSE 8
 
-class Controller : public Device {
+class Controller: public Device {
 #pragma pack(push, 1)
     struct ControllerMemory {
         unsigned int left :2;
@@ -68,29 +68,30 @@ class Controller : public Device {
     };
 #pragma pack(pop)
     ControllersMemory &controllers;
-    // Mapeia os números os controles SFML para os
-    // controles do nibble
-    map<unsigned int, unsigned int> sfml2nibble;
+    map<unsigned int, unsigned int> sdl2nibble;
 public:
     Controller(Memory&);
 
     void update();
-    void kbdPressed(SDL_Event&);
-    void kbdReleased(SDL_Event&);
-    void joyPressed(SDL_Event&);
-    void joyReleased(SDL_Event&);
-    void joyConnected(SDL_Event&);
-    void joyDisconnected(SDL_Event&);
-    void joyMoved(SDL_Event&);
-    void allReleased();
+    void kbd_pressed(SDL_Event&);
+    void kbd_released(SDL_Event&);
+    void joy_pressed(SDL_Event&);
+    void joy_released(SDL_Event&);
+    void joy_connected(SDL_Event&);
+    void joy_disconnected(SDL_Event&);
+    void joy_moved(SDL_Event&);
+    void all_released();
 private:
-    unsigned int getOpenSlot();
+    unsigned int get_open_slot();
+
     void press(const uint8_t, const uint8_t);
     void release(const uint8_t, const uint8_t);
+
     uint8_t get(const uint8_t, const uint8_t);
     void set(const uint8_t, const uint8_t, const uint8_t);
-    void setState(const unsigned int, const unsigned int);
-    unsigned int getState(const unsigned int);
+
+    void set_state(const unsigned int, const unsigned int);
+    unsigned int get_state(const unsigned int);
 };
 
 #endif /* CONTROLLER_H */

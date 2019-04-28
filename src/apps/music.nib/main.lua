@@ -6,8 +6,6 @@ require 'synth'
 
 playing = false
 
-RUNNING = true
-
 function init()
     audio_init()
 
@@ -15,26 +13,18 @@ function init()
 end
 
 function draw()
-    if RUNNING then
-        nom:draw()
-    end
+    nom:draw()
 end
 
 function update(dt)
-    local msg = kernel.receive()
+    local msg = receive_message()
 
     if msg then
-        if msg.running ~= nil then
-            RUNNING = msg.running
-
-            if RUNNING then
-                nom.root:set_dirty()
-            end
+        if msg.resume then
+            nom.root:set_dirty()
         end
     end
 
-    if RUNNING then
-        nom:update(dt)
-        audio_update(dt)
-    end
+    nom:update(dt)
+    audio_update(dt)
 end

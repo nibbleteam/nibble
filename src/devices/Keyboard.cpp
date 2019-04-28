@@ -14,15 +14,15 @@ Keyboard::Keyboard(Memory &memory) {
 }
 
 void Keyboard::input(const unsigned int unicode) {
-    charQueue.push((char)unicode);
+    char_queue.push((char)unicode);
 }
 
 void Keyboard::update() {
     size_t i = 0;
 
-    for (;!charQueue.empty();i++)  {
-        mem[i+1] = charQueue.front();
-        charQueue.pop();
+    for (;!char_queue.empty();i++)  {
+        mem[i+1] = char_queue.front();
+        char_queue.pop();
     }
 
     mem[0] = i;

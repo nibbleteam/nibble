@@ -6,14 +6,14 @@
 #include <iostream>
 using namespace std;
 
-Audio::Audio(Memory &memory): nextTick(0), t(0) {
+Audio::Audio(Memory &memory): next_tick(0), t(0) {
     // Cria canais
     for (size_t ch=0;ch<AUDIO_CHANNEL_AMOUNT;ch++) {
         channels[ch] = make_unique<Channel>(memory);
     }
 
     // Calcula velocidade da sincronização
-    calculateTickPeriod(AUDIO_UPDATE_RATE);
+    calc_tick_period(AUDIO_UPDATE_RATE);
 
     device = initialize();
 }
@@ -25,27 +25,29 @@ Audio::~Audio() {
 SDL_AudioDeviceID Audio::initialize() {
   SDL_AudioDeviceID device;
   // Especifificações que queremos, especificações que conseguimos
-  SDL_AudioSpec specIn, specOut;
+  SDL_AudioSpec spec_in, spec_out;
   // Limpa os specs
-  SDL_zero(specIn);
+  SDL_zero(spec_in);
   // Escolhe nosso spec
-  specIn.freq     = AUDIO_SAMPLE_RATE;
-  specIn.format   = AUDIO_S16;
-  specIn.channels = 2;
-  specIn.samples  = AUDIO_SAMPLE_AMOUNT;
+  spec_in.freq     = AUDIO_SAMPLE_RATE;
+  spec_in.format   = AUDIO_S16;
+  spec_in.channels = 2;
+  spec_in.samples  = AUDIO_SAMPLE_AMOUNT;
 
-  specIn.callback = [] (void *udata, Uint8 *stream, int len) {
+  spec_in.callback = [] (void *udata, Uint8 *stream, int len) {
     ((Audio*)udata)->fill((int16_t*)stream, len/2);
   };
-  specIn.userdata = (void*)this;
+  spec_in.userdata = (void*)this;
 
   // Open the device
-  device = SDL_OpenAudioDevice(nullptr, 0, &specIn, &specOut, 0);
+  device = SDL_OpenAudioDevice(nullptr, 0, &spec_in, &spec_out, 0);
 
-  cout << "[nibble] audio: freq: " << specOut.freq << endl;
-  cout << "[nibble] audio: ch: " << (int)specOut.channels << endl;
-  cout << "[nibble] audio: format: " << (int)specOut.format << ", " << (int)specIn.format << endl;
-  cout << "[nibble] audio: samples: " << specOut.samples << endl;
+  /*
+  cout << "[nibble] audio: freq: " << spec_out.freq << endl;
+  cout << "[nibble] audio: ch: " << (int)spec_out.channels << endl;
+  cout << "[nibble] audio: format: " << (int)spec_out.format << ", " << (int)spec_in.format << endl;
+  cout << "[nibble] audio: samples: " << spec_out.samples << endl;
+  */
 
   if (!device) {
       /* TODO: Error!! */
@@ -62,8 +64,8 @@ void Audio::shutdown() {
     SDL_PauseAudioDevice(device, 1);
 }
 
-void Audio::fill(int16_t *samples, int missingSampleCount) {
-    unsigned int initialT = t;
+void Audio::fill(int16_t *samples, int missing_sample_count) {
+    unsigned int initial_t = t;
 
     memset(samples, 0, AUDIO_SAMPLE_MEM_SIZE*2);
 
@@ -71,48 +73,48 @@ void Audio::fill(int16_t *samples, int missingSampleCount) {
     do {
         // Caso o tick precise ser rodado antes
         // de completar todos os samples
-        if (t+missingSampleCount > nextTick) {
-            unsigned int finalSampleCount = ((nextTick-t)/2)*2;
+        if (t+missing_sample_count > next_tick) {
+            unsigned int final_sample_count = ((next_tick-t)/2)*2;
 
-            mix(samples+(t-initialT), finalSampleCount);
+            mix(samples+(t-initial_t), final_sample_count);
 
-            t += finalSampleCount;
-            missingSampleCount -= finalSampleCount;
+            t += final_sample_count;
+            missing_sample_count -= final_sample_count;
 
             auto kernel = KernelSingleton.lock();
 
             if (kernel) {
-                kernel->audioTick();
+                kernel->audio_tick();
             }
 
-            calculateNextTick();
+            calc_next_tick();
         } else {
-            mix(samples+(t-initialT), missingSampleCount);
+            mix(samples+(t-initial_t), missing_sample_count);
 
-            t += missingSampleCount;
-            missingSampleCount = 0;
+            t += missing_sample_count;
+            missing_sample_count = 0;
             break;
         }
-    } while (missingSampleCount > 0);
+    } while (missing_sample_count > 0);
 }
 
-void Audio::mix(int16_t* samples, unsigned int sampleCount) {
+void Audio::mix(int16_t* samples, unsigned int sample_count) {
     // Preenche samples de cada canal
     for (unsigned int c=0;c<AUDIO_CHANNEL_AMOUNT;c++) {
-        channels[c]->fill(samples, sampleCount);
+        channels[c]->fill(samples, sample_count);
     }
 }
 
-void Audio::calculateTickPeriod(const double frequency) {
+void Audio::calc_tick_period(const double frequency) {
     // Período em segundos
     const double period = 1/frequency;
     
     // Período em samples
-    tickPeriod = (unsigned int) (period*44100);
+    tick_period = (unsigned int) (period*44100);
 }
 
-void Audio::calculateNextTick() {
-    nextTick += tickPeriod;
+void Audio::calc_next_tick() {
+    next_tick += tick_period;
 }
 
 float Audio::tof(uint8_t n) {

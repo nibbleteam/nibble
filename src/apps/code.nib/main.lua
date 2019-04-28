@@ -9,32 +9,22 @@ nom = NOM:new({
     d '=>' 'editor'
 }):use('cursor')
 
-RUNNING = true
-
 function init()
-    start_recording('code.nib.gif')
+    --start_recording('code.nib.gif')
 end
 
 function draw()
-    if RUNNING then
-        nom:draw()
-    end
+    nom:draw()
 end
 
 function update(dt)
-    local msg = kernel.receive()
+    local msg = receive_message()
 
     if msg then
-        if msg.running ~= nil then
-            RUNNING = msg.running
-
-            if RUNNING then
-                nom.root:set_dirty()
-            end
+        if msg.resume then
+            nom.root:set_dirty()
         end
     end
 
-    if RUNNING then
-        nom:update(dt)
-    end
+    nom:update(dt)
 end

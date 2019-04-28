@@ -15,7 +15,7 @@ Wave::Wave() {
     }
 }
 
-const int16_t Wave::valueAt(uint8_t t) const {
+const int16_t Wave::value_at(uint8_t t) const {
     int it = t;
     int f = 256;
     int h = 128;
@@ -36,8 +36,8 @@ const int16_t Wave::operator[](uint16_t t) const {
     uint8_t t0 = t >> 8;
     uint8_t t1 = t0+1;
 
-    int16_t a = valueAt(t0);
-    int16_t b = valueAt(t1);
+    int16_t a = value_at(t0);
+    int16_t b = value_at(t1);
 
     float d0 = float(t-(t0<<8))/256.0;
 

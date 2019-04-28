@@ -10,7 +10,7 @@
 using namespace std;
 
 Channel::Channel(Memory &memory):
-                reverbPosition(0),
+                reverb_position(0),
                 memory(*((MemoryLayout*)memory.allocate(sizeof(MemoryLayout), "FM Audio Channel"))) {
     buffer = new int16_t[AUDIO_DELAY_SIZE];
     samples = new int16_t[AUDIO_SAMPLE_AMOUNT];
@@ -23,7 +23,7 @@ Channel::~Channel() {
     delete samples;
 }
 
-void Channel::fill(int16_t* output, const unsigned int sampleCount) {
+void Channel::fill(int16_t* output, const unsigned int sample_count) {
     // Toca notas, máximo de 16 notas on/off
     for (size_t i=0;i<AUDIO_CMD_AMOUNT;i++) {
         switch (memory.commands[i].cmd) {
@@ -38,31 +38,31 @@ void Channel::fill(int16_t* output, const unsigned int sampleCount) {
         }
     }
 
-    memset(samples, 0, sampleCount*sizeof(int16_t));
+    memset(samples, 0, sample_count*sizeof(int16_t));
 
     for (auto it=synthesizers.cbegin(); it != synthesizers.cend();) {
         if (it->second->done()) {
             synthesizers.erase(it++);
         } else {
-            it->second->fill(output, samples, sampleCount);
+            it->second->fill(output, samples, sample_count);
             it++;
         }
     }
 
-    reverb(output, samples, sampleCount);
+    reverb(output, samples, sample_count);
 }
 
 void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
-    int reverbDistance = max(min(AUDIO_DELAY_AMOUNT, int(memory.delay.delay)), 1)*AUDIO_DELAY_LENGTH;
+    int reverb_distance = max(min(AUDIO_DELAY_AMOUNT, int(memory.delay.delay)), 1)*AUDIO_DELAY_LENGTH;
 
     for (int i=0;i<int(length);i++) {
-        int reverbSample = reverbPosition-reverbDistance;
+        int reverb_sample = reverb_position-reverb_distance;
 
-        if (reverbSample < 0) {
-            reverbSample += AUDIO_DELAY_SIZE;
+        if (reverb_sample < 0) {
+            reverb_sample += AUDIO_DELAY_SIZE;
         }
 
-        int delta = buffer[reverbSample]*Audio::tof16(memory.delay.feedback);
+        int delta = buffer[reverb_sample]*Audio::tof16(memory.delay.feedback);
         int out;
 
         out = delta+output[i];
@@ -83,12 +83,12 @@ void Channel::reverb(int16_t *output, int16_t *in, const unsigned int length) {
             out = INT16_MAX;
         }
 
-        buffer[reverbPosition] = out;
+        buffer[reverb_position] = out;
 
-        reverbPosition += 1;
+        reverb_position += 1;
 
-        if (reverbPosition >= int(AUDIO_DELAY_SIZE)) {
-            reverbPosition = 0;
+        if (reverb_position >= int(AUDIO_DELAY_SIZE)) {
+            reverb_position = 0;
         }
     }
 }

@@ -129,14 +129,14 @@ function Widget:draw()
         clip(x, y, w, h)
 
         if z ~= 0 then
-          rectf(x+r, y+z, w-r*2, h, shadow_color)
-          rectf(x, y+r+z, w, h-r*2, shadow_color)
+          fill_rect(x+r, y+z, w-r*2, h, shadow_color)
+          fill_rect(x, y+r+z, w, h-r*2, shadow_color)
 
           if r ~= 0 then
-            circf(x+r, y+r+z, r, shadow_color)
-            circf(x+w-r-1, y+r+z, r, shadow_color)
-            circf(x+r, y+h-r+z-1, r, shadow_color)
-            circf(x+w-r-1, y+h-r+z-1, r, shadow_color)
+            fill_circ(x+r, y+r+z, r, shadow_color)
+            fill_circ(x+w-r-1, y+r+z, r, shadow_color)
+            fill_circ(x+r, y+h-r+z-1, r, shadow_color)
+            fill_circ(x+w-r-1, y+h-r+z-1, r, shadow_color)
           end
         end
 
@@ -144,37 +144,37 @@ function Widget:draw()
         rect(x-1, y+r-1, w+2, h-r*2+2, border_color)
 
         if r ~= 0 then
-            circf(x+r, y+r, r+1, border_color)
-            circf(x+w-r-1, y+r, r+1, border_color)
-            circf(x+r, y+h-r-1, r+1, border_color)
-            circf(x+w-r-1, y+h-r-1, r+1, border_color)
+            fill_circ(x+r, y+r, r+1, border_color)
+            fill_circ(x+w-r-1, y+r, r+1, border_color)
+            fill_circ(x+r, y+h-r-1, r+1, border_color)
+            fill_circ(x+w-r-1, y+h-r-1, r+1, border_color)
         end
 
         -- TODO: use decorated text
-        col(15, math.floor(self.color))
+        swap_colors(15, math.floor(self.color))
 
         if type(self.background) ~= 'table' then
             local background = math.floor(self.background)
 
-            rectf(x+r, y, w-r*2, h, background)
-            rectf(x, y+r, w, h-r*2, background)
+            fill_rect(x+r, y, w-r*2, h, background)
+            fill_rect(x, y+r, w, h-r*2, background)
 
             if r ~= 0 then
-                circf(x+r, y+r, r, background)
-                circf(x+w-r-1, y+r, r, background)
-                circf(x+r, y+h-r-1, r, background)
-                circf(x+w-r-1, y+h-r-1, r, background)
+                fill_circ(x+r, y+r, r, background)
+                fill_circ(x+w-r-1, y+r, r, background)
+                fill_circ(x+r, y+h-r-1, r, background)
+                fill_circ(x+w-r-1, y+h-r-1, r, background)
             end
         else
             if #self.background == 2 then
-                local spr_x, spr_y = self.background[1], self.background[2]
+                local sprite_x, sprite_y = self.background[1], self.background[2]
 
-                spr(x, y, spr_x, spr_y)
+                sprite(x, y, sprite_x, sprite_y)
             elseif #self.background == 4 then
-                local spr_x, spr_y, spr_w, spr_h = self.background[1], self.background[2],
+                local sprite_x, sprite_y, sprite_w, sprite_h = self.background[1], self.background[2],
                                                    self.background[3], self.background[4]
 
-                pspr(x, y, spr_x, spr_y, spr_w, spr_h)
+                custom_sprite(x, y, sprite_x, sprite_y, sprite_w, sprite_h)
             end
         end
 
@@ -199,7 +199,7 @@ function Widget:draw()
         
         print(content, tx, ty, self.text_palette)
 
-        col(15, 15)
+        swap_colors(15, 15)
     end
 
     for _, child in ipairs(self.children) do
@@ -235,10 +235,18 @@ function Widget:click(event, press)
     end
 end
 
-function Widget:move(event)
-    if self:in_bounds(event) then
-        self:set_dirty()
+function Widget:move(event, offset)
+    if self:mouse_sprite_in_bounds(event, offset) then
+        self.mouse.sprite_inside = true
 
+        self:set_dirty()
+    elseif self.mouse.sprite_inside then
+        self.mouse.sprite_inside = false
+
+        self:set_dirty()
+    end
+
+    if self:in_bounds(event) then
         if not self.mouse.inside then
             self.mouse.inside = true
 
@@ -256,20 +264,10 @@ function Widget:move(event)
         end
 
         for _, child in ipairs(self.children) do
-            child:move(event)
+            child:move(event, offset)
         end
     else
         self:leave(event)
-    end
-
-    if self:mouse_sprite_in_bounds(event) then
-        self.mouse.sprite_inside = true
-
-        self:set_dirty()
-    elseif self.mouse.sprite_inside then
-        self.mouse.sprite_inside = false
-
-        self:set_dirty()
     end
 end
 
@@ -301,9 +299,11 @@ function Widget:in_point(x, y)
            y < self.y+self.h
 end
 
-function Widget:mouse_sprite_in_bounds(e)
-    e.x -= 1
-    e.y -= 3
+function Widget:mouse_sprite_in_bounds(e, offset)
+    e = copy(e)
+
+    e.x += offset.x
+    e.y += offset.y
 
     return self:in_point(e.x, e.y) or
            self:in_point(e.x+8, e.y) or

@@ -31,8 +31,10 @@ private:
     };
 
     // Áreas de memória
-    map<uint8_t*, Area> freeAreas;
-    map<uint8_t*, Area> usedAreas;
+    map<uint8_t*, Area> free_areas;
+    map<uint8_t*, Area> used_areas;
+
+    bool log_memory_allocation;
 protected:
     friend class Kernel;
     friend class Process;
@@ -50,7 +52,7 @@ public:
     // Retorna um ponteiro para uma região não usada
     // de memória por n bytes
     uint8_t* allocate(const size_t, const string, function<void(AccessMode)> = nullptr);
-    tuple<uint8_t*, size_t> allocateWithPosition(const size_t, const string, function<void(AccessMode)> = nullptr);
+    tuple<uint8_t*, size_t> allocate_with_position(const size_t, const string, function<void(AccessMode)> = nullptr);
     // Permite que esse ponteiro seja retornado novamente
     void deallocate(uint8_t*);
     void deallocate(const size_t);
@@ -59,12 +61,15 @@ public:
     size_t resize(const size_t, const size_t);
 
     // Converte uma posição para um ponteiro
-    uint8_t* toPtr(const size_t);
+    uint8_t* to_ptr(const size_t);
     // Retorna o tamanho de uma área
-    size_t getSize(uint8_t*);
+    size_t get_size(uint8_t*);
 
     // Verifica e roda os triggers para as áreas dadas
     void triggers(const size_t, const size_t, const AccessMode);
+
+    // Habilita/Desabilita log de alocação
+    void set_log(bool);
 };
 
 #endif /* MEMORY_H */

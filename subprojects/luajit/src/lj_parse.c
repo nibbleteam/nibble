@@ -2250,6 +2250,14 @@ static void parse_assignment(LexState *ls, LHSVarList *lh, BCReg nvars)
         lex_check(ls, '=');
         compound_operator(ls, lh, OPR_ADD);
         return;
+    } else if (lex_opt(ls, '*')) {
+        lex_check(ls, '=');
+        compound_operator(ls, lh, OPR_MUL);
+        return;
+    } else if (lex_opt(ls, '/')) {
+        lex_check(ls, '=');
+        compound_operator(ls, lh, OPR_DIV);
+        return;
     } else {  /* Parse RHS. */
         BCReg nexps;
         lex_check(ls, '=');

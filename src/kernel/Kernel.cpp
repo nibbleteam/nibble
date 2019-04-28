@@ -14,12 +14,20 @@ Kernel::Kernel() {
         cout << "SDL_Init: " << SDL_GetError() << endl;
     }
 
+    memory.set_log(true);
+
+    cout << endl << "=============== Memory Map ===============" << endl;
+
     // Cria dispositivos
     gpu = make_unique<GPU>(memory);
     audio = make_unique<Audio>(memory);
     controller = make_unique<Controller>(memory);
     keyboard = make_unique<Keyboard>(memory);
     mouse = make_unique<Mouse>(memory);
+
+    cout << "==========================================" << endl << endl;
+
+    memory.set_log(false);
 
     // Inicializa kernel & dispositivos
     startup();
@@ -32,78 +40,46 @@ Kernel::~Kernel() {
 }
 
 void Kernel::startup() {
-    runningProcess = 0;
-    lastProcess = 1;
-
     gpu->startup();
     mouse->startup();
     audio->startup();
     keyboard->startup();
     controller->startup();
 
-    auto initEnv = map<string, string>();
+    auto entrypoint = Path("./frameworks/kernel/");
 
-    if (get<0>(exec("apps/system/init.nib", initEnv)) > 0) {
-        cout << "[kernel] " << "process started" << endl;
+    process = make_unique<Process>(memory, entrypoint);
+
+    if (not process->ok) {
+        cout << "Could not start LuaJIT" << endl;
+        exit(1);
     }
 }
 
 void Kernel::menu() {
-    try {
-        // Pega o processo que está rodando
-        auto &process = processes.at(runningProcess);
-
-        // Não abre menu no menu
-        if (process->executable.getOriginalPath() != NIBBLE_APP_MENU) {
-            // Adiciona "app.pid" a uma cópia do environment do processo
-            auto environment = process->getEnv();
-            environment["app.pid"] = environment["pid"];
-
-            exec(NIBBLE_APP_MENU, environment);
-        }
-    } catch (out_of_range &o) {
-        // Nenhum processo rodando
-    }
+    process->menu();
 }
 
 void Kernel::shutdown() {
-    // Desliga áudio primeiro evitando
-    // chamadas quando estivermos limpando processos
-    audio->shutdown();
-
-    /* Limpeza do Kernel */
-
-    // Se não há processos, a wait table precisa
-    // estar vazia
-    waitTable.clear();
-
-    // Mensagens na queue de um processo enquanto
-    // outro está sendo deletado causam SEGFAULT,
-    // por isso limpamos primeiro
-    for_each(begin(processes), end(processes), [&] (auto &pair) {
-        auto &process = pair.second;
-        process->clearMessages();
-    });
-
-    // Deletamos os processos
-    processes.clear();
+    // TODO: talvez desligar áudio antes?
 
     /* Shutdown dos periféricos */
 
     gpu->shutdown();
+    audio->shutdown();
     mouse->shutdown();
     keyboard->shutdown();
     controller->shutdown();
 }
 
 void Kernel::loop() {
-    float lastTime = 0;
+    float last_time = 0;
     
     while (true) {
-        float currentTime = SDL_GetTicks();
-        float delta = (currentTime - lastTime)/1000;
+        float current_time = SDL_GetTicks();
+        float delta = (current_time - last_time)/1000;
         //float fps = 1.f / delta;
-        lastTime = currentTime;
+        last_time = current_time;
 
         SDL_Event event;
 
@@ -127,7 +103,7 @@ void Kernel::loop() {
                         } break;
                         // Solta botões ao perder foco
                         case SDL_WINDOWEVENT_FOCUS_LOST: {
-                            controller->allReleased();
+                            controller->all_released();
                             mouse->released(0);
                             mouse->released(1);
                         } break;
@@ -146,43 +122,44 @@ void Kernel::loop() {
                 } break;
 
                 case SDL_KEYDOWN: {
-                    if (event.key.keysym.sym == SDLK_r &&
-                        event.key.keysym.mod&KMOD_LCTRL) {
+                    if (event.key.keysym.sym == SDLK_r and
+                        (event.key.keysym.mod&KMOD_LCTRL or
+                         event.key.keysym.mod&KMOD_RCTRL)) {
                         shutdown();
                         startup();
                     } else if (event.key.keysym.sym == SDLK_ESCAPE) {
                         menu();
                     } else {
-                        controller->kbdPressed(event);
+                        controller->kbd_pressed(event);
                     }
                 } break;
 
                 case SDL_KEYUP: {
-                    controller->kbdReleased(event);
+                    controller->kbd_released(event);
                 } break;
 
                 case SDL_JOYBUTTONDOWN: {
                     if (event.jbutton.button == 9) {
                         menu();
                     } else {
-                        controller->joyPressed(event);
+                        controller->joy_pressed(event);
                     }
                 } break;
 
                 case SDL_JOYBUTTONUP: {
-                    controller->joyReleased(event);
+                    controller->joy_released(event);
                 } break;
 
                 case SDL_JOYAXISMOTION: {
-                    controller->joyMoved(event);
+                    controller->joy_moved(event);
                 } break;
 
                 case SDL_JOYDEVICEADDED: {
-                    controller->joyConnected(event);
+                    controller->joy_connected(event);
                 } break;
 
                 case SDL_JOYDEVICEREMOVED: {
-                    controller->joyDisconnected(event);
+                    controller->joy_disconnected(event);
                 } break;
 
                 // Mouse
@@ -198,7 +175,7 @@ void Kernel::loop() {
                     int16_t x = event.motion.x;
                     int16_t y = event.motion.y;
 
-                    gpu->transformMouse(x, y);
+                    gpu->transform_mouse(x, y);
                     mouse->moved(x, y);
                 } break;
 
@@ -207,368 +184,197 @@ void Kernel::loop() {
             }
         }
 
-        // Roda o processo no topo da lista de processos
-        audioMutex.lock();
-        auto processes_copy = processes;
-        for (auto &pair: processes_copy) {
-            auto &pid = pair.first;
-            auto &process = pair.second;
-
-            if (!process->running)
-                continue;
-
-            runningProcess = pid;
-
-            auto spritesheetMetadata = (mmap::ImageMetadata*)(memory.raw+process->layout.spritesheet);
-            auto spritesheet = (memory.raw+process->layout.spritesheet+sizeof(mmap::ImageMetadata));
-
-            gpu->sourceW = spritesheetMetadata->w;
-            gpu->sourceH = spritesheetMetadata->h;
-            gpu->source = spritesheet;
-
+        // Espera a gpu inicializar
+        if (gpu->cycle > BOOT_CYCLES) {
+            // Roda o processo no topo da lista de processos
+            audio_mutex.lock();
             if (process->initialized) {
                 process->update(delta);
-                process->draw();
             } else {
                 process->init();
             }
+            audio_mutex.unlock();
         }
-        audioMutex.unlock();
 
-        SDL_Delay(max<int>(32-(SDL_GetTicks()-lastTime), 0));
+        SDL_Delay(max<int>(32-(SDL_GetTicks()-last_time), 0));
 
         gpu->draw();
     }
 }
 
-// Executa "executable" passando "environment"
-// executable é um diretório que deve seguir a seguinte organização:
-// <cart-name>/
-//  - main.lua
-tuple<int32_t, string> Kernel::exec(const string &executable, map<string, string> &environment) {
-    cout << "[kernel] exec " << executable << endl;
-
-    Path executablePath(executable);
-
-    // Verifica a existência e estrutura de do cart "executable"
-    if (!checkAppStructure(executablePath)) {
-        return tuple<int, string> (-3, "app not found: \""+executablePath.getOriginalPath()+"\"");
+void Kernel::audio_tick() {
+    audio_mutex.lock();
+    if (process->initialized) {
+        process->audio_tick();
     }
-
-    // Cria o processo carregando o app para a memória na
-    // primeira localização livre
-    processes[lastProcess] = make_shared<Process>(memory, executablePath, environment, lastProcess, runningProcess);
-    auto &process = processes[lastProcess];
-
-    if (process->ok) {
-        // Adiciona as chamadas de sistema providas pelo Kernel
-        // ao ambiente lua do processo
-        process->addSyscalls();
-
-        //return tuple<int, string> (lastProcess++, "");
-    } else {
-        //return tuple<int, string> (-4, process->error);
-    }
-    
-    return tuple<int, string> (0, "");
+    audio_mutex.unlock();
 }
 
-// Espera "wait" sair
-void Kernel::wait(const PID wait) {
-    waitTable[runningProcess] = wait;
-    processes.at(runningProcess)->running = false;
-}
-
-void Kernel::kill(const PID pid) {
-    auto &p = processes[runningProcess];
-
-    if (pid == 0) {
-        if (p->pid != 1) {
-            processes.erase(p->pid);
-        }
-    } else if (pid > 1) {
-        processes.erase(pid);
-    }
-
-    updateWaitTable();
-}
-
-string Kernel::getenv(const string key) {
-    try {
-        return processes.at(runningProcess)->getEnvVar(key);
-    } catch (out_of_range &o) {
-        return "";
-    }
-}
-
-void Kernel::setenv(const string key, const string value) {
-    try {
-        return processes.at(runningProcess)->setEnvVar(key, value);
-    } catch (out_of_range &o) { }
-}
-
-// API de acesso à memória
-size_t Kernel::write(size_t start, const uint8_t* data, size_t size) {
-    if (start >= NIBBLE_MEM_SIZE) {
+size_t Kernel::api_write(const size_t where, const size_t wanted_size, const uint8_t* what) {
+    if (where >= NIBBLE_MEM_SIZE) {
         return 0;
     }
 
-    if (start+size > NIBBLE_MEM_SIZE) {
-        size = NIBBLE_MEM_SIZE-start;
-    }
+    const auto size = where+wanted_size>NIBBLE_MEM_SIZE? NIBBLE_MEM_SIZE-where: wanted_size;
 
-    memcpy(memory.raw+start, data, size);
-
-    memory.triggers(start, start+size, Memory::ACCESS_WRITE);
+    memcpy(memory.raw+where, what, size);
+    memory.triggers(where, where+size, Memory::ACCESS_WRITE);
 
     return size;
 }
 
-string Kernel::read(size_t start, size_t size) {
-    if (start >= NIBBLE_MEM_SIZE) {
-        return "";
+size_t Kernel::api_read(char* buffer, const size_t where, size_t wanted_size) {
+    if (where >= NIBBLE_MEM_SIZE) {
+        return 0;
     }
 
-    if (start+size > NIBBLE_MEM_SIZE) {
-        size = NIBBLE_MEM_SIZE-start;
-    }
+    const auto size = where+wanted_size>NIBBLE_MEM_SIZE?NIBBLE_MEM_SIZE-where:wanted_size;
 
-    string stringBuffer(size, '\0');
-    uint8_t* buffer = (uint8_t*)&stringBuffer[0];
+    memory.triggers(where, where+size, Memory::ACCESS_READ);
 
-    memory.triggers(start, start+size, Memory::ACCESS_READ);
+    memcpy(buffer, memory.raw+where, size);
 
-    memcpy(buffer, memory.raw+start, size);
+    memory.triggers(where, where+size, Memory::ACCESS_AFTER_READ);
 
-    memory.triggers(start, start+size, Memory::ACCESS_AFTER_READ);
-
-    return stringBuffer;
+    return size;
 }
 
-bool Kernel::checkAppStructure(Path& root) {
-    cout << "[kernel] " << "checking app " << root.getPath() << endl;
+void Kernel::api_use_spritesheet(const size_t source, const int w, const int h) {
+    auto spritesheet = memory.raw+source;
 
-    Path lua = root.resolve(Process::LuaEntryPoint);
-
-    cout << "	" << " checking if file " << lua.getPath() << endl;
-
-    return fs::isDir(root) &&
-        !fs::isDir(lua);
+    gpu->source_w = w;
+    gpu->source_h = h;
+    gpu->source = spritesheet;
 }
 
-void Kernel::updateWaitTable() {
-    for (auto w=waitTable.begin();w!=waitTable.end();) {
-        auto i = *w;
-        bool exists = false;
+tuple<size_t, int, int> Kernel::api_load_spritesheet(const string from_str) {
+    auto path = Path(from_str);
 
-
-        for (auto &p :processes) {
-            if (p.second->pid == i.second) {
-                exists = true;
-                break;
-            }
-        }
-
-        if (!exists) {
-            processes[i.first]->running = true;
-            
-            waitTable.erase(w++); 
-        } else {
-            w++;
-        }
-    }
-}
-
-void Kernel::audioTick() {
-    audioMutex.lock();
-    auto pcopy = processes;
-    for (auto &pair :pcopy) {
-        auto &pid = pair.first;
-        auto &p = pair.second;
-        
-        if (!p->running)
-            continue;
-
-        runningProcess = pid;
-
-        if (p->initialized) {
-            p->audio_tick();
-        }
-    }
-    audioMutex.unlock();
-}
-
-luabridge::LuaRef Kernel::receive() {
-    return processes[runningProcess]->readMessage();
-}
-
-bool Kernel::send(const PID pid, luabridge::LuaRef message) {
-    try {
-        processes.at(pid)->writeMessage(message);
-    } catch (out_of_range &o) {
-        return false;
-    }
-
-    return true;
-}
-
-// Mapeia o arquivo `file` na memória
-// retorna o endereço no qual foi mapeado
-size_t Kernel::memmap(const string& file) {
-    auto filePath = Path(file);
-    auto ext = filePath.getExtension();
-
-    if (!fs::fileExists(filePath)) {
-        fs::touchFile(filePath);
-    }
-
-    if (ext == "png") {
-        return mmap::read_image(memory, filePath);
-    }
-
-    return mmap::read_binary(memory, filePath);
-}
-
-// Escreve a área de memória <pos> 
-void Kernel::memsync(const size_t pos, const string& file, bool del) {
-    auto filePath = Path(file);
-    auto ext = filePath.getExtension();
-
-    if (ext == "png") {
-        mmap::write_image(memory, pos, filePath);
-    } else {
-        mmap::write_binary(memory, pos, filePath);
-    }
-
-    if (del) {
-        memory.deallocate(pos);
-    }
-}
-
-// Aumenta ou diminui o tamanho de um arquivo
-// mapeado em memória
-size_t Kernel::memresize(const size_t pos, const size_t size) {
-    return memory.resize(pos, size);
-}
-
-vector<string> Kernel::list(const string& dir) {
-    vector<string> stringList;
-    auto dirPath = Path(dir);
-    bool success;
-
-    auto list = fs::listDirectory(dirPath, success);
-
-    for (auto &path: list) {
-        stringList.push_back(path.getOriginalPath());
-    }
-
-    return stringList;
+    return mmap::read_image(memory, path);
 }
 
 // Wrapper estático para a API
-size_t kernel_api_write(size_t to, const string& data) {
-    return KernelSingleton.lock()->write(to, (uint8_t*)data.data(), data.size());
+
+size_t kernel_api_write(const size_t to, const size_t amount, const char* data) {
+    return KernelSingleton.lock()->api_write(to, amount, (uint8_t*)data);
 }
 
-string kernel_api_read(const size_t from, const size_t amount) {
-    return KernelSingleton.lock()->read(from, amount);
+size_t kernel_api_read(char* buffer, const size_t from, const size_t amount) {
+    return KernelSingleton.lock()->api_read(buffer, from, amount);
 }
 
-int kernel_api_exec(lua_State* L) {
-    int args = lua_gettop(L);
+void kernel_api_load_spritesheet(const char* from, size_t* ptr, int* w, int* h) {
+    auto t = KernelSingleton.lock()->api_load_spritesheet(string(from));
 
-    if (args >= 2) {
-        luaL_checktype(L, 2, LUA_TTABLE);
+    *ptr = get<0>(t);
+    *w = get<1>(t);
+    *h = get<2>(t);
+}
 
-        if (true) {
-            const string executable = string(lua_tostring(L, 1));
-            map <string, string> environment;
+void kernel_api_use_spritesheet(const size_t source, const int w, const int h) {
+    KernelSingleton.lock()->api_use_spritesheet(source, w, h);
+}
 
-            //lua_gettable(L, 2);
-            //lua_pushnil(L);
+void gpu_api_sprite(int16_t x, int16_t y,
+                    int16_t sx, int16_t sy,
+                    int16_t w, int16_t h,
+                    uint8_t pal) {
+    KernelSingleton.lock()->gpu->sprite(x, y, sx, sy, w, h, pal);
+}
 
-            //while (lua_next(L, -2) == 0) {
-            //    if (lua_isstring(L, -2) && lua_isstring(L, -1)) {
-            //        environment.emplace(lua_tostring(L, -2), lua_tostring(L, -1));
-            //    }
-            //    lua_pop(L, 1);
-            //}
-         
-            //lua_pop(L, 1);
+void gpu_api_clip(int16_t x, int16_t y, int16_t w, int16_t h) {
+    KernelSingleton.lock()->gpu->clip(x, y, w, h);
+}
 
-            auto result = KernelSingleton.lock()->exec(executable, environment);
+void gpu_api_circle_fill(int16_t x, int16_t y, int16_t r, uint8_t c) {
+    KernelSingleton.lock()->gpu->circle_fill(x, y, r, c);
+}
 
-            lua_pop(L, 1);
-            lua_pop(L, 1);
+void gpu_api_quad_fill(int16_t x1, int16_t y1,
+                       int16_t x2, int16_t y2,
+                       int16_t x3, int16_t y3,
+                       int16_t x4, int16_t y4,
+                       uint8_t c) {
+    KernelSingleton.lock()->gpu->quad_fill(x1, y1, x2, y2, x3, y3, x4, y4, c);
+}
 
-            lua_pushnumber(L, get<0>(result));
-            lua_pushstring(L, get<1>(result).c_str());
 
-            return 2;
-        } else {
-            lua_pop(L, 1);
-            lua_pop(L, 1);
+void gpu_api_tri_fill(int16_t x1, int16_t y1,
+                      int16_t x2, int16_t y2,
+                      int16_t x3, int16_t y3,
+                      uint8_t c) {
+    KernelSingleton.lock()->gpu->tri_fill(x1, y1, x2, y2, x3, y3, c);
+}
 
-            lua_pushnumber(L, -2);
-            lua_pushstring(L, "`environment` is not a table!");
+void gpu_api_rect_fill(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t c) {
+    KernelSingleton.lock()->gpu->rect_fill(x, y, w, h, c);
+}
 
-            return 2;
+void gpu_api_circle(int16_t x, int16_t y, int16_t r, uint8_t c) {
+    KernelSingleton.lock()->gpu->circle(x, y, r, c);
+}
+
+void gpu_api_quad(int16_t x1, int16_t y1,
+                  int16_t x2, int16_t y2,
+                  int16_t x3, int16_t y3,
+                  int16_t x4, int16_t y4,
+                  uint8_t c) {
+    KernelSingleton.lock()->gpu->quad(x1, y1, x2, y2, x3, y3, x4, y4, c);
+}
+
+
+void gpu_api_tri(int16_t x1, int16_t y1,
+                 int16_t x2, int16_t y2,
+                 int16_t x3, int16_t y3,
+                 uint8_t c) {
+    KernelSingleton.lock()->gpu->tri(x1, y1, x2, y2, x3, y3, c);
+}
+
+void gpu_api_rect(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t c) {
+    KernelSingleton.lock()->gpu->rect(x, y, w, h, c);
+}
+
+void gpu_api_clear(uint8_t c) {
+    KernelSingleton.lock()->gpu->clear(c);
+}
+
+
+void gpu_api_line(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t c) {
+    KernelSingleton.lock()->gpu->line(x1, y1, x2, y2, c);
+}
+
+int gpu_start_capturing(const char* file) {
+    return (int)KernelSingleton.lock()->gpu->start_capturing(string(file));
+}
+
+int gpu_stop_capturing() {
+    return (int)KernelSingleton.lock()->gpu->stop_capturing();
+}
+
+LuaString* api_list_files(const char* path, size_t* length_out, int* ok_out) {
+    bool ok;
+    auto files = fs::list_directory(Path(string(path)), ok);
+    auto amount = files.size();
+
+    *ok_out = (int)ok;
+    *length_out = amount;
+
+    if (ok and amount > 0) {
+        auto ptr_files = new LuaString[amount];
+
+        for (size_t i=0;i<amount;i++) {
+            auto file = files[i];
+            auto o_path = file.get_original_path();
+            auto length = o_path.length();
+
+            ptr_files[i].ptr = new char[length];
+
+            ptr_files[i].len = length;
+            memcpy(ptr_files[i].ptr, o_path.c_str(), length);
         }
+
+        return ptr_files;
+    } else {
+        return nullptr;
     }
-
-    lua_pop(L, 1);
-    lua_pop(L, 1);
-
-    lua_pushnumber(L, -1);
-    lua_pushstring(L, "needs 2 arguments");
-
-    return 2;
-}
-
-void kernel_api_wait(size_t pid) {
-    KernelSingleton.lock()->wait(pid);
-}
-
-void kernel_api_kill(size_t pid) {
-    KernelSingleton.lock()->kill(pid);
-}
-
-void kernel_api_setenv(const string key, const string value) {
-    KernelSingleton.lock()->setenv(key, value);
-}
-
-string kernel_api_getenv(const string key) {
-    return KernelSingleton.lock()->getenv(key);
-}
-
-bool kernel_api_send(size_t pid, luabridge::LuaRef message) {
-    return KernelSingleton.lock()->send(pid, message);
-}
-
-luabridge::LuaRef kernel_api_receive() {
-    return KernelSingleton.lock()->receive();
-}
-
-size_t kernel_api_memmap(const string& file) {
-    return KernelSingleton.lock()->memmap(file);
-}
-
-void kernel_api_memsync(const size_t pos, const string& file, bool del) {
-    KernelSingleton.lock()->memsync(pos, file, del);
-}
-
-size_t kernel_api_memresize(const size_t pos, const size_t size) {
-    return KernelSingleton.lock()->memresize(pos, size);
-}
-
-luabridge::LuaRef kernel_api_list(const string& dir, lua_State *L) {
-    auto dirs = KernelSingleton.lock()->list(dir);
-    auto i = 1;
-    auto tbl = luabridge::newTable(L);
-
-    for (auto &d: dirs) {
-        tbl[i++] = d;
-    }
-
-    return tbl;
 }

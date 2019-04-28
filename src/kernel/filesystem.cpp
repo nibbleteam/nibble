@@ -13,14 +13,14 @@ Path::Terminal::Terminal (string value) {
 	this->value = value;
 }
 
-string Path::Terminal::getValue () {
+string Path::Terminal::get_value () {
 	if (value[value.size()-1] == '/') {
 		return value.substr(0, value.size()-1);
 	} else
 		return value;
 }
 
-string Path::Terminal::getLiteralValue () {
+string Path::Terminal::get_literal_value () {
 	if (value[value.size()-1] == '/') {
 		return value;
 	} else
@@ -28,8 +28,8 @@ string Path::Terminal::getLiteralValue () {
 }
 
 Path::Path (string _path):
-	oPath(_path) {
-	setPath (_path);
+	original_path(_path) {
+	set_path (_path);
 }
 
 Path::~Path () {
@@ -37,8 +37,8 @@ Path::~Path () {
 }
 
 Path Path::resolve(Path _path) {
-	string self = getPath();
-	string other = _path.getPath();
+	string self = get_path();
+	string other = _path.get_path();
 
 	if ((self.back() == '\\' || self.back() == '/') &&
 		(other.front() == '\\' || other.front() == '/')) {
@@ -53,7 +53,7 @@ Path Path::resolve(Path _path) {
 }
 
 Path Path::resolve(const string _path) {
-	string self = getPath();
+	string self = get_path();
 	string other = _path;
 
 	if ((self.back() == '\\' || self.back() == '/') &&
@@ -68,26 +68,26 @@ Path Path::resolve(const string _path) {
 	return Path(self + other);
 }
 
-void Path::setPath (string _path) {
+void Path::set_path (string _path) {
 #ifdef WIN32
-	setWindowsPath (_path);
+	set_windows_path (_path);
 #else
-	setLinuxPath (_path);
+	set_linux_path (_path);
 #endif
 }
 
-bool Path::isEqual (Path _path) {
-	if (_path.getOriginalPath() == getOriginalPath())
+bool Path::is_equal (Path _path) {
+	if (_path.get_original_path() == get_original_path())
 		return true;
 	return false;
 }
 
-string Path::getOriginalPath () {
-	return oPath;
+string Path::get_original_path () {
+	return original_path;
 }
 
-void Path::setWindowsPath (string _path) {
-	for_each (_path.begin(),_path.end(),[=] (char &c)  -> void {
+void Path::set_windows_path (string _path) {
+	for_each (_path.begin(),_path.end(),[=] (char &c) -> void {
 		if (c == '\\' || c == '/')
 			c = '\\';
 	});
@@ -95,8 +95,8 @@ void Path::setWindowsPath (string _path) {
 	path = _path;
 }
 
-void Path::setLinuxPath (string _path) {
-	for_each (_path.begin(),_path.end(),[=] (char &c)  -> void {
+void Path::set_linux_path (string _path) {
+	for_each (_path.begin(),_path.end(),[=] (char &c) -> void {
 		if (c == '\\' || c == '/')
 			c = '/';
 	});
@@ -104,11 +104,11 @@ void Path::setLinuxPath (string _path) {
 	path = _path;
 }
 
-string Path::getPath () {
+string Path::get_path () {
 	return path;
 }
 
-string Path::getExtension () {
+string Path::get_extension () {
 	string extension;
 	int i;
 	for (i =path.length()-1;path[i] != '.' && i >= 0;i--) {
@@ -123,7 +123,7 @@ string Path::getExtension () {
 	}
 }
 
-string Path::getName () {
+string Path::get_name () {
 	string name;
 	int i;
 	for (i =path.length()-1;path[i] != '\\' && path[i] != '/' && i >= 0;i--) {
@@ -143,9 +143,9 @@ void Path::normalize() {
 	stack <Terminal> fpath;
 	stack <Terminal> reverse;
 	string buffer;
-	string final;
+	string complete;
 	
-	for (auto c :oPath) {
+	for (auto c :original_path) {
 		if (c == '/') {
 			tpath.push_back(Terminal(buffer+c));
 			buffer = "";
@@ -157,13 +157,13 @@ void Path::normalize() {
 	if (buffer != "")
 		tpath.push_back(Terminal(buffer));
 
-	if (tpath.size() > 1 && tpath[0].getValue() == ".") {
+	if (tpath.size() > 1 && tpath[0].get_value() == ".") {
 		tpath.erase(tpath.begin());
 	}
 
 	for (auto t :tpath) {
-		if (t.getValue() == "..") {
-			if (fpath.size() > 0 && fpath.top().getValue() != "..")
+		if (t.get_value() == "..") {
+			if (fpath.size() > 0 && fpath.top().get_value() != "..")
 				fpath.pop();
 			else
 				fpath.push(t);
@@ -177,23 +177,23 @@ void Path::normalize() {
 		fpath.pop();
 	}
 	while (reverse.size() > 0) {
-		final += reverse.top().getLiteralValue();
+		complete += reverse.top().get_literal_value();
 		reverse.pop();
 	}
 
-	if (final == "") {
-		final = "./";
+	if (complete == "") {
+		complete = "./";
 	}
 
-	oPath = final;
-	setPath(final);
+	original_path = complete;
+	set_path(complete);
 }
 
-vector<Path> Path::getTree() {
+vector<Path> Path::get_tree() {
 	vector <Path> tree;
 	string buffer;
 	
-	for (auto c :oPath) {
+	for (auto c :original_path) {
         buffer += c;
 
 		if (c == '/') {
@@ -212,46 +212,46 @@ fs::~fs () {
 
 }
 
-bool fs::touchFile (Path &_path) {
-    for (auto &directory: _path.getTree()) {
-        if (!fs::createDirectory(directory)) {
+bool fs::touch_file (Path &_path) {
+    for (auto &directory: _path.get_tree()) {
+        if (!fs::create_directory(directory)) {
             return false;
         }
     }
 
-    return fs::createFile(_path);
+    return fs::create_file(_path);
 }
 
-bool fs::createDirectory(Path &_path) {
+bool fs::create_directory(Path &_path) {
 #ifdef _WIN32
-    CreateDirectory(_path.getPath().c_str(), NULL);
+    CreateDirectory(_path.get_path().c_str(), NULL);
     return true;
 #else
-    return mkdir(_path.getPath().c_str(), 0777) == 0;
+    return mkdir(_path.get_path().c_str(), 0777) == 0;
 #endif
 }
 
-bool fs::fileExists (Path _path) {
+bool fs::file_exists (Path _path) {
 	struct _stat info;
-	return !(bool)_stat (_path.getPath().c_str(),&info);
+	return !(bool)_stat (_path.get_path().c_str(),&info);
 }
 
 
-bool fs::deleteFile (Path _path) {
-	if (fileExists (_path)) {
-		unlink (_path.getPath().c_str());
+bool fs::delete_file (Path _path) {
+	if (file_exists (_path)) {
+		unlink (_path.get_path().c_str());
 	}
 	return false;
 }
 
-bool fs::createFile (Path _path) {
-	if (fileExists(_path))
+bool fs::create_file (Path _path) {
+	if (file_exists(_path))
 		return false;
 
 #ifdef WIN32
-	int fd = ::open(_path.getPath().c_str(), O_CREAT);
+	int fd = ::open(_path.get_path().c_str(), O_CREAT);
 #else
-	int fd = open(_path.getPath().c_str(), O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	int fd = open(_path.get_path().c_str(), O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 #endif
 
 	if (fd < 0)
@@ -262,67 +262,67 @@ bool fs::createFile (Path _path) {
 	return true;
 }
 
-bool fs::renameFile (Path _pathA,Path _pathB) {
-	if (fileExists (_pathA) && !fileExists(_pathB)) {
-		if (rename (_pathA.getPath().c_str(),_pathB.getPath().c_str()) < 0)
+bool fs::rename_file (Path _path_a,Path _path_b) {
+	if (file_exists (_path_a) && !file_exists(_path_b)) {
+		if (rename (_path_a.get_path().c_str(),_path_b.get_path().c_str()) < 0)
 			return false;
 		return true;
 	}
 	return false;
 }
 
-bool fs::copyFile (Path _pathA, Path _pathB, bool _overwrite) {
-	if (fileExists (_pathA) && (!fileExists(_pathB) || _overwrite)) {
-		if (!fileExists(_pathB))
-			if (!createFile (_pathB))
+bool fs::copy_file (Path _path_a, Path _path_b, bool _overwrite) {
+	if (file_exists (_path_a) && (!file_exists(_path_b) || _overwrite)) {
+		if (!file_exists(_path_b))
+			if (!create_file (_path_b))
 				return false;
 
-		int fdA,fdB;
+		int fd_a,fd_b;
 		// Open file A for reading only B for writing only
-		if ((fdA = open(_pathA.getPath().c_str(), O_RDONLY)) < 0)
+		if ((fd_a = open(_path_a.get_path().c_str(), O_RDONLY)) < 0)
 			return false;
-		if ((fdB = open (_pathB.getPath().c_str(), O_WRONLY)) < 0)
+		if ((fd_b = open (_path_b.get_path().c_str(), O_WRONLY)) < 0)
 			return false;
 
-		function <void (int,int,char*)> cleanup = [] (int fdA,int fdB, char *fileBuffer) -> void {
-			delete[] fileBuffer;
-			close (fdA);
-			close (fdB);
+		function <void (int,int,char*)> cleanup = [] (int fd_a,int fd_b, char *file_buffer) -> void {
+			delete[] file_buffer;
+			close (fd_a);
+			close (fd_b);
 		};
 
-		char *fileBuffer = new char [bufferSize];
+		char *file_buffer = new char [buffer_size];
 		int nr,nw;
 
 		do {
-			nr = read (fdA,fileBuffer,bufferSize);
-			nw = write (fdB,fileBuffer,nr);
+			nr = read (fd_a,file_buffer,buffer_size);
+			nw = write (fd_b,file_buffer,nr);
 
 			if (nr != nw) { // Error writing!
-				cleanup (fdA,fdB,fileBuffer);
+				cleanup (fd_a,fd_b,file_buffer);
 				return false;
 			}
 		} while (nr > 0); // While we have bytes to copy
 
-		cleanup (fdA,fdB,fileBuffer);
+		cleanup (fd_a,fd_b,file_buffer);
 		return true;
 	}
 	return false;
 }
 
-char* fs::getFileData (Path _path) {
-	if (fileExists(_path)) {
-		size_t fileSize = getFileSize (_path);
-		int bufferSize = 128;
-		char* data = new char [fileSize+1];
-        char* buffer = new char [bufferSize];
+char* fs::get_file_data (Path _path) {
+	if (file_exists(_path)) {
+		size_t file_size = get_file_size (_path);
+		int buffer_size = 128;
+		char* data = new char [file_size+1];
+        char* buffer = new char [buffer_size];
 		int fd;
 		int nr = -1;
         size_t rs = 0;
 
-        fd = open (_path.getPath().c_str(), O_RDONLY);
+        fd = open (_path.get_path().c_str(), O_RDONLY);
 
         while (nr != 0) {
-            nr = read (fd,buffer,bufferSize);
+            nr = read (fd,buffer,buffer_size);
             if (nr < 0) {
                 delete[] data;
                 return NULL;
@@ -340,14 +340,14 @@ char* fs::getFileData (Path _path) {
 	return NULL;
 }
 
-bool fs::setFileData (Path _path, const char* _data, size_t _size) {
-	if (!fileExists (_path))
-		if (!createFile(_path))
+bool fs::set_file_data (Path _path, const char* _data, size_t _size) {
+	if (!file_exists (_path))
+		if (!create_file(_path))
 			return false;
 
 	int fd, nr;
 
-	fd = open (_path.getPath().c_str(), O_WRONLY |  O_TRUNC);
+	fd = open (_path.get_path().c_str(), O_WRONLY |  O_TRUNC);
 	nr = write (fd, _data, _size);
 	close (fd);
 
@@ -357,10 +357,10 @@ bool fs::setFileData (Path _path, const char* _data, size_t _size) {
 	return true;
 }
 
-size_t fs::getFileSize (Path _path) {
-	if (fileExists(_path)) {
+size_t fs::get_file_size (Path _path) {
+	if (file_exists(_path)) {
 #ifdef WIN32
-		int fd = open(_path.getPath().c_str(), O_RDONLY);
+		int fd = open(_path.get_path().c_str(), O_RDONLY);
 		int size;
 		int readb;
 
@@ -372,7 +372,7 @@ size_t fs::getFileSize (Path _path) {
 		return size;
 #else
 		struct _stat info;
-		if (_stat (_path.getPath().c_str(),&info) < 0) {
+		if (_stat (_path.get_path().c_str(),&info) < 0) {
 			return -1;
 		}
 
@@ -383,33 +383,33 @@ size_t fs::getFileSize (Path _path) {
 	return -1;
 }
 
-vector <Path> fs::listDirectory (Path _path, bool &_success) {
+vector <Path> fs::list_directory (Path _path, bool &_success) {
     vector <Path> dir;
     _success = true;
 
-    if (isDir(_path)) {
+    if (is_dir(_path)) {
 #ifdef _WIN32
-        string lig = _path.getOriginalPath()[_path.getOriginalPath().size()-1] != '/'?"\\":"";
+        string lig = _path.get_original_path()[_path.get_original_path().size()-1] != '/'?"\\":"";
 
         WIN32_FIND_DATA file;
-        HANDLE foundFile;
+        HANDLE found_file;
 
-        if ((foundFile = FindFirstFile((_path.getPath()+lig+"*").c_str(), &file)) != INVALID_HANDLE_VALUE) {
+        if ((found_file = FindFirstFile((_path.get_path()+lig+"*").c_str(), &file)) != INVALID_HANDLE_VALUE) {
             do {
-                dir.push_back(Path(string(_path.getPath()+lig+file.cFileName)));
-            } while (FindNextFile(foundFile, &file) != 0);
+                dir.push_back(Path(string(_path.get_path()+lig+file.c_file_name)));
+            } while (FindNextFile(found_file, &file) != 0);
         }
 #else
-        string lig = _path.getOriginalPath()[_path.getOriginalPath().size()-1] != '/'?"/":"";
+        string lig = _path.get_original_path()[_path.get_original_path().size()-1] != '/'?"/":"";
 
         DIR *d;
         struct dirent *entry;
 
-        d = opendir(_path.getPath().c_str());
+        d = opendir(_path.get_path().c_str());
 
         if (d) {
             while ((entry = readdir(d)) != NULL) {
-                dir.push_back (Path(_path.getOriginalPath()+lig+string(entry->d_name)));
+                dir.push_back (Path(_path.get_original_path()+lig+string(entry->d_name)));
             }
 
             closedir(d);
@@ -424,12 +424,12 @@ vector <Path> fs::listDirectory (Path _path, bool &_success) {
 	return dir;
 }
 
-bool fs::isDir(Path _path) {
+bool fs::is_dir(Path _path) {
 #ifdef _WIN32
-	return GetFileAttributes(_path.getPath().c_str())&FILE_ATTRIBUTE_DIRECTORY;
+	return GetFileAttributes(_path.get_path().c_str())&FILE_ATTRIBUTE_DIRECTORY;
 #else
 	struct _stat info;
-	_stat (_path.getPath().c_str(),&info);
+	_stat (_path.get_path().c_str(),&info);
 	return S_ISDIR(info.st_mode);
 #endif
 }

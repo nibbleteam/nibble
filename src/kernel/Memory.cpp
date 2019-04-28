@@ -1,5 +1,7 @@
 #include <iostream>
+#include <iomanip>
 #include <algorithm>
+#include <sstream>
 
 #include <kernel/Memory.hpp>
 
@@ -7,26 +9,26 @@
 
 using namespace std;
 
-Memory::Area::Area(size_t pos, size_t size, function<void(AccessMode)> fn): pos(pos), size(size), trigger(fn) { }
+Memory::Area::Area(size_t pos, size_t size, function<void(AccessMode)> fn): pos(pos), size(size), trigger(fn){ }
 
 bool Memory::Area::operator < (Area &other) {
     return size < other.size;
 }
 
-Memory::Memory() {
+Memory::Memory(): log_memory_allocation(false) {
     raw = new uint8_t[NIBBLE_MEM_SIZE];
-    cout << "[nibble] " << "compiled with "<< NIBBLE_MEM_SIZE/1024 << "kB of memory." << endl;
+    cout << "Compiled with "<< NIBBLE_MEM_SIZE/1024 << "kB of memory." << endl;
 
     // Iniciamos apenas com uma área livre e nenhuma usada
-    freeAreas.insert(make_pair(raw, Area { 0, NIBBLE_MEM_SIZE, nullptr }));
+    free_areas.insert(make_pair(raw, Area { 0, NIBBLE_MEM_SIZE, nullptr }));
 }
 
 Memory::~Memory() {
     delete raw;
 }
 
-tuple<uint8_t*, size_t> Memory::allocateWithPosition(const size_t bytes, const string use, function<void(AccessMode)> fn) {
-    for (auto &area: freeAreas) {
+tuple<uint8_t*, size_t> Memory::allocate_with_position(const size_t bytes, const string use, function<void(AccessMode)> fn) {
+    for (auto &area: free_areas) {
         if (area.second.size >= bytes) {
             // Cria as informações da nova área
             size_t pos = area.second.pos;
@@ -37,34 +39,40 @@ tuple<uint8_t*, size_t> Memory::allocateWithPosition(const size_t bytes, const s
             area.second.pos += bytes;
 
             // Move a área livre
-            freeAreas.insert(make_pair(area.first+bytes, area.second));
-            freeAreas.erase(area.first);
+            free_areas.insert(make_pair(area.first+bytes, area.second));
+            free_areas.erase(area.first);
 
-            usedAreas.insert(make_pair(ptr, Area { pos, bytes, fn }));
+            used_areas.insert(make_pair(ptr, Area { pos, bytes, fn }));
 
-            cout << "[nibble] mmap: " << use << " " << pos << "-" << pos+bytes << endl;
-            cout << "[nibble] free: " << free() << endl;
+            if (log_memory_allocation) {
+                stringstream position;
+                position << pos << "-" << pos+bytes;
+
+                cout << setiosflags(cout.left)  << setw(24) << use << resetiosflags(cout.left);
+                cout << setiosflags(cout.right) << " [" << setw(15) << position.str() << "]";
+                cout << resetiosflags(cout.right) << endl;
+            }
 
             return tuple<uint8_t*, size_t> (ptr, pos);
         }
     }
 
-    cout << "[nibble] out of memory!" << endl;
+    cout << "EXITING: OUT OF MEMORY!" << endl;
     exit(-1);
 }
 
 uint8_t* Memory::allocate(const size_t bytes, const string use, function<void(AccessMode)> fn) {
-    return get<0>(allocateWithPosition(bytes, use, fn));
+    return get<0>(allocate_with_position(bytes, use, fn));
 }
 
 void Memory::deallocate(uint8_t *ptr) {
     try {
-        auto area = usedAreas.at((uint8_t*)ptr);
+        auto area = used_areas.at((uint8_t*)ptr);
 
-        cout << "[nibble] deallocate: " << area.pos << endl;
+        cout << "deallocate: " << area.pos << endl;
 
-        freeAreas.insert(make_pair(ptr, area));
-        usedAreas.erase(ptr);
+        free_areas.insert(make_pair(ptr, area));
+        used_areas.erase(ptr);
     } catch (out_of_range &o) {
         // Invalid deallocation
     }
@@ -72,12 +80,12 @@ void Memory::deallocate(uint8_t *ptr) {
 
 void Memory::deallocate(const size_t pos) {
     try {
-        auto area = usedAreas.at(raw+pos);
+        auto area = used_areas.at(raw+pos);
 
-        cout << "[nibble] deallocate: " << area.pos << endl;
+        cout << "deallocate: " << area.pos << endl;
 
-        freeAreas.insert(make_pair(raw+pos, area));
-        usedAreas.erase(raw+pos);
+        free_areas.insert(make_pair(raw+pos, area));
+        used_areas.erase(raw+pos);
     } catch (out_of_range &o) {
         // Invalid deallocation
     }
@@ -85,27 +93,27 @@ void Memory::deallocate(const size_t pos) {
 
 size_t Memory::resize(const size_t pos, const size_t size) {
     try {
-        auto oldArea = usedAreas.at(raw+pos);
-        auto newArea = allocateWithPosition(size, "Area Resize");
+        auto old_area = used_areas.at(raw+pos);
+        auto new_area = allocate_with_position(size, "Area Resize");
 
-        memcpy(get<0>(newArea), raw+pos, min(oldArea.size, size));
+        memcpy(get<0>(new_area), raw+pos, min(old_area.size, size));
 
         deallocate(pos);
 
-        return get<1>(newArea);
+        return get<1>(new_area);
     } catch (out_of_range &o) {
-        cout << "[nibble] invalid resize!" << endl;
+        cout << "invalid resize!" << endl;
         return -1;
     }
 }
 
-uint8_t* Memory::toPtr(const size_t pos) {
+uint8_t* Memory::to_ptr(const size_t pos) {
     return raw+pos;
 }
 
-size_t Memory::getSize(uint8_t *ptr) {
+size_t Memory::get_size(uint8_t *ptr) {
     try {
-        return usedAreas.at(ptr).size;
+        return used_areas.at(ptr).size;
     } catch (out_of_range &o) {
         return -1;
     }
@@ -114,7 +122,7 @@ size_t Memory::getSize(uint8_t *ptr) {
 size_t Memory::free() {
     size_t bytes = 0;
 
-    for (auto &area: freeAreas) {
+    for (auto &area: free_areas) {
         bytes += area.second.size;
     }
 
@@ -124,7 +132,7 @@ size_t Memory::free() {
 size_t Memory::used() {
     size_t bytes = 0;
 
-    for (auto &area: usedAreas) {
+    for (auto &area: used_areas) {
         bytes += area.second.size;
     }
 
@@ -132,7 +140,7 @@ size_t Memory::used() {
 }
 
 void Memory::triggers(size_t start, size_t end, AccessMode mode) {
-    for (auto &area: usedAreas) {
+    for (auto &area: used_areas) {
         if ((start >= area.second.pos && start <= area.second.pos+area.second.size) ||
             (end>= area.second.pos && end <= area.second.pos+area.second.size) ||
             (start <= area.second.pos && end >= area.second.pos+area.second.size)) {
@@ -141,4 +149,8 @@ void Memory::triggers(size_t start, size_t end, AccessMode mode) {
             }
         }
     }
+}
+
+void Memory::set_log(bool log) {
+    log_memory_allocation = log;
 }
