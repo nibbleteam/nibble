@@ -7,6 +7,7 @@ luajit_dep = luajit.get_variable('luajit_dep')
 
 sdl2 = subproject('sdl2')
 sdl2_dep = sdl2.get_variable('sdl2_dep')
+sdl2main_dep = sdl2.get_variable('sdl2main_dep')
 
 giflib = subproject('giflib')
 giflib_dep = giflib.get_variable('giflib_dep')
@@ -54,4 +55,4 @@ executable('nibble',
            sources,
            include_directories: headers,
            gui_app: true,
-           dependencies: [sdl2_dep, luajit_dep, libpng_dep, giflib_dep, zlib_dep, imm32_dep, version_dep, winmm_dep, gdi32_dep, user32_dep, shell32_dep])
+           dependencies: [sdl2_dep, sdl2main_dep, luajit_dep, libpng_dep, giflib_dep, zlib_dep, imm32_dep, version_dep, winmm_dep, gdi32_dep, user32_dep, shell32_dep])
