@@ -1,7 +1,6 @@
 project('nibble', 'cpp')
 
 add_global_link_arguments('-rdynamic', language: 'cpp')
-add_global_link_arguments('-subsystem:windows', language: 'cpp')
 
 luajit = subproject('luajit')
 luajit_dep = luajit.get_variable('luajit_dep')
@@ -17,6 +16,13 @@ libpng_dep = libpng.get_variable('png_dep')
 
 zlib = subproject('zlib')
 zlib_dep = zlib.get_variable('zlib_dep')
+
+imm32_dep = compiler.find_library('imm32', required: false)
+version_dep = compiler.find_library('version', required: false)
+winmm_dep = compiler.find_library('winmm', required: false)
+user32_dep = compiler.find_library('user32', required: false)
+gdi32_dep = compiler.find_library('gdi32', required: false)
+shell32_dep = compiler.find_library('shell32', required: false)
 
 headers = include_directories('include')
 
@@ -45,4 +51,5 @@ sources = [
 executable('nibble',
            sources,
            include_directories: headers,
-           dependencies: [sdl2_dep, luajit_dep, libpng_dep, giflib_dep, zlib_dep])
+           gui_app: true,
+           dependencies: [sdl2_dep, luajit_dep, libpng_dep, giflib_dep, zlib_dep, imm32_dep, version_dep, winmm_dep, gdi32_dep, user32_dep, shell32_dep])
