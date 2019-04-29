@@ -1,4 +1,4 @@
-project('luajit', 'c')
+project('luajit', 'c', 'asm')
 
 compiler = meson.get_compiler('c')
 
