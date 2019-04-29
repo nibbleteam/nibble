@@ -74,7 +74,7 @@ sources = [
 objects = []
 
 if build_machine.system() == 'windows'
-  objects += 'src/lj_vm.obj'
+  #  objects += 'src/lj_vm.obj'
 else
   sources += 'src/lj_vm.s'
 endif
