@@ -9,8 +9,8 @@ environment:
     matrix:
         #- arch: x86
         #  compiler: msvc2015
-        #- arch: x64
-        #  compiler: msvc2015
+        - arch: x64
+          compiler: msvc2015
         #- arch: x86
         #  compiler: msvc2017
         - arch: x64
