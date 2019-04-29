@@ -7,7 +7,7 @@ dl_dep = compiler.find_library('dl', required: false)
 
 headers = include_directories('src')
 
-luajit_static = library('luajit',
+luajit = library('luajit',
   'src/lib_base.c',
   'src/lib_math.c',
   'src/lib_bit.c',
@@ -78,5 +78,5 @@ luajit_static = library('luajit',
 
 luajit_dep = declare_dependency(
   include_directories: headers,
-  link_with: luajit_static
+  link_with: luajit
 )

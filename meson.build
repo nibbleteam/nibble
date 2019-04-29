@@ -52,4 +52,4 @@ executable('nibble',
            sources,
            include_directories: headers,
            gui_app: true,
-           dependencies: [sdl2_dep, sdl2main_dep, luajit_dep, libpng_dep, giflib_dep, zlib_dep, imm32_dep, version_dep, winmm_dep])
+           dependencies: [luajit_dep, sdl2_dep, sdl2main_dep, libpng_dep, giflib_dep, zlib_dep, imm32_dep, version_dep, winmm_dep])
