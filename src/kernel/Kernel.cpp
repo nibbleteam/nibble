@@ -50,7 +50,7 @@ void Kernel::startup() {
 
     process = make_unique<Process>(memory, entrypoint);
 
-    if (not process->ok) {
+    if (!process->ok) {
         cout << "Could not start LuaJIT" << endl;
         exit(1);
     }
@@ -122,8 +122,8 @@ void Kernel::loop() {
                 } break;
 
                 case SDL_KEYDOWN: {
-                    if (event.key.keysym.sym == SDLK_r and
-                        (event.key.keysym.mod&KMOD_LCTRL or
+                    if (event.key.keysym.sym == SDLK_r && 
+                        (event.key.keysym.mod&KMOD_LCTRL ||
                          event.key.keysym.mod&KMOD_RCTRL)) {
                         shutdown();
                         startup();
@@ -359,7 +359,7 @@ LuaString* api_list_files(const char* path, size_t* length_out, int* ok_out) {
     *ok_out = (int)ok;
     *length_out = amount;
 
-    if (ok and amount > 0) {
+    if (ok && amount > 0) {
         auto ptr_files = new LuaString[amount];
 
         for (size_t i=0;i<amount;i++) {
