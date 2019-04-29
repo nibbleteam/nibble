@@ -8,7 +8,7 @@ branches:
 environment:
     matrix:
         - arch: x86
-            compiler: msvc2015
+          compiler: msvc2015
         #- arch: x64
         #  compiler: msvc2015
         #        - arch: x86
