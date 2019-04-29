@@ -1,4 +1,4 @@
-project('luajit', 'c', 'asm')
+project('luajit', 'c')
 
 compiler = meson.get_compiler('c')
 
@@ -69,7 +69,7 @@ luajit_static = static_library('luajit',
   'src/lj_alloc.c',
   'src/lib_aux.c',
   'src/lib_init.c',
-  'src/lj_vm.asm',
+  'src/lj_vm.S',
   dependencies: [m_dep, dl_dep],
   include_directories: headers
 )
