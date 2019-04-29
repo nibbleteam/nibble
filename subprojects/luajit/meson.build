@@ -1,4 +1,4 @@
-project('luajit', 'c', default_options: ['default_library=both'])
+project('luajit', 'c')
 
 compiler = meson.get_compiler('c')
 
@@ -79,7 +79,7 @@ else
   sources += 'src/lj_vm.s'
 endif
 
-  luajit = library('luajit',
+luajit_static = static_library('luajit',
   sources,
   objects: objects,
   dependencies: [
@@ -90,5 +90,5 @@ endif
 
 luajit_dep = declare_dependency(
   include_directories: headers,
-  link_with: luajit
+  link_with: luajit_static
 )

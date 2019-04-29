@@ -1,4 +1,4 @@
-project('nibble', 'cpp', default_options: ['b_vscrt=mt', 'default_library=shared'])
+project('nibble', 'cpp', default_options: ['b_vscrt=mt'])
 
 add_global_link_arguments('-rdynamic', language: 'cpp')
 
