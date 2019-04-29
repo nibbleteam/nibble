@@ -4,7 +4,12 @@ compiler = meson.get_compiler('c')
 
 m_dep = compiler.find_library('m', required: false)
 dl_dep = compiler.find_library('dl', required: false)
-lmm32_dep = compiler.find_library('lmm32', required: false)
+
+#imagehlp dinput8 dxguid dxerr8 user32 gdi32 winmm imm32 ole32
+#oleaut32 shell32 version uuid
+
+imm32_dep = compiler.find_library('imm32', required: false)
+version_dep = compiler.find_library('version', required: false)
 
 headers = include_directories('src')
 
@@ -71,7 +76,7 @@ luajit_static = static_library('luajit',
   'src/lib_aux.c',
   'src/lib_init.c',
   objects: 'src/lj_vm.obj',
-  dependencies: [m_dep, dl_dep, lmm32_dep],
+  dependencies: [m_dep, dl_dep, imm32_dep, version_dep],
   include_directories: headers
 )
 
