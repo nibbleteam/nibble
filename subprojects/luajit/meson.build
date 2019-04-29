@@ -1,4 +1,4 @@
-project('luajit', 'c', default_options: ['default_library=shared'])
+project('luajit', 'c', default_options: ['default_library=both'])
 
 compiler = meson.get_compiler('c')
 
@@ -79,7 +79,7 @@ else
   sources += 'src/lj_vm.s'
 endif
 
-luajit = shared_library('luajit',
+  luajit = library('luajit',
   sources,
   objects: objects,
   dependencies: [
