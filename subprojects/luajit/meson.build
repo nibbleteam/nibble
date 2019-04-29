@@ -10,6 +10,7 @@ dl_dep = compiler.find_library('dl', required: false)
 
 imm32_dep = compiler.find_library('imm32', required: false)
 version_dep = compiler.find_library('version', required: false)
+winmm_dep = compiler.find_library('winmm', required: false)
 
 headers = include_directories('src')
 
@@ -76,7 +77,7 @@ luajit_static = static_library('luajit',
   'src/lib_aux.c',
   'src/lib_init.c',
   objects: 'src/lj_vm.obj',
-  dependencies: [m_dep, dl_dep, imm32_dep, version_dep],
+  dependencies: [m_dep, dl_dep, imm32_dep, version_dep, winmm],
   include_directories: headers
 )
 
