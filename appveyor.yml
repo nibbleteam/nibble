@@ -1,42 +1,83 @@
-branches:
-    only:
-        - master 
-        - dev
-configuration: Release
+os: Visual Studio 2017
+
+only:
+    - master 
+    - dev
+
+environment:
+    matrix:
+        - arch: x86
+          compiler: msvc2015
+        - arch: x64
+          compiler: msvc2015
+        - arch: x86
+          compiler: msvc2017
+        - arch: x64
+          compiler: msvc2017
+
+platform:
+  - x64
+
+install:
+    # Download ninja
+    - cmd: mkdir C:\ninja-build
+    - ps: (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'C:\ninja-build\ninja.exe')
+    # Set paths to dependencies (based on architecture)
+    - cmd: if %arch%==x86 (set PYTHON_ROOT=C:\python37) else (set PYTHON_ROOT=C:\python37-x64)
+    # Print out dependency paths
+    - cmd: echo Using Python at %PYTHON_ROOT%
+    # Add neccessary paths to PATH variable
+    - cmd: set PATH=%cd%;C:\ninja-build;%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%
+    # Install meson
+    - cmd: pip install meson
+    # Set up the build environment
+    - cmd: if %compiler%==msvc2015 ( call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %arch% )
+    - cmd: if %compiler%==msvc2017 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %arch% )
+
+build_script:
+    - cmd: echo Building on %arch% with %compiler%
+    - cmd: meson --backend=ninja builddir
+    - cmd: ninja -C builddir
+
+test_script:
+    - cmd: ninja -C builddir testbranches:
+
 on_success:
     - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
     - ps: ./send.ps1 success $env:WEBHOOK_URL
+
 on_failure:
     - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
     - ps: ./send.ps1 failure $env:WEBHOOK_URL
-install:
-    - cd C:\projects\nibble
-    - git submodule update --init --recursive
-    - mkdir C:\deps
-    - cd C:\deps
-    - set CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.1-win64-x64.zip"
-    - appveyor DownloadFile %CMAKE_URL% -FileName cmake.zip
-    - 7z x cmake.zip > nul
-    - move cmake-* cmake
-    - set PATH=C:\deps\cmake\bin;%PATH%
-    - cmake --version
-    - mkdir bin
-    - set RCEDIT_URL="https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe"
-    - appveyor DownloadFile %RCEDIT_URL% -FileName rcedit.exe
-    - mv rcedit.exe bin\
-    - set PATH=C:\deps\bin;%PATH%
-    - cd C:\projects\nibble
-    - mkdir build
-    - cd build
-    - cmake ..
-build:
-    project: build\nibble.sln
-after_build:
-    - cd C:\projects\nibble
-#    - copy build\bin\openal32.dll bin\
-    - move bin nibble
-    - rmdir nibble\Release /s /q
-    - rcedit "nibble/nibble.exe" --set-icon "assets/icon.ico"
-    - 7z a nibble.zip nibble 
-artifacts:
-    - path: nibble.zip
+
+#install:
+#    - cd C:\projects\nibble
+#    - git submodule update --init --recursive
+#    - mkdir C:\deps
+#    - cd C:\deps
+#    - set CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.1-win64-x64.zip"
+#    - appveyor DownloadFile %CMAKE_URL% -FileName cmake.zip
+#    - 7z x cmake.zip > nul
+#    - move cmake-* cmake
+#    - set PATH=C:\deps\cmake\bin;%PATH%
+#    - cmake --version
+#    - mkdir bin
+#    - set RCEDIT_URL="https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe"
+#    - appveyor DownloadFile %RCEDIT_URL% -FileName rcedit.exe
+#    - mv rcedit.exe bin\
+#    - set PATH=C:\deps\bin;%PATH%
+#    - cd C:\projects\nibble
+#    - mkdir build
+#    - cd build
+#    - cmake ..
+#build:
+#    project: build\nibble.sln
+
+#after_build:
+#    - cd C:\projects\nibble
+#    - move bin nibble
+#    - rmdir nibble\Release /s /q
+#    - rcedit "nibble/nibble.exe" --set-icon "assets/icon.ico"
+#    - 7z a nibble.zip nibble 
+#artifacts:
+#    - path: nibble.zip
