@@ -9,26 +9,27 @@ environment:
     matrix:
         #- arch: x86
         #  compiler: msvc2015
-        - arch: x64
-          compiler: msvc2015
+        #- arch: x64
+        #  compiler: msvc2015
         #- arch: x86
         #  compiler: msvc2017
-        #- arch: x64
-        #  compiler: msvc2017
+        - arch: x64
+          compiler: msvc2017
 
 platform:
   - x64
 
 install:
-    # Download ninja
-    - cmd: mkdir C:\ninja-build
-    - ps: (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'C:\ninja-build\ninja.exe')
+    # Download ninja & rcedit
+    - cmd: mkdir C:\deps
+    - ps: (new-object net.webclient).DownloadFile('https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe', 'C:\deps\rcedit.exe')
+    - ps: (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'C:\deps\ninja.exe')
     # Set paths to dependencies (based on architecture)
     - cmd: if %arch%==x86 (set PYTHON_ROOT=C:\python37) else (set PYTHON_ROOT=C:\python37-x64)
     # Print out dependency paths
     - cmd: echo Using Python at %PYTHON_ROOT%
     # Add neccessary paths to PATH variable
-    - cmd: set PATH=%cd%;C:\ninja-build;%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%
+    - cmd: set PATH=%cd%;C:\deps;%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%
     # Install meson
     - cmd: pip install meson
     # Set up the build environment
@@ -74,11 +75,14 @@ on_failure:
 #build:
 #    project: build\nibble.sln
 
-#after_build:
-#    - cd C:\projects\nibble
-#    - move bin nibble
-#    - rmdir nibble\Release /s /q
-#    - rcedit "nibble/nibble.exe" --set-icon "assets/icon.ico"
-#    - 7z a nibble.zip nibble 
-#artifacts:
-#    - path: nibble.zip
+after_build:
+    #- cd C:\projects\nibble
+    - mkdir nibble
+    - move build\nibble nibble
+    - move src\apps nibble
+    - move src\frameworks nibble
+    - rcedit "nibble/nibble.exe" --set-icon "assets/icon.ico"
+    - 7z a nibble.zip nibble 
+
+artifacts:
+    - path: nibble.zip
