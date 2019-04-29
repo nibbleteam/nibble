@@ -17,6 +17,8 @@ libpng_dep = libpng.get_variable('png_dep')
 zlib = subproject('zlib')
 zlib_dep = zlib.get_variable('zlib_dep')
 
+compiler = meson.get_compiler('cpp')
+
 imm32_dep = compiler.find_library('imm32', required: false)
 version_dep = compiler.find_library('version', required: false)
 winmm_dep = compiler.find_library('winmm', required: false)
