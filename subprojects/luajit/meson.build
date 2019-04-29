@@ -69,7 +69,7 @@ luajit_static = static_library('luajit',
   'src/lj_alloc.c',
   'src/lib_aux.c',
   'src/lib_init.c',
-  'src/lj_vm.S',
+  'src/lj_vm.obj',
   dependencies: [m_dep, dl_dep],
   include_directories: headers
 )
