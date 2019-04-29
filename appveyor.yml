@@ -78,7 +78,7 @@ on_failure:
 after_build:
     #- cd C:\projects\nibble
     - mkdir nibble
-    - move build\nibble nibble
+    - move builddir\nibble.exe nibble
     - move src\apps nibble
     - move src\frameworks nibble
     - rcedit "nibble/nibble.exe" --set-icon "assets/icon.ico"
