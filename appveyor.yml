@@ -52,29 +52,6 @@ on_failure:
     - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
     - ps: ./send.ps1 failure $env:WEBHOOK_URL
 
-#install:
-#    - cd C:\projects\nibble
-#    - git submodule update --init --recursive
-#    - mkdir C:\deps
-#    - cd C:\deps
-#    - set CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.1-win64-x64.zip"
-#    - appveyor DownloadFile %CMAKE_URL% -FileName cmake.zip
-#    - 7z x cmake.zip > nul
-#    - move cmake-* cmake
-#    - set PATH=C:\deps\cmake\bin;%PATH%
-#    - cmake --version
-#    - mkdir bin
-#    - set RCEDIT_URL="https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe"
-#    - appveyor DownloadFile %RCEDIT_URL% -FileName rcedit.exe
-#    - mv rcedit.exe bin\
-#    - set PATH=C:\deps\bin;%PATH%
-#    - cd C:\projects\nibble
-#    - mkdir build
-#    - cd build
-#    - cmake ..
-#build:
-#    project: build\nibble.sln
-
 after_build:
     #- cd C:\projects\nibble
     - mkdir nibble
