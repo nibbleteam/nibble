@@ -28,7 +28,7 @@ libpng_deps = [
         cc.find_library('m', required : false),
 ]
 
-libpng = static_library(png_libname, [
+libpng = library(png_libname, [
         'png.c',
         'pngerror.c',
         'pngget.c',

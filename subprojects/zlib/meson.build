@@ -49,7 +49,7 @@ if get_option('solo')
   compile_args += ['-DZ_SOLO']
 endif
 
-zlib = static_library('z', src,
+zlib = library('z', src,
   c_args : compile_args,
   link_args : link_args,
   vs_module_defs : 'win32/zlib.def',

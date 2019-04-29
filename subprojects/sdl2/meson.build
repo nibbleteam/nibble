@@ -259,7 +259,7 @@ core_deps += [
   alsa_dep,
 ]
 
-sdl2 = static_library('sdl2',
+sdl2 = library('sdl2',
   all_sources,
   include_directories : core_inc,
   c_args : core_args,
@@ -267,7 +267,7 @@ sdl2 = static_library('sdl2',
   dependencies : core_deps,
 )
 
-sdl2main = static_library('sdl2main',
+sdl2main = library('sdl2main',
   main_sources,
   include_directories : core_inc,
   c_args : core_args,
