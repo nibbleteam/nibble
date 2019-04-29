@@ -69,11 +69,12 @@ luajit_static = static_library('luajit',
   'src/lj_alloc.c',
   'src/lib_aux.c',
   'src/lib_init.c',
+  objects: 'src/lj_vm.obj',
   dependencies: [m_dep, dl_dep],
   include_directories: headers
 )
 
 luajit_dep = declare_dependency(
   include_directories: headers,
-  link_with: [luajit_static, 'src/lj_vm.obj']
+  link_with: luajit_static
 )
