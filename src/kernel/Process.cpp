@@ -64,7 +64,7 @@ Process::~Process() {
 }
 
 void Process::init() {
-    if (not initialized && ok) {
+    if (!initialized && ok) {
         lua_getglobal(st, "init");
         if (lua_isfunction(st, -1)) {
             if (call_with_traceback(st, 0, 0) != 0) {
@@ -78,7 +78,7 @@ void Process::init() {
 }
 
 void Process::update(float dt) {
-    if (not ok) {
+    if (!ok) {
         return;
     }
 
@@ -93,7 +93,7 @@ void Process::update(float dt) {
 }
 
 void Process::menu() {
-    if (not ok) {
+    if (!ok) {
         return;
     }
 
@@ -107,7 +107,7 @@ void Process::menu() {
 }
 
 void Process::audio_tick() {
-    if (not ok) {
+    if (!ok) {
         return;
     }
 
