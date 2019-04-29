@@ -143,7 +143,7 @@ static void *clib_getsym(CLibrary *cl, const char *name)
 
 #elif LJ_TARGET_WINDOWS
 
-#define WIN32_LEAN_AND_MEAN
+//#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #ifndef GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS

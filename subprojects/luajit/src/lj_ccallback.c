@@ -204,7 +204,7 @@ static void callback_mcode_init(global_State *g, uint32_t *page)
 
 #if LJ_TARGET_WINDOWS
 
-#define WIN32_LEAN_AND_MEAN
+//#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #elif LJ_TARGET_POSIX
