@@ -77,7 +77,7 @@ luajit_static = static_library('luajit',
   'src/lib_aux.c',
   'src/lib_init.c',
   objects: 'src/lj_vm.obj',
-  dependencies: [m_dep, dl_dep, imm32_dep, version_dep, winmm],
+  dependencies: [m_dep, dl_dep, imm32_dep, version_dep, winmm_dep],
   include_directories: headers
 )
 
