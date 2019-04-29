@@ -24,13 +24,14 @@ Process::Process(Memory &memory, Path &executable):
     // e dados do app
     Path lua = executable.resolve(lua_entry_point);
 	
+    cout << "Will create lua state" << endl;
+
     st = luaL_newstate();
+
+    cout << "Will load lua libs" << endl;
 
     // Carrega libs padrão lua
     luaL_openlibs(st);
-
-    // Carrega a niblib
-    // TODO
 
     cout << "Loading lua entrypoint " << lua.get_path() << " ..." << endl;
 
