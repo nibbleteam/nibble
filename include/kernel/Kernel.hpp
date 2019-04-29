@@ -74,7 +74,6 @@ public:
 };
 
 extern "C" {
-    int main();
     int main(int, char**);
 
     typedef struct LuaString {

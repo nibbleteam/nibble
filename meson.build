@@ -1,8 +1,7 @@
 project('nibble', 'cpp')
 
-if host_machine.system() != 'Windows'
-  add_global_link_arguments('-rdynamic', language: 'cpp')
-endif
+add_global_link_arguments('-rdynamic', language: 'cpp')
+add_global_link_arguments('-subsystem:windows', language: 'cpp')
 
 luajit = subproject('luajit')
 luajit_dep = luajit.get_variable('luajit_dep')
