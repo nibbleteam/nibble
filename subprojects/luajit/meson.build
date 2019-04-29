@@ -7,7 +7,7 @@ dl_dep = compiler.find_library('dl', required: false)
 
 headers = include_directories('src')
 
-luajit = library('luajit',
+luajit = shared_library('luajit',
   'src/lib_base.c',
   'src/lib_math.c',
   'src/lib_bit.c',
