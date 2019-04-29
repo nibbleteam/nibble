@@ -7,7 +7,7 @@ dl_dep = compiler.find_library('dl', required: false)
 
 headers = include_directories('src')
 
-luajit = shared_library('luajit',
+sources = [
   'src/lib_base.c',
   'src/lib_math.c',
   'src/lib_bit.c',
@@ -69,7 +69,19 @@ luajit = shared_library('luajit',
   'src/lj_alloc.c',
   'src/lib_aux.c',
   'src/lib_init.c',
-  objects: 'src/lj_vm.obj',
+]
+
+objects = []
+
+if build_machine.system() == 'windows'
+  objects += 'src/lj_vm.obj'
+else
+  sources += 'src/lj_vm.s'
+endif
+
+luajit = shared_library('luajit',
+  sources,
+  objects: objects,
   dependencies: [
     m_dep, dl_dep
   ],
