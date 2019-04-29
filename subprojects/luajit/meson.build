@@ -1,4 +1,4 @@
-project('luajit', 'c')
+project('luajit', 'c', default_options: ['default_library=shared'])
 
 compiler = meson.get_compiler('c')
 
@@ -74,7 +74,7 @@ sources = [
 objects = []
 
 if build_machine.system() == 'windows'
-  #  objects += 'src/lj_vm.obj'
+  objects += 'src/lj_vm.obj'
 else
   sources += 'src/lj_vm.s'
 endif
