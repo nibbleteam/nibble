@@ -2,7 +2,7 @@
 
 weak_ptr<Kernel> KernelSingleton;
 
-int main(int argc, char** argv) {
+int main() {
     cout << "|¯¯¯\\|¯¯¯|   o   |¯¯|    |¯¯|    |¯¯| '  /¯x¯¯\\" << endl;
     cout << "|       '| |¯¯¯| |  ¯¯\\' |  ¯¯\\' |  |__ | (\\__/" << endl;
     cout << "|___|\\___| |___| |__x_/° |__x_/° |_____| \\____\\" << endl;
