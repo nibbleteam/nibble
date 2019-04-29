@@ -396,7 +396,7 @@ vector <Path> fs::list_directory (Path _path, bool &_success) {
 
         if ((found_file = FindFirstFile((_path.get_path()+lig+"*").c_str(), &file)) != INVALID_HANDLE_VALUE) {
             do {
-                dir.push_back(Path(string(_path.get_path()+lig+file.c_file_name)));
+                dir.push_back(Path(string(_path.get_path()+lig+file.cFileName)));
             } while (FindNextFile(found_file, &file) != 0);
         }
 #else
