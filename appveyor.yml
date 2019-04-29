@@ -1,8 +1,9 @@
 os: Visual Studio 2017
 
-only:
-    - master 
-    - dev
+branches:
+    only:
+        - master 
+        - dev
 
 environment:
     matrix:
@@ -40,7 +41,7 @@ build_script:
     - cmd: ninja -C builddir
 
 test_script:
-    - cmd: ninja -C builddir testbranches:
+    - cmd: ninja -C builddir test
 
 on_success:
     - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
