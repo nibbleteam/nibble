@@ -267,7 +267,7 @@ sdl2 = library('sdl2',
   dependencies : core_deps,
 )
 
-sdl2main = library('sdl2main',
+sdl2main = static_library('sdl2main',
   main_sources,
   include_directories : core_inc,
   c_args : core_args,
