@@ -1,9 +1,10 @@
 local hw = require 'frameworks.kernel.hw'
 local input = {}
 
-input.CONTROLLER  = 78784
-input.KEYBOARD    = 78794
-input.MOUSE       = 78826
+input.MIDI_CONTROLLER   = 78832
+input.CONTROLLER        = 78784
+input.KEYBOARD          = 78794
+input.MOUSE             = 78826
 
 input.STUP       = 0
 input.STPRESSED  = 1
@@ -77,6 +78,33 @@ function input.read_keys()
     end
 
     return hw.read(input.KEYBOARD+1, amount)
+end
+
+function input.read_midi()
+    local cmds = {}
+
+    local ptr = input.MIDI_CONTROLLER
+
+    while true do
+        local amount = hw.read8(ptr)
+
+        if amount > 0 then
+            local cmd = {}
+
+            for i=1,amount do
+                table.insert(cmd, hw.read8(ptr+i))
+                hw.write(ptr+i, '\00')
+            end
+
+            table.insert(cmds, cmd)
+
+            ptr += amount+1
+        else
+            break
+        end
+    end
+
+    return cmds
 end
 
 return input

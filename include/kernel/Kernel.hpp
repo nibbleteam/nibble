@@ -20,6 +20,7 @@
 #include <devices/Keyboard.hpp>
 #include <devices/Mouse.hpp>
 #include <devices/Controller.hpp>
+#include <devices/MidiController.hpp>
 
 #include <LuaBridge/LuaBridge.h>
 
@@ -48,6 +49,7 @@ public:
     unique_ptr<Keyboard> keyboard;
     unique_ptr<Mouse> mouse;
     unique_ptr<Controller> controller;
+    unique_ptr<MidiController> midi_controller;
 public:
     Kernel();
     ~Kernel();

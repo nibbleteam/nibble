@@ -326,6 +326,7 @@ function nib_api(entrypoint, proc)
         mouse_button_release = input.mouse_button_release,
         mouse_position = input.mouse_position,
         read_keys = input.read_keys,
+        read_midi = input.read_midi,
         -- Sistema de arquivos
         list_directory = hw.list,
         -- Audio

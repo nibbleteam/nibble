@@ -18,6 +18,9 @@ libpng_dep = libpng.get_variable('png_dep')
 zlib = subproject('zlib')
 zlib_dep = zlib.get_variable('zlib_dep')
 
+rtmidi = subproject('rtmidi')
+rtmidi_dep = rtmidi.get_variable('rtmidi_dep')
+
 compiler = meson.get_compiler('cpp')
 
 imm32_dep = compiler.find_library('imm32', required: false)
@@ -28,6 +31,7 @@ headers = include_directories('include')
 
 sources = [
   'src/main.cpp',
+  'src/devices/MidiController.cpp',
   'src/devices/Keyboard.cpp',
   'src/devices/Controller.cpp',
   'src/devices/Mouse.cpp',
@@ -48,8 +52,21 @@ sources = [
   'src/kernel/SawWave.cpp'
 ]
 
-executable('nibble',
-           sources,
-           include_directories: headers,
-           gui_app: true,
-           dependencies: [luajit_dep, sdl2_dep, sdl2main_dep, libpng_dep, giflib_dep, zlib_dep, imm32_dep, version_dep, winmm_dep])
+executable(
+  'nibble',
+   sources,
+   include_directories: headers,
+   gui_app: true,
+   dependencies: [
+     luajit_dep,
+     sdl2_dep,
+     sdl2main_dep,
+     libpng_dep,
+     giflib_dep,
+     zlib_dep,
+     rtmidi_dep,
+     imm32_dep,
+     version_dep,
+     winmm_dep
+   ]
+)

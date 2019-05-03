@@ -24,6 +24,7 @@ Kernel::Kernel() {
     controller = make_unique<Controller>(memory);
     keyboard = make_unique<Keyboard>(memory);
     mouse = make_unique<Mouse>(memory);
+    midi_controller = make_unique<MidiController>(memory);
 
     cout << "==========================================" << endl << endl;
 
@@ -45,6 +46,7 @@ void Kernel::startup() {
     audio->startup();
     keyboard->startup();
     controller->startup();
+    midi_controller->shutdown();
 
     auto entrypoint = Path("./frameworks/kernel/");
 
@@ -70,6 +72,7 @@ void Kernel::shutdown() {
     mouse->shutdown();
     keyboard->shutdown();
     controller->shutdown();
+    midi_controller->shutdown();
 }
 
 void Kernel::loop() {
@@ -83,10 +86,13 @@ void Kernel::loop() {
 
         SDL_Event event;
 
-        // Event handling
+        // Input updating
         controller->update();
         mouse->update();
         keyboard->update();
+        midi_controller->update();
+
+        // Event handling
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 // Fecha a janela no "x" ou alt-f4 etc

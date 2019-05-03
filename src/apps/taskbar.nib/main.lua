@@ -21,7 +21,7 @@ function init()
         pids[editor], _ = start_app('apps/'..editor..'.nib', {})
     end
 
-    run('code')
+    run('music')
 end
 
 function update(dt)

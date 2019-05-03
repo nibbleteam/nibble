@@ -95,6 +95,12 @@
 #define KEYBOARD_MEM_SIZE       (KEYBOARD_QUEUE_SIZE)
 
 /*
+ * Teclado MIDI
+ */
+
+#define MIDI_CONTROLLER_QUEUE_SIZE  1024
+
+/*
  * Controles
  */
 
