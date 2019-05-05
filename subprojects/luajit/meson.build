@@ -80,11 +80,11 @@ if build_machine.system() == 'windows'
   add_project_arguments(
     '/nologo',
     '/c',
-    '/O2',
+    # Conflicts with /RTC1 (run time error checks)
+    #    '/O2',
     '/W3',
     '/D_CRT_SECURE_NO_DEPRECATE',
     '/D_CRT_STDIO_INLINE=__declspec(dllexport)__inline',
-    '/Zi',
     language: 'c'
   )
 else
