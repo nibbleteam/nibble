@@ -75,6 +75,18 @@ objects = []
 
 if build_machine.system() == 'windows'
   objects += 'src/lj_vm.obj'
+  sources += 'src/lj_opt_fold.c'
+
+  add_project_arguments(
+    '/nologo',
+    '/c',
+    '/O2',
+    '/W3',
+    '/D_CRT_SECURE_NO_DEPRECATE',
+    '/D_CRT_STDIO_INLINE=__declspec(dllexport)__inline',
+    '/Zi',
+    language: 'c'
+  )
 else
   sources += 'src/lj_vm.s'
 endif
