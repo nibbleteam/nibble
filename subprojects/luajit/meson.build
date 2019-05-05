@@ -104,3 +104,5 @@ luajit_dep = declare_dependency(
   include_directories: headers,
   link_with: luajit_static
 )
+
+luajit_headers_dep = declare_dependency(include_directories: headers)
