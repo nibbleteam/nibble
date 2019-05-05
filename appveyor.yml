@@ -38,7 +38,7 @@ install:
 
 build_script:
     - cmd: echo Building on %arch% with %compiler%
-    - cmd: meson --backend=ninja --buildtype=optimized builddir
+    - cmd: meson --backend=ninja --buildtype=custom builddir
     - cmd: ninja -C builddir
 
 test_script:
