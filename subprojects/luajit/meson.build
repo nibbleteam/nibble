@@ -78,7 +78,6 @@ if build_machine.system() == 'windows'
 
   add_project_arguments(
     '/nologo',
-    '/nodefaultlib',
     '/c',
     # Conflicts with /RTC1 (run time error checks)
     '/O2',
@@ -97,7 +96,8 @@ luajit_static = static_library('luajit',
   dependencies: [
     m_dep, dl_dep
   ],
-  include_directories: headers
+  include_directories: headers,
+  link_args: ['/nodefaultlib'],
 )
 
 luajit_dep = declare_dependency(
