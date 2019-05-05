@@ -40,11 +40,11 @@ SDL_AudioDeviceID Audio::initialize() {
     spec_in.userdata = (void*)this;
 
 #ifdef WIN32
-    SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
+    SDL_setenv("SDL_AUDIODRIVER", "dsound", true);
 #endif
 
     // Open the device
-    device = SDL_OpenAudioDevice(nullptr, 0, &spec_in, &spec_out, SDL_AUDIO_ALLOW_ANY_CHANGE);
+    device = SDL_OpenAudioDevice(nullptr, 0, &spec_in, &spec_out, 0);
 
     cout << "[nibble] audio: freq: " << spec_out.freq << endl;
     cout << "[nibble] audio: ch: " << (int)spec_out.channels << endl;
