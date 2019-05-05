@@ -1,4 +1,4 @@
-project('luajit', 'c')
+project('luajit', 'c', default_options: ['b_vscrt=mt'])
 
 compiler = meson.get_compiler('c')
 
