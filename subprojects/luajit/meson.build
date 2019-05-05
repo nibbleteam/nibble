@@ -1,4 +1,4 @@
-project('luajit', 'c', default_options: ['b_vscrt=mt'])
+project('luajit', 'c', default_options: ['b_vscrt=mt', 'c_args='])
 
 compiler = meson.get_compiler('c')
 
@@ -81,7 +81,7 @@ if build_machine.system() == 'windows'
     '/nologo',
     '/c',
     # Conflicts with /RTC1 (run time error checks)
-    #    '/O2',
+    '/O2',
     '/W3',
     '/D_CRT_SECURE_NO_DEPRECATE',
     '/D_CRT_STDIO_INLINE=__declspec(dllexport)__inline',
