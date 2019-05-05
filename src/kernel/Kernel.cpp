@@ -204,7 +204,7 @@ void Kernel::loop() {
             audio_mutex.unlock();
         }
 
-        SDL_Delay(max<int>(32-(SDL_GetTicks()-last_time), 0));
+        SDL_Delay(max<int>((1000/GPU_FRAMERATE-1)-(SDL_GetTicks()-last_time), 0));
 
         gpu->draw();
     }
