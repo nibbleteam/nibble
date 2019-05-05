@@ -5,8 +5,6 @@ add_global_link_arguments('-rdynamic', language: 'cpp')
 #luajit = subproject('luajit')
 #luajit_dep = luajit.get_variable('luajit_dep')
 
-luajit_dep = compiler.find_library('lua51', dirs: ['subprojects/luajit/src'], required: true)
-
 sdl2 = subproject('sdl2')
 sdl2_dep = sdl2.get_variable('sdl2_dep')
 sdl2main_dep = sdl2.get_variable('sdl2main_dep')
@@ -28,6 +26,8 @@ compiler = meson.get_compiler('cpp')
 imm32_dep = compiler.find_library('imm32', required: false)
 version_dep = compiler.find_library('version', required: false)
 winmm_dep = compiler.find_library('winmm', required: false)
+
+luajit_dep = compiler.find_library('lua51', dirs: ['subprojects/luajit/src'], required: true)
 
 headers = include_directories('include')
 
