@@ -1,4 +1,4 @@
-project('luajit', 'c', default_options: ['b_vscrt=mt', 'b_pie=PIE', 'c_args='])
+project('luajit', 'c', default_options: ['c_args='])
 
 compiler = meson.get_compiler('c')
 
