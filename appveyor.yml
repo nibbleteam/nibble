@@ -38,7 +38,10 @@ install:
 
 build_script:
     - cmd: echo Building on %arch% with %compiler%
-    - cmd: meson --backend=ninja --buildtype=debug builddir
+    - cmd: cd subprojects\luajit\src
+    - cmd: msvcbuild.bat
+    - cmd: cd ..\..\..
+    - cmd: meson --backend=ninja --buildtype=release builddir
     - cmd: ninja -v -C builddir
 
 test_script:
