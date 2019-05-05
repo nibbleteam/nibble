@@ -75,7 +75,6 @@ objects = []
 
 if build_machine.system() == 'windows'
   objects += 'src/lj_vm.obj'
-  sources += 'src/lj_opt_fold.c'
 
   add_project_arguments(
     '/nologo',
