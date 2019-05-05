@@ -9,8 +9,8 @@ environment:
     matrix:
         #- arch: x86
         #  compiler: msvc2015
-        - arch: x64
-          compiler: msvc2015
+        #- arch: x64
+        #  compiler: msvc2015
         #- arch: x86
         #  compiler: msvc2017
         - arch: x64
@@ -39,7 +39,7 @@ install:
 build_script:
     - cmd: echo Building on %arch% with %compiler%
     - cmd: meson --backend=ninja --buildtype=release builddir
-    - cmd: ninja -C builddir
+    - cmd: ninja -v -C builddir
 
 test_script:
     - cmd: ninja -C builddir test
