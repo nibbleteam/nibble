@@ -67,6 +67,32 @@ static const uint8_t lj_lib_init_coroutine[] = {
 };
 #endif
 
+#ifdef LJLIB_MODULE_math
+#undef LJLIB_MODULE_math
+static const lua_CFunction lj_lib_cf_math[] = {
+  lj_ffh_math_abs,
+  lj_ffh_math_sqrt,
+  lj_ffh_math_log,
+  lj_ffh_math_atan2,
+  lj_ffh_math_ldexp,
+  lj_ffh_math_min,
+  lj_cf_math_random,
+  lj_cf_math_randomseed
+};
+static const uint8_t lj_lib_init_math[] = {
+37,16,30,67,97,98,115,133,102,108,111,111,114,132,99,101,105,108,68,115,113,
+114,116,133,108,111,103,49,48,131,101,120,112,131,115,105,110,131,99,111,115,
+131,116,97,110,132,97,115,105,110,132,97,99,111,115,132,97,116,97,110,132,115,
+105,110,104,132,99,111,115,104,132,116,97,110,104,133,102,114,101,120,112,132,
+109,111,100,102,251,248,193,99,26,220,165,76,64,131,100,101,103,251,57,157,
+82,162,70,223,145,63,131,114,97,100,67,108,111,103,69,97,116,97,110,50,131,
+112,111,119,132,102,109,111,100,69,108,100,101,120,112,67,109,105,110,131,109,
+97,120,251,24,45,68,84,251,33,9,64,194,112,105,250,251,0,0,0,0,0,0,240,127,
+196,104,117,103,101,250,252,2,6,114,97,110,100,111,109,252,2,10,114,97,110,
+100,111,109,115,101,101,100,255
+};
+#endif
+
 #ifdef LJLIB_MODULE_bit
 #undef LJLIB_MODULE_bit
 static const lua_CFunction lj_lib_cf_bit[] = {
@@ -76,10 +102,120 @@ static const lua_CFunction lj_lib_cf_bit[] = {
   lj_cf_bit_tohex
 };
 static const uint8_t lj_lib_init_bit[] = {
-37,16,12,69,116,111,98,105,116,132,98,110,111,116,133,98,115,119,97,112,70,
+65,42,12,69,116,111,98,105,116,132,98,110,111,116,133,98,115,119,97,112,70,
 108,115,104,105,102,116,134,114,115,104,105,102,116,135,97,114,115,104,105,
 102,116,131,114,111,108,131,114,111,114,68,98,97,110,100,131,98,111,114,132,
 98,120,111,114,5,116,111,104,101,120,255
+};
+#endif
+
+#ifdef LJLIB_MODULE_string
+#undef LJLIB_MODULE_string
+static const lua_CFunction lj_lib_cf_string[] = {
+  lj_ffh_string_len,
+  lj_ffh_string_byte,
+  lj_ffh_string_char,
+  lj_ffh_string_sub,
+  lj_ffh_string_rep,
+  lj_ffh_string_reverse,
+  lj_cf_string_dump,
+  lj_cf_string_find,
+  lj_cf_string_match,
+  lj_cf_string_gmatch,
+  lj_cf_string_gsub,
+  lj_cf_string_format
+};
+static const uint8_t lj_lib_init_string[] = {
+77,53,14,67,108,101,110,68,98,121,116,101,68,99,104,97,114,67,115,117,98,67,
+114,101,112,71,114,101,118,101,114,115,101,133,108,111,119,101,114,133,117,
+112,112,101,114,4,100,117,109,112,4,102,105,110,100,5,109,97,116,99,104,254,
+6,103,109,97,116,99,104,4,103,115,117,98,6,102,111,114,109,97,116,255
+};
+#endif
+
+#ifdef LJLIB_MODULE_table
+#undef LJLIB_MODULE_table
+static const lua_CFunction lj_lib_cf_table[] = {
+  lj_cf_table_foreachi,
+  lj_cf_table_foreach,
+  lj_ffh_table_getn,
+  lj_cf_table_maxn,
+  lj_cf_table_insert,
+  lj_cf_table_remove,
+  lj_cf_table_concat,
+  lj_cf_table_sort
+};
+static const uint8_t lj_lib_init_table[] = {
+92,61,8,8,102,111,114,101,97,99,104,105,7,102,111,114,101,97,99,104,68,103,
+101,116,110,4,109,97,120,110,6,105,110,115,101,114,116,6,114,101,109,111,118,
+101,6,99,111,110,99,97,116,4,115,111,114,116,255
+};
+#endif
+
+#ifdef LJLIB_MODULE_io_method
+#undef LJLIB_MODULE_io_method
+static const lua_CFunction lj_lib_cf_io_method[] = {
+  lj_cf_io_method_close,
+  lj_cf_io_method_read,
+  lj_cf_io_method_write,
+  lj_cf_io_method_flush,
+  lj_cf_io_method_seek,
+  lj_cf_io_method_setvbuf,
+  lj_cf_io_method_lines,
+  lj_cf_io_method___gc,
+  lj_cf_io_method___tostring
+};
+static const uint8_t lj_lib_init_io_method[] = {
+100,62,10,5,99,108,111,115,101,4,114,101,97,100,5,119,114,105,116,101,5,102,
+108,117,115,104,4,115,101,101,107,7,115,101,116,118,98,117,102,5,108,105,110,
+101,115,4,95,95,103,99,10,95,95,116,111,115,116,114,105,110,103,252,1,199,95,
+95,105,110,100,101,120,250,255
+};
+#endif
+
+#ifdef LJLIB_MODULE_io
+#undef LJLIB_MODULE_io
+static const lua_CFunction lj_lib_cf_io[] = {
+  lj_cf_io_open,
+  lj_cf_io_popen,
+  lj_cf_io_tmpfile,
+  lj_cf_io_close,
+  lj_cf_io_read,
+  lj_cf_io_write,
+  lj_cf_io_flush,
+  lj_cf_io_input,
+  lj_cf_io_output,
+  lj_cf_io_lines,
+  lj_cf_io_type
+};
+static const uint8_t lj_lib_init_io[] = {
+109,62,12,252,2,192,250,4,111,112,101,110,5,112,111,112,101,110,7,116,109,112,
+102,105,108,101,5,99,108,111,115,101,4,114,101,97,100,5,119,114,105,116,101,
+5,102,108,117,115,104,5,105,110,112,117,116,6,111,117,116,112,117,116,5,108,
+105,110,101,115,4,116,121,112,101,255
+};
+#endif
+
+#ifdef LJLIB_MODULE_os
+#undef LJLIB_MODULE_os
+static const lua_CFunction lj_lib_cf_os[] = {
+  lj_cf_os_execute,
+  lj_cf_os_remove,
+  lj_cf_os_rename,
+  lj_cf_os_tmpname,
+  lj_cf_os_getenv,
+  lj_cf_os_exit,
+  lj_cf_os_clock,
+  lj_cf_os_date,
+  lj_cf_os_time,
+  lj_cf_os_difftime,
+  lj_cf_os_setlocale
+};
+static const uint8_t lj_lib_init_os[] = {
+120,62,11,7,101,120,101,99,117,116,101,6,114,101,109,111,118,101,6,114,101,
+110,97,109,101,7,116,109,112,110,97,109,101,6,103,101,116,101,110,118,4,101,
+120,105,116,5,99,108,111,99,107,4,100,97,116,101,4,116,105,109,101,8,100,105,
+102,102,116,105,109,101,9,115,101,116,108,111,99,97,108,101,255
 };
 #endif
 
@@ -104,7 +240,7 @@ static const lua_CFunction lj_lib_cf_debug[] = {
   lj_cf_debug_traceback
 };
 static const uint8_t lj_lib_init_debug[] = {
-49,27,16,11,103,101,116,114,101,103,105,115,116,114,121,12,103,101,116,109,
+131,62,16,11,103,101,116,114,101,103,105,115,116,114,121,12,103,101,116,109,
 101,116,97,116,97,98,108,101,12,115,101,116,109,101,116,97,116,97,98,108,101,
 7,103,101,116,102,101,110,118,7,115,101,116,102,101,110,118,7,103,101,116,105,
 110,102,111,8,103,101,116,108,111,99,97,108,8,115,101,116,108,111,99,97,108,
@@ -112,6 +248,57 @@ static const uint8_t lj_lib_init_debug[] = {
 117,101,9,117,112,118,97,108,117,101,105,100,11,117,112,118,97,108,117,101,
 106,111,105,110,7,115,101,116,104,111,111,107,7,103,101,116,104,111,111,107,
 5,100,101,98,117,103,9,116,114,97,99,101,98,97,99,107,255
+};
+#endif
+
+#ifdef LJLIB_MODULE_jit
+#undef LJLIB_MODULE_jit
+static const lua_CFunction lj_lib_cf_jit[] = {
+  lj_cf_jit_on,
+  lj_cf_jit_off,
+  lj_cf_jit_flush,
+  lj_cf_jit_status,
+  lj_cf_jit_attach
+};
+static const uint8_t lj_lib_init_jit[] = {
+147,62,9,2,111,110,3,111,102,102,5,102,108,117,115,104,6,115,116,97,116,117,
+115,6,97,116,116,97,99,104,252,5,194,111,115,250,252,4,196,97,114,99,104,250,
+252,3,203,118,101,114,115,105,111,110,95,110,117,109,250,252,2,199,118,101,
+114,115,105,111,110,250,255
+};
+#endif
+
+#ifdef LJLIB_MODULE_jit_util
+#undef LJLIB_MODULE_jit_util
+static const lua_CFunction lj_lib_cf_jit_util[] = {
+  lj_cf_jit_util_funcinfo,
+  lj_cf_jit_util_funcbc,
+  lj_cf_jit_util_funck,
+  lj_cf_jit_util_funcuvname,
+  lj_cf_jit_util_traceinfo,
+  lj_cf_jit_util_traceir,
+  lj_cf_jit_util_tracek,
+  lj_cf_jit_util_tracesnap,
+  lj_cf_jit_util_tracemc,
+  lj_cf_jit_util_traceexitstub,
+  lj_cf_jit_util_ircalladdr
+};
+static const uint8_t lj_lib_init_jit_util[] = {
+152,62,11,8,102,117,110,99,105,110,102,111,6,102,117,110,99,98,99,5,102,117,
+110,99,107,10,102,117,110,99,117,118,110,97,109,101,9,116,114,97,99,101,105,
+110,102,111,7,116,114,97,99,101,105,114,6,116,114,97,99,101,107,9,116,114,97,
+99,101,115,110,97,112,7,116,114,97,99,101,109,99,13,116,114,97,99,101,101,120,
+105,116,115,116,117,98,10,105,114,99,97,108,108,97,100,100,114,255
+};
+#endif
+
+#ifdef LJLIB_MODULE_jit_opt
+#undef LJLIB_MODULE_jit_opt
+static const lua_CFunction lj_lib_cf_jit_opt[] = {
+  lj_cf_jit_opt_start
+};
+static const uint8_t lj_lib_init_jit_opt[] = {
+163,62,1,5,115,116,97,114,116,255
 };
 #endif
 
@@ -138,13 +325,13 @@ static const lua_CFunction lj_lib_cf_ffi_meta[] = {
   lj_cf_ffi_meta___ipairs
 };
 static const uint8_t lj_lib_init_ffi_meta[] = {
-65,27,19,7,95,95,105,110,100,101,120,10,95,95,110,101,119,105,110,100,101,120,
-4,95,95,101,113,5,95,95,108,101,110,4,95,95,108,116,4,95,95,108,101,8,95,95,
-99,111,110,99,97,116,6,95,95,99,97,108,108,5,95,95,97,100,100,5,95,95,115,117,
-98,5,95,95,109,117,108,5,95,95,100,105,118,5,95,95,109,111,100,5,95,95,112,
-111,119,5,95,95,117,110,109,10,95,95,116,111,115,116,114,105,110,103,7,95,95,
-112,97,105,114,115,8,95,95,105,112,97,105,114,115,195,102,102,105,203,95,95,
-109,101,116,97,116,97,98,108,101,250,255
+164,62,19,7,95,95,105,110,100,101,120,10,95,95,110,101,119,105,110,100,101,
+120,4,95,95,101,113,5,95,95,108,101,110,4,95,95,108,116,4,95,95,108,101,8,95,
+95,99,111,110,99,97,116,6,95,95,99,97,108,108,5,95,95,97,100,100,5,95,95,115,
+117,98,5,95,95,109,117,108,5,95,95,100,105,118,5,95,95,109,111,100,5,95,95,
+112,111,119,5,95,95,117,110,109,10,95,95,116,111,115,116,114,105,110,103,7,
+95,95,112,97,105,114,115,8,95,95,105,112,97,105,114,115,195,102,102,105,203,
+95,95,109,101,116,97,116,97,98,108,101,250,255
 };
 #endif
 
@@ -156,7 +343,7 @@ static const lua_CFunction lj_lib_cf_ffi_clib[] = {
   lj_cf_ffi_clib___gc
 };
 static const uint8_t lj_lib_init_ffi_clib[] = {
-83,27,3,7,95,95,105,110,100,101,120,10,95,95,110,101,119,105,110,100,101,120,
+182,62,3,7,95,95,105,110,100,101,120,10,95,95,110,101,119,105,110,100,101,120,
 4,95,95,103,99,255
 };
 #endif
@@ -168,7 +355,7 @@ static const lua_CFunction lj_lib_cf_ffi_callback[] = {
   lj_cf_ffi_callback_set
 };
 static const uint8_t lj_lib_init_ffi_callback[] = {
-86,27,3,4,102,114,101,101,3,115,101,116,252,1,199,95,95,105,110,100,101,120,
+185,62,3,4,102,114,101,101,3,115,101,116,252,1,199,95,95,105,110,100,101,120,
 250,255
 };
 #endif
@@ -194,199 +381,13 @@ static const lua_CFunction lj_lib_cf_ffi[] = {
   lj_cf_ffi_load
 };
 static const uint8_t lj_lib_init_ffi[] = {
-88,27,22,4,99,100,101,102,3,110,101,119,4,99,97,115,116,6,116,121,112,101,111,
-102,6,105,115,116,121,112,101,6,115,105,122,101,111,102,7,97,108,105,103,110,
-111,102,8,111,102,102,115,101,116,111,102,5,101,114,114,110,111,6,115,116,114,
-105,110,103,4,99,111,112,121,4,102,105,108,108,3,97,98,105,252,8,192,250,8,
-109,101,116,97,116,121,112,101,252,7,192,250,2,103,99,252,5,192,250,4,108,111,
-97,100,252,4,193,67,250,252,3,194,111,115,250,252,2,196,97,114,99,104,250,255
-};
-#endif
-
-#ifdef LJLIB_MODULE_io_method
-#undef LJLIB_MODULE_io_method
-static const lua_CFunction lj_lib_cf_io_method[] = {
-  lj_cf_io_method_close,
-  lj_cf_io_method_read,
-  lj_cf_io_method_write,
-  lj_cf_io_method_flush,
-  lj_cf_io_method_seek,
-  lj_cf_io_method_setvbuf,
-  lj_cf_io_method_lines,
-  lj_cf_io_method___gc,
-  lj_cf_io_method___tostring
-};
-static const uint8_t lj_lib_init_io_method[] = {
-104,27,10,5,99,108,111,115,101,4,114,101,97,100,5,119,114,105,116,101,5,102,
-108,117,115,104,4,115,101,101,107,7,115,101,116,118,98,117,102,5,108,105,110,
-101,115,4,95,95,103,99,10,95,95,116,111,115,116,114,105,110,103,252,1,199,95,
-95,105,110,100,101,120,250,255
-};
-#endif
-
-#ifdef LJLIB_MODULE_io
-#undef LJLIB_MODULE_io
-static const lua_CFunction lj_lib_cf_io[] = {
-  lj_cf_io_open,
-  lj_cf_io_popen,
-  lj_cf_io_tmpfile,
-  lj_cf_io_close,
-  lj_cf_io_read,
-  lj_cf_io_write,
-  lj_cf_io_flush,
-  lj_cf_io_input,
-  lj_cf_io_output,
-  lj_cf_io_lines,
-  lj_cf_io_type
-};
-static const uint8_t lj_lib_init_io[] = {
-113,27,12,252,2,192,250,4,111,112,101,110,5,112,111,112,101,110,7,116,109,112,
-102,105,108,101,5,99,108,111,115,101,4,114,101,97,100,5,119,114,105,116,101,
-5,102,108,117,115,104,5,105,110,112,117,116,6,111,117,116,112,117,116,5,108,
-105,110,101,115,4,116,121,112,101,255
-};
-#endif
-
-#ifdef LJLIB_MODULE_jit
-#undef LJLIB_MODULE_jit
-static const lua_CFunction lj_lib_cf_jit[] = {
-  lj_cf_jit_on,
-  lj_cf_jit_off,
-  lj_cf_jit_flush,
-  lj_cf_jit_status,
-  lj_cf_jit_attach
-};
-static const uint8_t lj_lib_init_jit[] = {
-124,27,9,2,111,110,3,111,102,102,5,102,108,117,115,104,6,115,116,97,116,117,
-115,6,97,116,116,97,99,104,252,5,194,111,115,250,252,4,196,97,114,99,104,250,
-252,3,203,118,101,114,115,105,111,110,95,110,117,109,250,252,2,199,118,101,
-114,115,105,111,110,250,255
-};
-#endif
-
-#ifdef LJLIB_MODULE_jit_util
-#undef LJLIB_MODULE_jit_util
-static const lua_CFunction lj_lib_cf_jit_util[] = {
-  lj_cf_jit_util_funcinfo,
-  lj_cf_jit_util_funcbc,
-  lj_cf_jit_util_funck,
-  lj_cf_jit_util_funcuvname,
-  lj_cf_jit_util_traceinfo,
-  lj_cf_jit_util_traceir,
-  lj_cf_jit_util_tracek,
-  lj_cf_jit_util_tracesnap,
-  lj_cf_jit_util_tracemc,
-  lj_cf_jit_util_traceexitstub,
-  lj_cf_jit_util_ircalladdr
-};
-static const uint8_t lj_lib_init_jit_util[] = {
-129,27,11,8,102,117,110,99,105,110,102,111,6,102,117,110,99,98,99,5,102,117,
-110,99,107,10,102,117,110,99,117,118,110,97,109,101,9,116,114,97,99,101,105,
-110,102,111,7,116,114,97,99,101,105,114,6,116,114,97,99,101,107,9,116,114,97,
-99,101,115,110,97,112,7,116,114,97,99,101,109,99,13,116,114,97,99,101,101,120,
-105,116,115,116,117,98,10,105,114,99,97,108,108,97,100,100,114,255
-};
-#endif
-
-#ifdef LJLIB_MODULE_jit_opt
-#undef LJLIB_MODULE_jit_opt
-static const lua_CFunction lj_lib_cf_jit_opt[] = {
-  lj_cf_jit_opt_start
-};
-static const uint8_t lj_lib_init_jit_opt[] = {
-140,27,1,5,115,116,97,114,116,255
-};
-#endif
-
-#ifdef LJLIB_MODULE_math
-#undef LJLIB_MODULE_math
-static const lua_CFunction lj_lib_cf_math[] = {
-  lj_ffh_math_abs,
-  lj_ffh_math_sqrt,
-  lj_ffh_math_log,
-  lj_ffh_math_atan2,
-  lj_ffh_math_ldexp,
-  lj_ffh_math_min,
-  lj_cf_math_random,
-  lj_cf_math_randomseed
-};
-static const uint8_t lj_lib_init_math[] = {
-141,27,30,67,97,98,115,133,102,108,111,111,114,132,99,101,105,108,68,115,113,
-114,116,133,108,111,103,49,48,131,101,120,112,131,115,105,110,131,99,111,115,
-131,116,97,110,132,97,115,105,110,132,97,99,111,115,132,97,116,97,110,132,115,
-105,110,104,132,99,111,115,104,132,116,97,110,104,133,102,114,101,120,112,132,
-109,111,100,102,251,248,193,99,26,220,165,76,64,131,100,101,103,251,57,157,
-82,162,70,223,145,63,131,114,97,100,67,108,111,103,69,97,116,97,110,50,131,
-112,111,119,132,102,109,111,100,69,108,100,101,120,112,67,109,105,110,131,109,
-97,120,251,24,45,68,84,251,33,9,64,194,112,105,250,251,0,0,0,0,0,0,240,127,
-196,104,117,103,101,250,252,2,6,114,97,110,100,111,109,252,2,10,114,97,110,
-100,111,109,115,101,101,100,255
-};
-#endif
-
-#ifdef LJLIB_MODULE_os
-#undef LJLIB_MODULE_os
-static const lua_CFunction lj_lib_cf_os[] = {
-  lj_cf_os_execute,
-  lj_cf_os_remove,
-  lj_cf_os_rename,
-  lj_cf_os_tmpname,
-  lj_cf_os_getenv,
-  lj_cf_os_exit,
-  lj_cf_os_clock,
-  lj_cf_os_date,
-  lj_cf_os_time,
-  lj_cf_os_difftime,
-  lj_cf_os_setlocale
-};
-static const uint8_t lj_lib_init_os[] = {
-169,53,11,7,101,120,101,99,117,116,101,6,114,101,109,111,118,101,6,114,101,
-110,97,109,101,7,116,109,112,110,97,109,101,6,103,101,116,101,110,118,4,101,
-120,105,116,5,99,108,111,99,107,4,100,97,116,101,4,116,105,109,101,8,100,105,
-102,102,116,105,109,101,9,115,101,116,108,111,99,97,108,101,255
-};
-#endif
-
-#ifdef LJLIB_MODULE_string
-#undef LJLIB_MODULE_string
-static const lua_CFunction lj_lib_cf_string[] = {
-  lj_ffh_string_len,
-  lj_ffh_string_byte,
-  lj_ffh_string_char,
-  lj_ffh_string_sub,
-  lj_ffh_string_rep,
-  lj_ffh_string_reverse,
-  lj_cf_string_dump,
-  lj_cf_string_find,
-  lj_cf_string_match,
-  lj_cf_string_gmatch,
-  lj_cf_string_gsub,
-  lj_cf_string_format
-};
-static const uint8_t lj_lib_init_string[] = {
-180,53,14,67,108,101,110,68,98,121,116,101,68,99,104,97,114,67,115,117,98,67,
-114,101,112,71,114,101,118,101,114,115,101,133,108,111,119,101,114,133,117,
-112,112,101,114,4,100,117,109,112,4,102,105,110,100,5,109,97,116,99,104,254,
-6,103,109,97,116,99,104,4,103,115,117,98,6,102,111,114,109,97,116,255
-};
-#endif
-
-#ifdef LJLIB_MODULE_table
-#undef LJLIB_MODULE_table
-static const lua_CFunction lj_lib_cf_table[] = {
-  lj_cf_table_foreachi,
-  lj_cf_table_foreach,
-  lj_ffh_table_getn,
-  lj_cf_table_maxn,
-  lj_cf_table_insert,
-  lj_cf_table_remove,
-  lj_cf_table_concat,
-  lj_cf_table_sort
-};
-static const uint8_t lj_lib_init_table[] = {
-195,61,8,8,102,111,114,101,97,99,104,105,7,102,111,114,101,97,99,104,68,103,
-101,116,110,4,109,97,120,110,6,105,110,115,101,114,116,6,114,101,109,111,118,
-101,6,99,111,110,99,97,116,4,115,111,114,116,255
+187,62,22,4,99,100,101,102,3,110,101,119,4,99,97,115,116,6,116,121,112,101,
+111,102,6,105,115,116,121,112,101,6,115,105,122,101,111,102,7,97,108,105,103,
+110,111,102,8,111,102,102,115,101,116,111,102,5,101,114,114,110,111,6,115,116,
+114,105,110,103,4,99,111,112,121,4,102,105,108,108,3,97,98,105,252,8,192,250,
+8,109,101,116,97,116,121,112,101,252,7,192,250,2,103,99,252,5,192,250,4,108,
+111,97,100,252,4,193,67,250,252,3,194,111,115,250,252,2,196,97,114,99,104,250,
+255
 };
 #endif
 
