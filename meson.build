@@ -27,7 +27,7 @@ imm32_dep = compiler.find_library('imm32', required: false)
 version_dep = compiler.find_library('version', required: false)
 winmm_dep = compiler.find_library('winmm', required: false)
 
-luajit_dep = compiler.find_library('lua51', dirs: ['subprojects/luajit/src'], required: true)
+luajit_dep = compiler.find_library('lua51', dirs: ['C:/projects/nibble/subprojects/luajit/src'], required: true)
 
 headers = include_directories('include')
 
