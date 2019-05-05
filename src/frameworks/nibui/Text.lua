@@ -88,11 +88,11 @@ function Text:draw()
     end
     
     -- Configura cores do FG e BG
-    col(15, self.color)
-    col(0, self.background_color)
+    swap_colors(15, self.color)
+    swap_colors(0, self.background_color)
 
     -- Configura bold/não bold
-    col(7, self.bold)
+    swap_colors(7, self.bold)
 
     -- Desenha
     print(self.text, self.x+off_x, self.y, self.palette)
@@ -105,13 +105,13 @@ function Text:draw()
             depth = 2
         end
 
-        rectf(self.x+off_x, self.y+9, #self.text*8, depth, self.color)
+        fill_rect(self.x+off_x, self.y+9, #self.text*8, depth, self.color)
     end
 
     -- Reseta cores
-    col(15, 15)
-    col(7, 7)
-    col(0, 0)
+    swap_colors(15, 15)
+    swap_colors(7, 7)
+    swap_colors(0, 0)
 end
 
 return Text

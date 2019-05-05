@@ -11,6 +11,8 @@ class MidiController: public Device {
     uint8_t *mem;
 
     unique_ptr<RtMidiIn> midi_in;
+
+    bool ok;
 public:
     MidiController(Memory&);
 

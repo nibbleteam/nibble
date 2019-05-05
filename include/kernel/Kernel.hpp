@@ -22,8 +22,6 @@
 #include <devices/Controller.hpp>
 #include <devices/MidiController.hpp>
 
-#include <LuaBridge/LuaBridge.h>
-
 using namespace std;
 
 // Simula o hardware do console e um kernel.

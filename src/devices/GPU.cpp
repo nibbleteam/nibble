@@ -20,7 +20,7 @@ GPU::GPU(Memory& memory):
                               SDL_WINDOWPOS_CENTERED,
                               GPU_VIDEO_WIDTH*GPU_DEFAULT_SCALING,
                               GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING,
-                              SDL_WINDOW_SHOWN);
+                              SDL_WINDOW_SHOWN | /* SDL_WINDOW_FULLSCREEN |*/ SDL_WINDOW_RESIZABLE );
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
@@ -156,45 +156,36 @@ void GPU::draw() {
 }
 
 void GPU::resize() {
-    /*
-    TODO
+    int w, h;
+    
+    SDL_GetWindowSize(window, &w, &h);
 
-    // Mantém o aspect ratio
-    auto windowSize = window.getSize();
-    auto screenRatio = float(GPU_VIDEO_WIDTH)/float(GPU_VIDEO_HEIGHT);
+    auto window_ratio = float(w)/float(h);
+    auto video_ratio = float(GPU_VIDEO_WIDTH)/float(GPU_VIDEO_HEIGHT);
 
-    if (windowSize.x > windowSize.y*screenRatio) {
-        auto ratio = float(GPU_VIDEO_WIDTH)/float(GPU_VIDEO_HEIGHT)*float(windowSize.y)/float(windowSize.x);
-        float spriteWidth = ratio*BYTES_PER_TEXEL;
+    if (window_ratio > video_ratio) {
+        screen_scale = float(h)/float(GPU_VIDEO_HEIGHT);
+        screen_offset_x = (w-screen_scale*float(GPU_VIDEO_WIDTH))/2.0;
 
-        screenScale = float(windowSize.y)/float(GPU_VIDEO_HEIGHT);
-        screenOffsetX = (float)GPU_VIDEO_WIDTH*(1-ratio)/2.0;
-        screenOffsetY = 0;
+        screen_offset_y = 0;
+    } else {
+        screen_scale = float(w)/float(GPU_VIDEO_WIDTH);
+        screen_offset_y = (h-screen_scale*float(GPU_VIDEO_HEIGHT))/2.0;
 
-        framebufferSpr.setScale(spriteWidth, 1.0);
-        framebufferSpr.setPosition(screenOffsetX, 0);
+        screen_offset_x = 0;
     }
-    else {
-        auto ratio = (float)windowSize.x/(float)windowSize.y*(float)GPU_VIDEO_HEIGHT/(float)GPU_VIDEO_WIDTH;
-        float spriteHeight = ratio;
 
-        screenScale = float(windowSize.x)/float(GPU_VIDEO_WIDTH);
-        screenOffsetX = 0;
-        screenOffsetY = (float)GPU_VIDEO_HEIGHT*(1-ratio)/2.0;
-
-        framebufferSpr.setScale(BYTES_PER_TEXEL, spriteHeight);
-        framebufferSpr.setPosition(0, screenOffsetY);
-    }
-    */
+    framebuffer_dst = SDL_Rect {int(screen_offset_x), int(screen_offset_y),
+                               int(GPU_VIDEO_WIDTH*screen_scale),
+                               int(GPU_VIDEO_HEIGHT*screen_scale)};
 }
 
 void GPU::transform_mouse(int16_t &x, int16_t &y) {
+    x -= screen_offset_x;
+    y -= screen_offset_y;
+
     x /= screen_scale;
     y /= screen_scale;
-
-    // TODO
-    //x -= (w/screen_scale-GPU_VIDEO_WIDTH)/2;
-    //y -= (h/screen_scale-GPU_VIDEO_HEIGHT)/2;
 }
 
 /*

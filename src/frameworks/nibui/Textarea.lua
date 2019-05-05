@@ -62,7 +62,7 @@ function Textarea:try_delete(n)
 
         return n
     else
-        table.remove(self.text, #self.text)
+        remove(self.text, #self.text)
         return #from.text
     end
 end
@@ -91,7 +91,7 @@ function Textarea:add(text)
     local texts = self:advance_cursor(text)
 
     for _, text in ipairs(texts) do
-        table.insert(self.text, text)
+        insert(self.text, text)
     end
 
     if self.cursor_y >= self.y+self.h then
@@ -123,20 +123,20 @@ function Textarea:advance_cursor(text)
         self.cursor_x = self.x
         self.cursor_y += self.line_height
 
-        local before, after = text:sub(0, #by-overflow), text:sub(#by-overflow, #by)
+        local before, after = text:sub(0, #by-overflow), text:sub(#by-overflow+1, #by)
 
         after.x = self.cursor_x
         after.y = self.cursor_y
 
-        table.insert(texts, before)
+        insert(texts, before)
 
         local nested_texts = self:advance_cursor(after)
 
         for _, text in ipairs(nested_texts) do
-            table.insert(texts, text)
+            insert(texts, text)
         end
     else
-        table.insert(texts, text)
+        insert(texts, text)
     end
 
     return texts

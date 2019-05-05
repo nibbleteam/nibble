@@ -56,6 +56,8 @@ public:
     // Permite que esse ponteiro seja retornado novamente
     void deallocate(uint8_t*);
     void deallocate(const size_t);
+    // Limpa toda a memória depois de um endereço
+    void deallocate_after(const size_t);
 
     // Redimensiona uma área de memória
     size_t resize(const size_t, const size_t);

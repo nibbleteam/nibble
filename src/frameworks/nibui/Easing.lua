@@ -45,4 +45,10 @@ function Easing.InOutCubic(x)
     end
 end
 
+function Easing.OutElastic(x)
+    x = clamp(x)
+
+    return math.sin(-13 * math.pi*2 * (x + 1)) * math.pow(2, -10 * x) + 1
+end
+
 return Easing

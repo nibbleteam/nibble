@@ -212,6 +212,11 @@ end
 function handle_process_error(error)
     print(error)
     print(debug.traceback())
+
+    processes[0] = make_process('apps/system/debug.nib', {
+        error = error,
+        traceback = debug.traceback(),
+    })
 end
 
 function nib_api(entrypoint, proc)
@@ -277,6 +282,7 @@ function nib_api(entrypoint, proc)
         pop = table.remove,
         remove = table.remove,
         insert = table.insert,
+        unwrap = unpack,
         -- GPU
         clear = hw.clr,
         sprite = hw.spr,

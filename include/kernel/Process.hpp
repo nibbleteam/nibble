@@ -11,8 +11,6 @@ extern "C" {
 #include <string>
 #include <vector>
 
-#include <LuaBridge/LuaBridge.h>
-
 #include <kernel/filesystem.hpp>
 #include <kernel/Memory.hpp>
 #include <kernel/Types.hpp>

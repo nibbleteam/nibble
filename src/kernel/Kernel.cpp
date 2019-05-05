@@ -73,6 +73,8 @@ void Kernel::shutdown() {
     keyboard->shutdown();
     controller->shutdown();
     midi_controller->shutdown();
+
+    memory.deallocate(79856);
 }
 
 void Kernel::loop() {

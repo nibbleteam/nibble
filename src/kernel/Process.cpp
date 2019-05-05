@@ -5,10 +5,7 @@
 
 #include <kernel/mmap/Image.hpp>
 
-#include <LuaBridge/LuaBridge.h>
 #include <iostream>
-
-using namespace luabridge;
 
 const string Process::lua_entry_point = "main.lua";
 

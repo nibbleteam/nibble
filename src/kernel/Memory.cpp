@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <sstream>
+#include <vector>
 
 #include <kernel/Memory.hpp>
 
@@ -63,6 +64,22 @@ tuple<uint8_t*, size_t> Memory::allocate_with_position(const size_t bytes, const
 
 uint8_t* Memory::allocate(const size_t bytes, const string use, function<void(AccessMode)> fn) {
     return get<0>(allocate_with_position(bytes, use, fn));
+}
+
+void Memory::deallocate_after(size_t minimum_used) {
+    uint8_t *ptr = raw+minimum_used;
+
+    vector <uint8_t*>tmp;
+
+    for (auto area: used_areas) {
+        if (area.first >= ptr) {
+            tmp.push_back(area.first);
+        }
+    }
+
+    for (auto area_ptr: tmp) {
+        deallocate(area_ptr);
+    }
 }
 
 void Memory::deallocate(uint8_t *ptr) {
