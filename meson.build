@@ -2,8 +2,10 @@ project('nibble', 'cpp', default_options: ['b_vscrt=mt'])
 
 add_global_link_arguments('-rdynamic', language: 'cpp')
 
-luajit = subproject('luajit')
-luajit_dep = luajit.get_variable('luajit_dep')
+#luajit = subproject('luajit')
+#luajit_dep = luajit.get_variable('luajit_dep')
+
+luajit_dep = compiler.find_library('lua51', dirs: ['subprojects/luajit/src'] required: true)
 
 sdl2 = subproject('sdl2')
 sdl2_dep = sdl2.get_variable('sdl2_dep')
