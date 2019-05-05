@@ -1,7 +1,5 @@
 project('nibble', 'cpp', default_options: ['b_vscrt=mt'])
 
-add_global_link_arguments('-rdynamic', language: 'cpp')
-
 luajit = subproject('luajit')
 luajit_headers_dep = luajit.get_variable('luajit_headers_dep')
 
@@ -27,7 +25,12 @@ imm32_dep = compiler.find_library('imm32', required: false)
 version_dep = compiler.find_library('version', required: false)
 winmm_dep = compiler.find_library('winmm', required: false)
 
-luajit_dep = compiler.find_library('lua51', dirs: ['C:/projects/nibble/subprojects/luajit/src'], required: true, static: true)
+if build_machine.system() == 'windows'
+  luajit_dep = compiler.find_library('lua51', dirs: ['C:/projects/nibble/subprojects/luajit/src'], required: true, static: true)
+else
+  add_project_link_arguments('-rdynamic', language: 'cpp')
+  luajit_dep = luajit.get_variable('luajit_dep')
+endif
 
 headers = include_directories('include')
 

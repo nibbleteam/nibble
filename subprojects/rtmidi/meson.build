@@ -4,6 +4,7 @@ compiler = meson.get_compiler('cpp')
 
 jack_dep = compiler.find_library('jack', required: false)
 alsa_dep = compiler.find_library('asound', required: false)
+winmm_dep = compiler.find_library('winmm', required: false)
 
 api_defs = []
 api_list = []
@@ -14,6 +15,9 @@ if alsa_dep.found()
 elif jack_dep.found()
   api_defs += '-D__UNIX_JACK__'
   api_list += 'jack'
+elif winmm_dep.found()
+  api_defs += '-D__WINDOWS_MM__'
+  api_list += 'winmm'
 endif
 
 add_project_arguments(api_defs, language: 'cpp')

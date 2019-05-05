@@ -18,6 +18,9 @@ bool Memory::Area::operator < (Area &other) {
 
 Memory::Memory(): log_memory_allocation(false) {
     raw = new uint8_t[NIBBLE_MEM_SIZE];
+
+    memset(raw, 0, NIBBLE_MEM_SIZE);
+
     cout << "Compiled with "<< NIBBLE_MEM_SIZE/1024 << "kB of memory." << endl;
 
     // Iniciamos apenas com uma área livre e nenhuma usada
