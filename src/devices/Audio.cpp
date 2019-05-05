@@ -23,35 +23,39 @@ Audio::~Audio() {
 }
 
 SDL_AudioDeviceID Audio::initialize() {
-  SDL_AudioDeviceID device;
-  // Especifificações que queremos, especificações que conseguimos
-  SDL_AudioSpec spec_in, spec_out;
-  // Limpa os specs
-  SDL_zero(spec_in);
-  // Escolhe nosso spec
-  spec_in.freq     = AUDIO_SAMPLE_RATE;
-  spec_in.format   = AUDIO_S16;
-  spec_in.channels = 2;
-  spec_in.samples  = AUDIO_SAMPLE_AMOUNT;
+    SDL_AudioDeviceID device;
+    // Especifificações que queremos, especificações que conseguimos
+    SDL_AudioSpec spec_in, spec_out;
+    // Limpa os specs
+    SDL_zero(spec_in);
+    // Escolhe nosso spec
+    spec_in.freq     = AUDIO_SAMPLE_RATE;
+    spec_in.format   = AUDIO_S16SYS;
+    spec_in.channels = 2;
+    spec_in.samples  = AUDIO_SAMPLE_AMOUNT;
 
-  spec_in.callback = [] (void *udata, Uint8 *stream, int len) {
-    ((Audio*)udata)->fill((int16_t*)stream, len/2);
-  };
-  spec_in.userdata = (void*)this;
+    spec_in.callback = [] (void *udata, Uint8 *stream, int len) {
+        ((Audio*)udata)->fill((int16_t*)stream, len/2);
+    };
+    spec_in.userdata = (void*)this;
 
-  // Open the device
-  device = SDL_OpenAudioDevice(nullptr, 0, &spec_in, &spec_out, 0);
+#ifdef WIN32
+    SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
+#endif
 
-  cout << "[nibble] audio: freq: " << spec_out.freq << endl;
-  cout << "[nibble] audio: ch: " << (int)spec_out.channels << endl;
-  cout << "[nibble] audio: format: " << (int)spec_out.format << ", " << (int)spec_in.format << endl;
-  cout << "[nibble] audio: samples: " << spec_out.samples << endl;
+    // Open the device
+    device = SDL_OpenAudioDevice(nullptr, 0, &spec_in, &spec_out, 0);
 
-  if (!device) {
-      /* TODO: Error!! */
-  }
+    cout << "[nibble] audio: freq: " << spec_out.freq << endl;
+    cout << "[nibble] audio: ch: " << (int)spec_out.channels << endl;
+    cout << "[nibble] audio: format: " << (int)spec_out.format << ", " << (int)spec_in.format << endl;
+    cout << "[nibble] audio: samples: " << spec_out.samples << endl;
 
-  return device;
+    if (!device) {
+        /* TODO: Error!! */
+    }
+
+    return device;
 }
 
 void Audio::startup() {
@@ -106,7 +110,7 @@ void Audio::mix(int16_t* samples, unsigned int sample_count) {
 void Audio::calc_tick_period(const double frequency) {
     // Período em segundos
     const double period = 1/frequency;
-    
+
     // Período em samples
     tick_period = (unsigned int) (period*44100);
 }
@@ -121,10 +125,10 @@ float Audio::tof(uint8_t n) {
 
 float Audio::tof16(const uint8_t *buffer) {
     return float(
-                int16_t(
-                    uint16_t(buffer[0]&0b01111111)<<8 | uint16_t(buffer[1])
+            int16_t(
+                uint16_t(buffer[0]&0b01111111)<<8 | uint16_t(buffer[1])
                 ) * (buffer[0]&0x80 ? -1 : 1)
-           )/float(0xFF);
+            )/float(0xFF);
 }
 
 float Audio::tof16(const int16_t *buffer) {
