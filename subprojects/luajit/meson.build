@@ -78,6 +78,7 @@ if build_machine.system() == 'windows'
 
   add_project_arguments(
     '/nologo',
+    '/nodefaultlib',
     '/c',
     # Conflicts with /RTC1 (run time error checks)
     '/O2',
