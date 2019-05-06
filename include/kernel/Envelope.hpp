@@ -28,7 +28,7 @@ public:
 
     MemoryLayout &memory;
 
-    uint8_t intensity;
+    float intensity;
 public:
     float amplitude;
     bool done;

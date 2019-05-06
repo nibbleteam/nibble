@@ -68,6 +68,8 @@ float Envelope::get_amplitude() {
 }
 
 void Envelope::on(uint8_t intensity) {
+    this->intensity = intensity;
+
     status = ATTACK;
 }
 

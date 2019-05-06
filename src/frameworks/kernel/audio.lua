@@ -74,8 +74,8 @@ local function route(from, to, amplitude)
     hw.write(audio_addr+CH_SIZE*ch+ENVS_SIZE+FREQ_SIZE+from*LINE_SIZE+to*CELL_SIZE, encode(amplitude))
 end
 
-local function noteon(n, i)
-    hw.write(audio_addr+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+TYPES_SIZE+i*3, '\x01'..string.char(n));
+local function noteon(n, i, intensity)
+    hw.write(audio_addr+CH_SIZE*ch+FREQ_SIZE+ENVS_SIZE+MAT_SIZE+TYPES_SIZE+i*3, '\x01'..string.char(n)..string.char(intensity or 0));
 end
 
 local function noteoff(n, i)
