@@ -6,10 +6,10 @@ jack_dep = compiler.find_library('jack', required: false)
 alsa_dep = compiler.find_library('asound', required: false)
 winmm_dep = compiler.find_library('winmm', required: false)
 
-core_services_dep compiler.find_library('CoreServices', required: false)
-core_audio_dep compiler.find_library('CoreAudio', required: false)
-core_midi_dep compiler.find_library('CoreMIDI', required: false)
-core_foundation_dep compiler.find_library('CoreFoundation', required: false)
+core_services_dep = compiler.find_library('CoreServices', required: false)
+core_audio_dep = compiler.find_library('CoreAudio', required: false)
+core_midi_dep = compiler.find_library('CoreMIDI', required: false)
+core_foundation_dep = compiler.find_library('CoreFoundation', required: false)
 
 api_defs = []
 api_list = []
