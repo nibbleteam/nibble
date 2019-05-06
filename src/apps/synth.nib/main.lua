@@ -106,18 +106,36 @@ function update(dt)
 
             if velocity > 255 then
                 velocity = 255
+            elseif velocity < 0 then
+                velocity = 0
+            end
+
+            local note = msg[2]
+
+            if note > 255 then
+                note = 255
+            elseif note < 0 then
+                note = 0
             end
 
             channel(CH1)
-            noteon(msg[2], audio_command_ptr%16, velocity)
+            noteon(note, audio_command_ptr%16, velocity)
             audio_command_ptr += 1
 
             pressed_keys[msg[2]] = true
         elseif cmd == MIDI_NOTEOFF then
             say('note off '..tostring(msg[2]))
 
+            local note = msg[2]
+
+            if note > 255 then
+                note = 255
+            elseif note < 0 then
+                note = 0
+            end
+
             channel(CH1)
-            noteoff(msg[2], audio_command_ptr%16)
+            noteoff(note, audio_command_ptr%16)
             audio_command_ptr += 1
 
             pressed_keys[msg[2]] = false
