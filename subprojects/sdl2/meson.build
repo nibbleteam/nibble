@@ -217,6 +217,8 @@ all_sources = []
 main_sources = []
 
 alsa_dep = dependency('alsa', required : false)
+pulse_dep = dependency('libpulse', required : false)
+pulse_simple_dep = dependency('libpulse-simple', required : false)
 x11_dep = dependency('x11', required : false)
 xi_dep = dependency('xi', required : false)
 xext_dep = dependency('xext', required : false)
@@ -242,6 +244,10 @@ if x11_dep.found()
   endif
 endif
 
+if pulse_dep.found() and pulse_simple_dep.found()
+  #cdata.set('SDL_AUDIO_DRIVER_PULSEAUDIO', 1)
+endif
+
 if alsa_dep.found()
   cdata.set('SDL_AUDIO_DRIVER_ALSA', 1)
 #  cdata.set('SDL_AUDIO_DRIVER_ALSA_DYNAMIC', 1)
@@ -258,7 +264,7 @@ configure_file(input : 'SDL_config.h.meson',
 subdir('src')
 core_deps += [
   x11_dep, xi_dep, xrandr_dep, xext_dep, gl_dep, xinerama_dep,
-  alsa_dep,
+  alsa_dep, pulse_dep, pulse_simple_dep
 ]
 
 sdl2 = static_library('sdl2',

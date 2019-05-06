@@ -2,6 +2,7 @@
 #define NIBBLE_MIDI_H
 
 #include <memory>
+#include <vector>
 
 #include <RtMidi.h> 
 #include <kernel/Memory.hpp>
@@ -10,7 +11,7 @@
 class MidiController: public Device {
     uint8_t *mem;
 
-    unique_ptr<RtMidiIn> midi_in;
+    vector<unique_ptr<RtMidiIn> > midi_in;
 
     bool ok;
 public:

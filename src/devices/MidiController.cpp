@@ -11,17 +11,23 @@ MidiController::MidiController(Memory& memory): ok(true) {
     mem = memory.allocate(MIDI_CONTROLLER_QUEUE_SIZE, "Midi Controller");
 
     try {
-        midi_in = make_unique<RtMidiIn>();
+        midi_in.push_back(make_unique<RtMidiIn>());
     } catch (RtMidiError &error) {
         ok = false;
         error.printMessage();
     }
 
     try {
-        auto ports = midi_in->getPortCount();
+        auto ports = midi_in[0]->getPortCount();
 
-        if (ports > 0) {
-            midi_in->openPort(ports-1);
+        if (ports > 1) {
+            for (int p=ports-2;p>=0;p--) {
+                midi_in.push_back(make_unique<RtMidiIn>());
+            }
+        }
+
+        for (size_t p=0;p<ports;p++) {
+            midi_in[p]->openPort(p);
         }
     } catch (RtMidiError &error) {
         ok = false;
@@ -34,18 +40,20 @@ void MidiController::update() {
 
     auto offset = 0;
 
-    while (ok) {
-        // TODO: passar esse tempo para a memória também
-        double t = midi_in->getMessage(&message);
+    for (auto &in: midi_in) {
+        while (ok) {
+            // TODO: passar esse tempo para a memória também
+            double t = in->getMessage(&message);
 
-        if (message.size() > 0) {
-            mem[offset++] = message.size();
+            if (message.size() > 0) {
+                mem[offset++] = message.size();
 
-            for (size_t b=0;b<message.size();b++) {
-                mem[offset++] = message[b];
+                for (size_t b=0;b<message.size();b++) {
+                    mem[offset++] = message[b];
+                }
+            } else {
+                break;
             }
-        } else {
-            break;
         }
     }
 }

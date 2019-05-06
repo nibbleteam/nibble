@@ -46,10 +46,10 @@ SDL_AudioDeviceID Audio::initialize() {
     // Open the device
     device = SDL_OpenAudioDevice(nullptr, 0, &spec_in, &spec_out, 0);
 
-    cout << "[nibble] audio: freq: " << spec_out.freq << endl;
-    cout << "[nibble] audio: ch: " << (int)spec_out.channels << endl;
-    cout << "[nibble] audio: format: " << (int)spec_out.format << ", " << (int)spec_in.format << endl;
-    cout << "[nibble] audio: samples: " << spec_out.samples << endl;
+    //cout << "[nibble] audio: freq: " << spec_out.freq << endl;
+    //cout << "[nibble] audio: ch: " << (int)spec_out.channels << endl;
+    //cout << "[nibble] audio: format: " << (int)spec_out.format << ", " << (int)spec_in.format << endl;
+    //cout << "[nibble] audio: samples: " << spec_out.samples << endl;
 
     if (!device) {
         /* TODO: Error!! */

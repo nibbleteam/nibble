@@ -7,6 +7,7 @@ function init()
     --    tty=tostring(tty)
     --})
 
-    start_app("apps/taskbar.nib", {})
+    --start_app("apps/taskbar.nib", {})
+    start_app("apps/synth.nib", {})
     stop_app(0)
 end
