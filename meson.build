@@ -1,4 +1,11 @@
-project('nibble', 'cpp', default_options: ['b_vscrt=mt'])
+project('nibble', 'cpp', default_options: ['b_vscrt=mt', 'cpp_std=c++14'])
+
+if meson.get_compiler('cpp').get_id() == 'clang'
+  add_project_link_arguments('-rdynamic', language: 'cpp')
+  extra_args = ['-Wl,-pagezero_size,10000', '-Wl,-image_base,100000000']
+else
+  extra_args = []
+endif
 
 luajit = subproject('luajit')
 luajit_headers_dep = luajit.get_variable('luajit_headers_dep')
@@ -61,6 +68,7 @@ executable(
   'nibble',
    sources,
    include_directories: headers,
+   link_args: extra_args,
    gui_app: true,
    dependencies: [
      luajit_headers_dep,

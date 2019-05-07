@@ -6,10 +6,7 @@ jack_dep = compiler.find_library('jack', required: false)
 alsa_dep = compiler.find_library('asound', required: false)
 winmm_dep = compiler.find_library('winmm', required: false)
 
-core_services_dep = compiler.find_library('CoreServices', required: false)
-core_audio_dep = compiler.find_library('CoreAudio', required: false)
-core_midi_dep = compiler.find_library('CoreMIDI', required: false)
-core_foundation_dep = compiler.find_library('CoreFoundation', required: false)
+core_midi_dep = dependency('appleframeworks', modules : ['CoreFoundation', 'CoreMIDI', 'CoreServices', 'CoreAudio'])
 
 api_defs = []
 api_list = []
@@ -23,7 +20,7 @@ elif jack_dep.found()
 elif winmm_dep.found()
   api_defs += '-D__WINDOWS_MM__'
   api_list += 'winmm'
-elif core_audio_dep.found() 
+else
   api_defs += '-D__MACOSX_CORE__'
   api_list += 'coremidi'
 endif
@@ -41,7 +38,8 @@ rtmidi_static = static_library('rtmidi',
   sources,
   dependencies: [
     jack_dep,
-    alsa_dep
+    alsa_dep,
+    core_midi_dep,
   ],
   include_directories: headers
 )

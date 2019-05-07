@@ -5,12 +5,15 @@ local messages = Textarea:new(8, 8, 320-16, 120)
 
 local audio_command_ptr = 0
 
+local sustain = false
+
 local keys_num = 84
 local pressed_keys = {}
 local pressed_keys_frames = require 'pressed_keys'
 
 local MIDI_NOTEOFF = 8
 local MIDI_NOTEON = 9
+local MIDI_CONTROL_CHANGE = 11
 
 local black_amount = {
     0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5
@@ -90,7 +93,7 @@ function draw()
         end
     end
 
-    --messages:draw()
+    messages:draw()
 end
 
 function update(dt)
@@ -99,46 +102,54 @@ function update(dt)
     for _, msg in ipairs(midi_messages) do
         local cmd = math.floor(msg[1]/16)
 
-        if cmd == MIDI_NOTEON then
-            say('note on '..tostring(msg[2])..', '..tostring(msg[3]*2-1))
+        if cmd == MIDI_NOTEON and msg[3] ~= 0 then
+            say('note on '..tostring(msg[2])..', '..tostring(msg[3]*2))
 
-            local velocity = (msg[3]*2-1)*2
+            local velocity = msg[3]*2
 
             if velocity > 255 then
                 velocity = 255
-            elseif velocity < 0 then
-                velocity = 0
-            end
+	    end
 
-            local note = msg[2]
+	    local note = msg[2]
 
-            if note > 255 then
-                note = 255
-            elseif note < 0 then
-                note = 0
-            end
+	    if note > 255 then
+		note = 255
+	    elseif note < 0 then
+		note = 0
+	    end
 
-            channel(CH1)
-            noteon(note, audio_command_ptr%16, velocity)
-            audio_command_ptr += 1
+	    channel(CH1)
+	    noteon(note, audio_command_ptr%16, velocity)
+	    audio_command_ptr += 1
 
-            pressed_keys[msg[2]] = true
-        elseif cmd == MIDI_NOTEOFF then
-            say('note off '..tostring(msg[2]))
+	    pressed_keys[msg[2]] = true
+        elseif cmd == MIDI_NOTEOFF or (cmd == MIDI_NOTEON and msg[3] == 0) then
+	    if  not sustain then
+		    say('note off '..tostring(msg[2]))
 
-            local note = msg[2]
+		    local note = msg[2]
 
-            if note > 255 then
-                note = 255
-            elseif note < 0 then
-                note = 0
-            end
+		    if note > 255 then
+			note = 255
+		    elseif note < 0 then
+			note = 0
+		    end
 
-            channel(CH1)
-            noteoff(note, audio_command_ptr%16)
-            audio_command_ptr += 1
+		    channel(CH1)
+		    noteoff(note, audio_command_ptr%16)
+		    audio_command_ptr += 1
 
-            pressed_keys[msg[2]] = false
+		    pressed_keys[msg[2]] = false
+	    end
+	elseif cmd == MIDI_CONTROL_CHANGE then
+	    if msg[2] == 64 then
+		    if msg[3]%128 <= 63 then
+			sustain = false
+		    else
+			sustain = true
+		    end
+	    end
         end
     end
 end
