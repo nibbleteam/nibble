@@ -266,6 +266,8 @@ if(NOT AWK OR ANDROID)
   # No awk available to generate sources; use pre-built pnglibconf.h
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/scripts/pnglibconf.h.prebuilt
                  ${CMAKE_CURRENT_BINARY_DIR}/pnglibconf.h)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/scripts/pnglibconf.h.prebuilt
+                 ${CMAKE_CURRENT_SOURCE_DIR}/pnglibconf.h)
   add_custom_target(genfiles) # Dummy
 else()
   include(CMakeParseArguments)
