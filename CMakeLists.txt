@@ -4,6 +4,13 @@ project(nibble VERSION 0.1
                DESCRIPTION "A fantasy console designed to run on real hardware"
                LANGUAGES CXX C)
 
+# Do not include MSVC junk under windows
+
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif()
+
 # Static only
 
 set(BUILD_SHARED_LIBS FALSE)
