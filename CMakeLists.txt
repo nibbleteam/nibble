@@ -18,16 +18,18 @@ set(SDL_STATIC TRUE)
 # PART 1 - Dependencies
 #
 
-find_library(LUAJIT libluajit.a lua51.lib subprojects/luajit/src)
-
 add_subdirectory(subprojects/zlib)
 
 set(ZLIB_LIBRARY zlibstatic)
+set(ZLIB_INCLUDE_DIR subprojects/zlib)
+set(SKIP_INSTALL_ALL TRUE)
 
-add_subdirectory(subprojects/giflib)
 add_subdirectory(subprojects/libpng)
+add_subdirectory(subprojects/giflib)
 add_subdirectory(subprojects/rtmidi)
 add_subdirectory(subprojects/sdl2)
+
+find_library(LUAJIT libluajit.a lua51.lib subprojects/luajit/src)
 
 #
 # PART 2 - Nibble
@@ -66,4 +68,14 @@ add_executable(nibble ${SOURCE_FILES})
 
 target_include_directories(nibble PRIVATE ${INCLUDE_DIRS})
 
-target_link_libraries(nibble zlibstatic ${LUAJIT} giflib png_static rtmidi SDL2-static SDL2main)
+# 4. Link with the needed libraries
+
+target_link_libraries(nibble zlibstatic
+                             png_static
+                             giflib
+                             rtmidi
+                             SDL2-static
+                             SDL2main
+                             ${LUAJIT})
+
+# giflib rtmidi SDL2-static SDL2main ${LUAJIT})
