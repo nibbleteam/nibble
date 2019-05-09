@@ -4,16 +4,22 @@ project(nibble VERSION 0.1
                DESCRIPTION "A fantasy console designed to run on real hardware"
                LANGUAGES CXX C)
 
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif()
+
 # Static only
 
-set(BUILD_SHARED_LIBS FALSE)
-set(RTMIDI_BUILD_STATIC_LIBS TRUE)
-set(PNG_SHARED FALSE)
-set(PNG_STATIC TRUE)
-set(PNG_TESTS FALSE)
+set(BUILD_SHARED_LIBS OFF)
+set(RTMIDI_BUILD_STATIC_LIBS ON)
+set(PNG_SHARED OFF)
+set(PNG_STATIC ON)
+set(PNG_TESTS OFF)
 set(LIBTYPE STATIC)
-set(SDL_SHARED FALSE)
-set(SDL_STATIC TRUE)
+set(SDL_SHARED OFF)
+set(SDL_STATIC ON)
+set(FORCE_STATIC_VCRT ON)
 
 #
 # PART 1 - Dependencies
@@ -84,11 +90,6 @@ endif()
 target_include_directories(nibble PRIVATE ${INCLUDE_DIRS})
 
 # 4. Link with the needed libraries
-
-if(MSVC)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-endif()
 
 target_link_libraries(nibble zlibstatic
                              png_static
