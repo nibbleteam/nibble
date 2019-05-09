@@ -29,8 +29,11 @@ build_script:
     - cmd: cd subprojects\luajit\src
     - cmd: msvcbuild.bat
     - cmd: cd ..\..\..
-    - cmd: cmake -G Ninja builddir
-    - cmd: ninja -v -C builddir
+    - cmd: mkdir builddir
+    - cmd: cd builddir
+    - cmd: cmake .. -G Ninja
+    - cmd: ninja -v
+    - cmd: cd ..
 
 on_success:
     - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
