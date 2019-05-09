@@ -29,7 +29,7 @@ add_subdirectory(subprojects/giflib)
 add_subdirectory(subprojects/rtmidi)
 add_subdirectory(subprojects/sdl2)
 
-find_library(LUAJIT libluajit.a lua51.lib subprojects/luajit/src)
+find_library(LUAJIT NAMES lua51.lib libluajit.a HINTS subprojects/luajit/src)
 
 #
 # PART 2 - Nibble
