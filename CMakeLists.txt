@@ -18,11 +18,17 @@ set(SDL_STATIC TRUE)
 # PART 1 - Dependencies
 #
 
+# zlib first since libpng depends on it
+
 add_subdirectory(subprojects/zlib)
+
+# adjust some details for libpng
 
 set(ZLIB_LIBRARY zlibstatic)
 set(ZLIB_INCLUDE_DIR subprojects/zlib)
 set(SKIP_INSTALL_ALL TRUE)
+
+include_directories(${ZLIB_INCLUDE_DIR})
 
 add_subdirectory(subprojects/libpng)
 add_subdirectory(subprojects/giflib)
