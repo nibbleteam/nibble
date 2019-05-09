@@ -26,6 +26,7 @@ add_subdirectory(subprojects/zlib)
 
 set(ZLIB_LIBRARY zlibstatic)
 set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/subprojects/zlib)
+
 set(SKIP_INSTALL_ALL TRUE)
 
 add_subdirectory(subprojects/libpng)
