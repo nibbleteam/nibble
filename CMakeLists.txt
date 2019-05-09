@@ -83,11 +83,6 @@ set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
 
 # 2. Create an executable from the files
 
-if(MSVC)
-    set(CMAKE_CXX_FLAGS_RELEASE "/MT")
-    set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
-endif()
-
 if(WIN32)
     add_executable(nibble WIN32 ${SOURCE_FILES})
 else()
@@ -99,6 +94,10 @@ endif()
 target_include_directories(nibble PRIVATE ${INCLUDE_DIRS})
 
 # 4. Link with the needed libraries
+
+if(MSVC)
+    add_link_options("/MT")
+endif()
 
 target_link_libraries(nibble zlibstatic
                              png_static
