@@ -4,13 +4,6 @@ project(nibble VERSION 0.1
                DESCRIPTION "A fantasy console designed to run on real hardware"
                LANGUAGES CXX C)
 
-# Do not include MSVC junk under windows
-
-if(MSVC)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-endif()
-
 # Static only
 
 set(BUILD_SHARED_LIBS FALSE)
@@ -81,7 +74,7 @@ set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
 # 2. Create an executable from the files
 
 if(WIN32)
-    add_executable(nibble ${SOURCE_FILES})
+    add_executable(nibble WIN32 ${SOURCE_FILES})
 else()
     add_executable(nibble ${SOURCE_FILES})
 endif()
@@ -91,6 +84,11 @@ endif()
 target_include_directories(nibble PRIVATE ${INCLUDE_DIRS})
 
 # 4. Link with the needed libraries
+
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif()
 
 target_link_libraries(nibble zlibstatic
                              png_static
