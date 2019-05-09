@@ -21,6 +21,9 @@ set(SDL_STATIC TRUE)
 find_library(LUAJIT libluajit.a lua51.lib subprojects/luajit/src)
 
 add_subdirectory(subprojects/zlib)
+
+set(ZLIB_LIBRARY zlibstatic)
+
 add_subdirectory(subprojects/giflib)
 add_subdirectory(subprojects/libpng)
 add_subdirectory(subprojects/rtmidi)
