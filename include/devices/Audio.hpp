@@ -3,7 +3,7 @@
 
 #include <array>
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include <Specs.hpp>
 
@@ -29,6 +29,10 @@ public:
 
     void startup();
     void shutdown();
+
+    // Preenche buffer com samples e chama o tick de áudio para
+    // mudar parâmetros, se necessário (usando as funções calc_*)
+    void fill(int16_t*, int);
 private:
     // Inicializa placa de áudio
     SDL_AudioDeviceID initialize();
@@ -41,9 +45,6 @@ private:
     // Prepara samples mixados
     void mix(int16_t*, unsigned int);
     
-    // Preenche buffer com samples e chama o tick de áudio para
-    // mudar parâmetros, se necessário (usando as funções calc_*)
-    void fill(int16_t*, int);
 public:
     static float tof(uint8_t);
     static float tof16(const uint8_t*);

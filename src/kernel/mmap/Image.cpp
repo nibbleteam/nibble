@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <png.h>
 
 #include <devices/GPU.hpp>

@@ -7,12 +7,8 @@ branches:
 
 environment:
     matrix:
-        #- arch: x86
-        #  compiler: msvc2015
-        #- arch: x64
-        #  compiler: msvc2015
-        #- arch: x86
-        #  compiler: msvc2017
+        - arch: x86
+          compiler: msvc2017
         - arch: x64
           compiler: msvc2017
 
@@ -24,14 +20,6 @@ install:
     - cmd: mkdir C:\deps
     - ps: (new-object net.webclient).DownloadFile('https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe', 'C:\deps\rcedit.exe')
     - ps: (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'C:\deps\ninja.exe')
-    # Set paths to dependencies (based on architecture)
-    - cmd: if %arch%==x86 (set PYTHON_ROOT=C:\python37) else (set PYTHON_ROOT=C:\python37-x64)
-    # Print out dependency paths
-    - cmd: echo Using Python at %PYTHON_ROOT%
-    # Add neccessary paths to PATH variable
-    - cmd: set PATH=%cd%;C:\deps;%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%
-    # Install meson
-    - cmd: pip install meson
     # Set up the build environment
     - cmd: if %compiler%==msvc2015 ( call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %arch% )
     - cmd: if %compiler%==msvc2017 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %arch% )
@@ -41,11 +29,8 @@ build_script:
     - cmd: cd subprojects\luajit\src
     - cmd: msvcbuild.bat
     - cmd: cd ..\..\..
-    - cmd: meson --backend=ninja --buildtype=release builddir
+    - cmd: cmake -G Ninja builddir
     - cmd: ninja -v -C builddir
-
-test_script:
-    - cmd: ninja -C builddir test
 
 on_success:
     - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1

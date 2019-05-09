@@ -32,7 +32,7 @@ else
   luajit_dep = luajit.get_variable('luajit_dep')
 endif
 
-headers = include_directories('include')
+headers = include_directories('include', '/usr/include/SDL2/')
 
 sources = [
   'src/main.cpp',
