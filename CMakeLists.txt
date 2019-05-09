@@ -65,7 +65,9 @@ set(SOURCE_FILES src/main.cpp
 
 set(INCLUDE_DIRS include/
                  subprojects/sdl2/include/
-                 subprojects/luajit/src
+                 subprojects/luajit/src/
+                 subprojects/giflib/
+                 subprojects/libpng/
                  ${ZLIB_INCLUDE_DIR})
 
 # 2. Create an executable from the files
