@@ -7,10 +7,10 @@ project(nibble VERSION 0.1
 set(CMAKE_BUILD_TYPE Release)
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+    set(CMAKE_CXX_FLAGS_RELEASE "")
+    set(CMAKE_CXX_FLAGS_DEBUG "")
+    set(CMAKE_C_FLAGS_RELEASE "")
+    set(CMAKE_C_FLAGS_DEBUG "")
 endif()
 
 # Static only
@@ -82,6 +82,11 @@ set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
                  ${ZLIB_INCLUDE_DIR})
 
 # 2. Create an executable from the files
+
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
+endif()
 
 if(WIN32)
     add_executable(nibble WIN32 ${SOURCE_FILES})
