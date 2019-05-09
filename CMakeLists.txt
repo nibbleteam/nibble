@@ -80,7 +80,11 @@ set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
 
 # 2. Create an executable from the files
 
-add_executable(nibble ${SOURCE_FILES})
+if(WIN32)
+    add_executable(nibble WIN32 ${SOURCE_FILES})
+else()
+    add_executable(nibble ${SOURCE_FILES})
+endif()
 
 # 3. Add include directories
 
