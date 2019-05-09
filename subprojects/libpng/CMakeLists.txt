@@ -372,6 +372,9 @@ else()
   generate_source(OUTPUT "pnglibconf.h"
                   DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/pnglibconf.out"
                           ${PNGLIBCONF_H_EXTRA_DEPENDS})
+  generate_source(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/pnglibconf.h"
+                  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/pnglibconf.out"
+                          ${PNGLIBCONF_H_EXTRA_DEPENDS})
 
   generate_out(INPUT "${CMAKE_CURRENT_SOURCE_DIR}/scripts/intprefix.c"
                OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/scripts/intprefix.out"

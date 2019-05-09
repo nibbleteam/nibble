@@ -7,6 +7,7 @@ project(nibble VERSION 0.1
 # Static only
 
 set(BUILD_SHARED_LIBS FALSE)
+set(RTMIDI_BUILD_STATIC_LIBS TRUE)
 set(PNG_SHARED FALSE)
 set(PNG_STATIC TRUE)
 set(PNG_TESTS FALSE)
@@ -63,11 +64,11 @@ set(SOURCE_FILES src/main.cpp
                  src/kernel/Kernel.cpp
                  src/kernel/SawWave.cpp)
 
-set(INCLUDE_DIRS include/
-                 subprojects/sdl2/include/
-                 subprojects/luajit/src/
-                 subprojects/giflib/
-                 subprojects/libpng/
+set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
+                 ${CMAKE_SOURCE_DIR}/subprojects/sdl2/include/
+                 ${CMAKE_SOURCE_DIR}/subprojects/luajit/src/
+                 ${CMAKE_SOURCE_DIR}/subprojects/giflib/
+                 ${CMAKE_SOURCE_DIR}/subprojects/libpng/
                  ${ZLIB_INCLUDE_DIR})
 
 # 2. Create an executable from the files
@@ -87,5 +88,3 @@ target_link_libraries(nibble zlibstatic
                              SDL2-static
                              SDL2main
                              ${LUAJIT})
-
-# giflib rtmidi SDL2-static SDL2main ${LUAJIT})

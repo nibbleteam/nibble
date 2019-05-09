@@ -169,7 +169,7 @@ elseif (DEFINED RTMIDI_BUILD_STATIC_LIBS AND NOT RTMIDI_BUILD_STATIC_LIBS STREQU
     add_library(rtmidi SHARED ${rtmidi_SOURCES})
   endif()
 else()
-  add_library(rtmidi ${rtmidi_SOURCES})
+    add_library(rtmidi STATIC ${rtmidi_SOURCES})
 endif()
 list(APPEND LIB_TARGETS rtmidi)
 
