@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <gif_lib.h>
 

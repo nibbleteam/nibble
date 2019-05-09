@@ -3,7 +3,7 @@
 
 #include <array>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <Specs.hpp>
 
