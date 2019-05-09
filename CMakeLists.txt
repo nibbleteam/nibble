@@ -58,7 +58,7 @@ set(SOURCE_FILES src/main.cpp
                  src/kernel/Kernel.cpp
                  src/kernel/SawWave.cpp)
 
-set(INCLUDE_DIRS include/ subprojects/luajit/src)
+set(INCLUDE_DIRS include/ subprojects/luajit/src ${ZLIB_INCLUDE_DIR})
 
 # 2. Create an executable from the files
 
