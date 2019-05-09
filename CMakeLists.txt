@@ -25,10 +25,8 @@ add_subdirectory(subprojects/zlib)
 # adjust some details for libpng
 
 set(ZLIB_LIBRARY zlibstatic)
-set(ZLIB_INCLUDE_DIR subprojects/zlib)
+set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/subprojects/zlib)
 set(SKIP_INSTALL_ALL TRUE)
-
-include_directories(${ZLIB_INCLUDE_DIR})
 
 add_subdirectory(subprojects/libpng)
 add_subdirectory(subprojects/giflib)
