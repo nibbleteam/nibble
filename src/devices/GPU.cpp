@@ -22,7 +22,7 @@ GPU::GPU(Memory& memory):
                               GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING,
                               SDL_WINDOW_SHOWN | /* SDL_WINDOW_FULLSCREEN |*/ SDL_WINDOW_RESIZABLE );
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    renderer = SDL_CreateSoftwareRenderer(SDL_GetWindowSurface(window));
 
     palette_memory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
     video_memory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
@@ -152,7 +152,7 @@ void GPU::draw() {
     SDL_RenderCopy(renderer, framebuffer, &framebuffer_src, &framebuffer_dst);
 
     // Mostra o resultado na janela
-    SDL_RenderPresent(renderer);
+    SDL_UpdateWindowSurface(window);
 }
 
 void GPU::resize() {
@@ -186,6 +186,9 @@ void GPU::transform_mouse(int16_t &x, int16_t &y) {
 
     x /= screen_scale;
     y /= screen_scale;
+
+    x = max(min(x, int16_t(GPU_VIDEO_WIDTH)), int16_t(0));
+    y = max(min(y, int16_t(GPU_VIDEO_HEIGHT)), int16_t(0));
 }
 
 /*

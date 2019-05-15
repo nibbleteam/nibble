@@ -11,6 +11,8 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "")
     set(CMAKE_C_FLAGS_RELEASE "")
     set(CMAKE_C_FLAGS_DEBUG "")
+else()
+    set(CMAKE_CXX_FLAGS "-rdynamic")
 endif()
 
 # Static only
@@ -72,7 +74,26 @@ set(SOURCE_FILES src/main.cpp
                  src/kernel/mmap/Image.cpp
                  src/kernel/SquareWave.cpp
                  src/kernel/Kernel.cpp
-                 src/kernel/SawWave.cpp)
+                 src/kernel/SawWave.cpp
+                 include/devices/MidiController.hpp
+                 include/devices/Keyboard.hpp
+                 include/devices/Controller.hpp
+                 include/devices/Mouse.hpp
+                 include/devices/Audio.hpp
+                 include/devices/GPU.hpp
+                 include/kernel/TriangleWave.hpp
+                 include/kernel/FMSynthesizer.hpp
+                 include/kernel/Envelope.hpp
+                 include/kernel/Wave.hpp
+                 include/kernel/Channel.hpp
+                 include/kernel/Process.hpp
+                 include/kernel/Memory.hpp
+                 include/kernel/filesystem.hpp
+                 include/kernel/mmap/Binary.hpp
+                 include/kernel/mmap/Image.hpp
+                 include/kernel/SquareWave.hpp
+                 include/kernel/Kernel.hpp
+                 include/kernel/SawWave.hpp)
 
 set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
                  ${CMAKE_SOURCE_DIR}/subprojects/sdl2/include/

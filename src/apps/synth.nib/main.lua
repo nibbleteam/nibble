@@ -64,7 +64,7 @@ function init()
     copy_palette(0, 1)
     mask_color(0)
 
-    channel(CH1)
+    channel(CH2)
     -- Frequências
     freqs(1.0, 1.0, 1.0, 2.0)
     -- Envelopes
@@ -77,6 +77,20 @@ function init()
     route(OP2, OP1, 2.0)
     route(OP3, OP1, 0.01)
     route(OP4, OP1, 0.01)
+
+    channel(CH1)
+    -- Frequências
+    freqs(8.0, 1.0, 1.0, 1.0)
+    -- Envelopes
+    envelope(OP1, 0, 1, 0.5, 0.0, 0.1, 0.1, 0)
+    envelope(OP2, 0, 1, 0.5, 0.0, 0.1, 0.1, 0)
+    envelope(OP3, 0, 1, 0.5, 0.0, 0.2, 0.3, 0)
+    envelope(OP4, 0, 1, 0.5, 0.0, 0.2, 0.3, 0)
+    -- Roteia
+    route(OP1, OP2, 1.0)
+    route(OP2, OUT, 0.05)
+    route(OP3, OP4, 0.3)
+    route(OP4, OUT, 0.2)
 end
 
 function draw()

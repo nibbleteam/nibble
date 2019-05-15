@@ -1,5 +1,17 @@
 local lang = {}
 
+function lang.new(kind, obj, props)
+    if obj.new then
+        if props then
+            obj = obj:new(unpack(props))
+        else
+            obj = obj:new()
+        end
+    end
+
+    return lang.instanceof(obj, kind)
+end
+
 function lang.instanceof(a, b)
     setmetatable(a, {__index=b})
     return a

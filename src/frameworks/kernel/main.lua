@@ -14,6 +14,8 @@ local processes = {}
 local pid_counter = 0
 local executing_process = nil
 
+local global_time = 0
+
 --
 -- Pontos de entrada a partir do cpp
 -- 
@@ -23,6 +25,8 @@ function init()
 end
 
 function update(dt)
+    global_time += dt
+
     exec_processes(dt)
 end
 
@@ -269,12 +273,14 @@ function nib_api(entrypoint, proc)
         end,
         -- Ferramentas para a linguagem
         instanceof = lang.instanceof,
+        new = lang.new,
         copy = lang.copy,
+        inherit = lang.copy,
         zip = lang.zip,
         -- Funções matemática
         math = math,
         -- Funções gerais
-        clock = os.clock,
+        clock = function() return global_time end,
         ipairs = ipairs, next = next, type = type,
         setmetatable = setmetatable, pairs = pairs, rawget = rawget,
         tonumber = tonumber, tostring = tostring,
@@ -282,6 +288,7 @@ function nib_api(entrypoint, proc)
         pop = table.remove,
         remove = table.remove,
         insert = table.insert,
+        sort = table.sort,
         unwrap = unpack,
         -- GPU
         clear = hw.clr,
@@ -300,6 +307,12 @@ function nib_api(entrypoint, proc)
         print = hw.print,
         start_capturing = hw.start_capturing,
         stop_capturing = hw.stop_capturing,
+        get_pixel = gpu.get_pixel,
+        put_pixel = gpu.put_pixel,
+        get_sheet_pixel = function(x, y)
+            local sheet = executing_process.priv.spritesheet
+            return gpu.get_sheet_pixel(sheet.ptr, sheet.w, sheet.h, x, y)
+        end,
         -- Color manipulation
         copy_palette = gpu.copy_palette,
         mask_color = gpu.mask_color,

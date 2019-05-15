@@ -42,6 +42,9 @@ SDL_AudioDeviceID Audio::initialize() {
 
 #ifdef WIN32
     SDL_setenv("SDL_AUDIODRIVER", "dsound", true);
+#elif __APPLE__
+#else
+    SDL_setenv("SDL_AUDIODRIVER", "alsa", true);
 #endif
 
     // Open the device

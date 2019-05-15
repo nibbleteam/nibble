@@ -37,9 +37,9 @@ function gpu.put_pixel(x, y, color)
     x = math.abs(math.floor(x))%320
     y = math.abs(math.floor(y))%240
 
-    color = math.abs(math.floor(color))%256
+    color = math.abs(math.floor(color))%128
 
-    hw.write(y*320+x+0x320, string.char(color))
+    hw.write(y*320+x+768, string.char(color))
 end
 
 function gpu.get_pixel(x, y)
@@ -49,7 +49,14 @@ function gpu.get_pixel(x, y)
     x = math.abs(math.floor(x))%320
     y = math.abs(math.floor(y))%240
 
-    return hw.read(y*320+x+0x320, 1):byte()
+    return hw.read(y*320+x+768, 1):byte()
+end
+
+function gpu.get_sheet_pixel(sheet_location, sheet_w, sheet_h, x, y)
+    x = math.abs(math.floor(x))%sheet_w
+    y = math.abs(math.floor(y))%sheet_h
+
+    return hw.read(y*sheet_w+x+sheet_location, 1):byte()
 end
 
 return gpu

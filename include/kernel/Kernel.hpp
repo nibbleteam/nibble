@@ -25,7 +25,7 @@
 #ifdef WIN32
 #define API __declspec(dllexport)
 #else
-#define API 
+#define API
 #endif
 
 using namespace std;
