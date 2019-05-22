@@ -22,7 +22,8 @@ GPU::GPU(Memory& memory):
                               GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING,
                               SDL_WINDOW_SHOWN | /* SDL_WINDOW_FULLSCREEN |*/ SDL_WINDOW_RESIZABLE );
 
-    renderer = SDL_CreateSoftwareRenderer(SDL_GetWindowSurface(window));
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    //renderer = SDL_CreateSoftwareRenderer(SDL_GetWindowSurface(window));
 
     palette_memory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
     video_memory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
@@ -152,12 +153,13 @@ void GPU::draw() {
     SDL_RenderCopy(renderer, framebuffer, &framebuffer_src, &framebuffer_dst);
 
     // Mostra o resultado na janela
-    SDL_UpdateWindowSurface(window);
+    //SDL_UpdateWindowSurface(window);
+    SDL_RenderPresent(renderer);
 }
 
 void GPU::resize() {
     int w, h;
-    
+
     SDL_GetWindowSize(window, &w, &h);
 
     auto window_ratio = float(w)/float(h);
@@ -766,19 +768,3 @@ void GPU::clear(uint8_t color) {
 
     memset(video_memory, COLMAP1(color), GPU_VIDEO_MEM_SIZE);
 }
-
-//void GPU::exec_gpu_command(uint8_t *cmd) {
-//        case StartCapture: {
-//            if (colormap == NULL) {
-//                string filename = next_str_arg(cmd);
-//                start_capturing(filename);
-//            }
-//            break;
-//        }
-//        case StopCapture: {
-//            if (colormap != NULL) {
-//                stop_capturing();
-//            }
-//        } break;
-//    }
-//}

@@ -1,15 +1,19 @@
 local lang = {}
 
-function lang.new(kind, obj, props)
-    if obj.new then
-        if props then
-            obj = obj:new(unpack(props))
-        else
-            obj = obj:new()
+function lang.new(kind, obj)
+    return lang.instanceof(obj, kind)
+end
+
+function lang.concat(t, ...) -- source: https://stackoverflow.com/questions/34921025/concatenate-table-sequences-in-lua
+    local new = {unpack(t)}
+
+    for i,v in ipairs({...}) do
+        for ii,vv in ipairs(v) do
+            new[#new+1] = vv
         end
     end
 
-    return lang.instanceof(obj, kind)
+    return new
 end
 
 function lang.instanceof(a, b)

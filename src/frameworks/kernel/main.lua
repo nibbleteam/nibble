@@ -213,12 +213,12 @@ function nib_require(entrypoint, module, proc)
     end
 end
 
-function handle_process_error(error)
-    print(error)
+function handle_process_error(err)
+    print(err)
     print(debug.traceback())
 
     processes[0] = make_process('apps/system/debug.nib', {
-        error = error,
+        error = err,
         traceback = debug.traceback(),
     })
 end
@@ -275,8 +275,10 @@ function nib_api(entrypoint, proc)
         instanceof = lang.instanceof,
         new = lang.new,
         copy = lang.copy,
-        inherit = lang.copy,
+        inherit = function(c, x) return lang.new(c, x or {}) end,
+        concat = lang.concat,
         zip = lang.zip,
+        debug = error,
         -- Funções matemática
         math = math,
         -- Funções gerais

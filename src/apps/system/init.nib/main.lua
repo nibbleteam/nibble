@@ -21,14 +21,17 @@ function init()
 end
 
 function update(dt)
+    start_app("apps/neact.nib", {})
+    stop_app(0)
+
     if clock() > (FRAMES*3/2)/SPEED then
         for i=0,15 do
             swap_colors(i, i)
         end
 
         --start_app("apps/taskbar.nib", {})
-        start_app("apps/synth.nib", {})
-        stop_app(0)
+        --start_app("apps/synth.nib", {})
+        --stop_app(0)
     end
 end
 
