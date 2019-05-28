@@ -129,11 +129,7 @@ float Audio::tof(uint8_t n) {
 }
 
 float Audio::tof16(const uint8_t *buffer) {
-    return float(
-            int16_t(
-                uint16_t(buffer[0]&0b01111111)<<8 | uint16_t(buffer[1])
-                ) * (buffer[0]&0x80 ? -1 : 1)
-            )/float(0xFF);
+    return float(*(int16_t*)buffer)/float(0xFF);
 }
 
 float Audio::tof16(const int16_t *buffer) {

@@ -39,7 +39,7 @@ local function u16(x)
     signal = 0
   end
 
-  return string.char(math.floor(x/256)%128+signal, math.floor(x)%256)
+  return string.char(math.floor(x)%256, math.floor(x/256)%128+signal)
 end
 
 local function encode(n)

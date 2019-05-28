@@ -11,12 +11,20 @@ SawWave FMSynthesizer::saw_wave;
 TriangleWave FMSynthesizer::triangle_wave;
 
 FMSynthesizer::FMSynthesizer(MemoryLayout &memory, uint8_t note): memory(memory) {
+    base = 440.0*pow(1.059463094359, double(note-48));
+
     for (size_t op=0;op<AUDIO_OPERATOR_AMOUNT;op++) {
         outputs[op] = 0;
         envelopes[op] = make_unique<Envelope>(memory.envelopes[op]);
+        frequencies[op] = Audio::tof16(memory.frequencies[op]) * base * float(UINT16_MAX)/float(44100);
+        wave_types[op] = memory.wave_types[op];
     }
 
-    base = 440.0*pow(1.059463094359, double(note-48));
+    for (size_t o1=0;o1<=AUDIO_OPERATOR_AMOUNT;o1++) {
+        for (size_t o2=0;o2<AUDIO_OPERATOR_AMOUNT;o2++) {
+           amplitudes[FM_MATRIX(o2, o1)] = Audio::tof16(memory.amplitudes[FM_MATRIX(o2, o1)]);
+        }
+    }
 }
 
 bool FMSynthesizer::done() {
@@ -73,16 +81,16 @@ void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sample_c
     }
 }
 
-int16_t FMSynthesizer::synthesize() {
+inline int16_t FMSynthesizer::synthesize() {
     // Itera sobre a matriz de operadores
     for (size_t o1=0;o1<AUDIO_OPERATOR_AMOUNT;o1++) {
         uint16_t phase = times[o1];
-        
+
         for (size_t o2=0;o2<AUDIO_OPERATOR_AMOUNT;o2++) {
-            phase += outputs[o2]*Audio::tof16(memory.amplitudes[FM_MATRIX(o2, o1)]);
+            phase += outputs[o2]*amplitudes[FM_MATRIX(o2, o1)];
         }
 
-        switch (memory.wave_types[o1]) {
+        switch (wave_types[o1]) {
             default:
             case SINE:
                 outputs[o1] = wave[phase] * envelopes[o1]->get_amplitude();
@@ -103,9 +111,9 @@ int16_t FMSynthesizer::synthesize() {
 
     for (size_t o=0;o<AUDIO_OPERATOR_AMOUNT;o++) {
         // Avança os acumuladores de cada operador
-        times[o] += Audio::tof16(memory.frequencies[o]) * base * float(UINT16_MAX)/float(44100);
+        times[o] += frequencies[o];
 
-        int16_t delta = outputs[o] * Audio::tof16(memory.amplitudes[FM_MATRIX(o, AUDIO_OPERATOR_AMOUNT)]);
+        int16_t delta = outputs[o] * amplitudes[FM_MATRIX(o, AUDIO_OPERATOR_AMOUNT)];
 
         // Mixa o operador anterior e o novo
         int out = delta + output;

@@ -16,19 +16,18 @@ Wave::Wave() {
 }
 
 const int16_t Wave::value_at(uint8_t t) const {
-    int it = t;
-    int f = 256;
-    int h = 128;
-    int q = 64;
+    const static uint16_t f = 4*NIBBLE_WAVETABLE_SIZE;
+    const static uint8_t h = 2*NIBBLE_WAVETABLE_SIZE;
+    const static uint8_t q = 1*NIBBLE_WAVETABLE_SIZE;
 
-    if (it < q) {
-        return table[it];
-    } else if (it < h) {
-        return table[h-it-1];
-    } else if (it < 3*q) {
-        return -table[it-h-1];
+    if (t < q) {
+        return table[t];
+    } else if (t < h) {
+        return table[h-t-1];
+    } else if (t < 3*q) {
+        return -table[t-h-1];
     } else {
-        return -table[f-it-1];
+        return -table[f-t-1];
     }
 }
 

@@ -59,7 +59,9 @@ void Kernel::startup() {
 }
 
 void Kernel::menu() {
+    audio_mutex.lock();
     process->menu();
+    audio_mutex.unlock();
 }
 
 void Kernel::shutdown() {
@@ -79,7 +81,7 @@ void Kernel::shutdown() {
 
 void Kernel::loop() {
     float last_time = 0;
-    
+
     while (true) {
         float current_time = SDL_GetTicks();
         float delta = (current_time - last_time)/1000;

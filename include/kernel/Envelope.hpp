@@ -29,6 +29,11 @@ public:
     MemoryLayout &memory;
 
     float intensity;
+    float level;
+    float sustain;
+    float attack;
+    float decay;
+    float release;
 public:
     float amplitude;
     bool done;

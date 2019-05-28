@@ -65,6 +65,10 @@ public:
 #pragma pack(pop)
 
     MemoryLayout &memory;
+
+    float frequencies[AUDIO_OPERATOR_AMOUNT];
+    float amplitudes[AUDIO_OPERATOR_AMOUNT*AUDIO_OPERATOR_AMOUNT+AUDIO_OPERATOR_AMOUNT];
+    uint8_t wave_types[AUDIO_OPERATOR_AMOUNT];
 public:
     FMSynthesizer(MemoryLayout&, uint8_t);
 
