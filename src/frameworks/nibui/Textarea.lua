@@ -45,7 +45,7 @@ function Textarea:delete(n)
     if #self.text > 0 then
         local last = self.text[#self.text]
 
-        self.cursor_x = last.x+#last.text*CHAR_W
+        self.cursor_x = last.x+measure(last.text)
         self.cursor_y = last.y
     else
         self.cursor_x = self.x
@@ -115,7 +115,7 @@ function Textarea:advance_cursor(text)
 
     self.cursor += #by
 
-    self.cursor_x += #by*CHAR_W
+    self.cursor_x += measure(by)
     
     if self.cursor_x > self.x+self.w then
         local overflow = math.ceil((self.cursor_x-(self.x+self.w))/CHAR_W)

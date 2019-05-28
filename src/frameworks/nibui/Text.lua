@@ -15,11 +15,14 @@ function Text:new(text, x, y)
         text = text or "",
         x = x or 0, y = y or 0,
         palette = 0,
-        color = 15,
-        background_color = 0,
         bold = 0,
         underline = false,
-        align = 0
+        align = 0,
+        colormap = {
+            [0] = 0,
+            [6] = 6,
+            [7] = 7,
+        }
     }
 
     instanceof(instance, self)
@@ -32,7 +35,7 @@ function Text:copy()
         text = self.text,
         x = self.x, y = self.y,
         palette = self.palette,
-        color = self.color,
+        colormap = copy(self.colormap),
         background_color = self.background_color,
         bold = self.bold,
         underline = self.underline,
@@ -50,15 +53,6 @@ function Text:set(key, value)
     return self
 end
 
--- Troca as cores do FG e BG
-function Text:swap_colors()
-    local buffer = self.color
-    self.color = self.background_color
-    self.background_color = buffer
-
-    return self
-end
-
 -- Returns a substring with the same
 -- decorations
 function Text:sub(i, j)
@@ -66,7 +60,7 @@ function Text:sub(i, j)
         text = self.text:sub(i, j),
         x = self.x, y = self.y,
         palette = self.palette,
-        color = self.color,
+        colormap = copy(self.colormap),
         background_color = self.background_color,
         bold = self.bold,
         underline = self.underline,
@@ -86,15 +80,18 @@ function Text:draw()
     elseif self.align == 2 then
         off_x = -#self.text*8
     end
-    
-    -- Configura cores do FG e BG
-    swap_colors(15, self.color)
-    swap_colors(0, self.background_color)
+
+    for from, to in pairs(self.colormap) do
+        swap_colors(from, to)
+    end
 
     -- Configura bold/não bold
-    swap_colors(7, self.bold)
+    --swap_colors(7, self.bold)
+
+    local txt_size = measure(self.text)
 
     -- Desenha
+    fill_rect(self.x+off_x, self.y-1, txt_size, 10, self.background_color)
     print(self.text, self.x+off_x, self.y, self.palette)
 
     -- Desenha underline
@@ -105,13 +102,13 @@ function Text:draw()
             depth = 2
         end
 
-        fill_rect(self.x+off_x, self.y+9, #self.text*8, depth, self.color)
+        fill_rect(self.x+off_x-1, self.y+9-1, txt_size+2, depth+2, 1)
+        fill_rect(self.x+off_x, self.y+9, txt_size, depth, self.colormap[7])
     end
 
-    -- Reseta cores
-    swap_colors(15, 15)
-    swap_colors(7, 7)
-    swap_colors(0, 0)
+    for from, to in pairs(self.colormap) do
+        swap_colors(from, form)
+    end
 end
 
 return Text

@@ -263,14 +263,14 @@ void Controller::joy_connected(SDL_Event& event) {
     SDL_JoystickOpen(event.jdevice.which);
 
     set_state(slot, BUTTON_OFF_ON);
-} 
+}
 
 void Controller::joy_disconnected(SDL_Event& event) {
     unsigned int slot = sdl2nibble[event.jdevice.which];
     sdl2nibble.erase(event.jdevice.which);
 
     set_state(slot, BUTTON_ON_OFF);
-} 
+}
 
 unsigned int Controller::get_state(const unsigned int c) {
     return (controllers.connected>>((CONTROLLER_AMOUNT-c)*2-2))&3;

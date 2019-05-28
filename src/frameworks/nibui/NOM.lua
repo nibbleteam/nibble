@@ -7,107 +7,73 @@ local DEFAULT_H = 240
 
 local NOM = {}
 
--- DynamicValues predefinidos
-NOM.helpers = {
-    ['=>'] = function (path, props)
-        local nom = copy(require(path))
+function NOM.require(path, props)
+    local nom = copy(require(path))
 
-        if props then
-            for k, v in pairs(props) do
-                if type(k) == 'number' then
-                    table.insert(nom, v)
-                else
-                    nom[k] = v
-                end
+    if props then
+        for k, v in pairs(props) do
+            if type(k) == 'number' then
+                table.insert(nom, v)
+            else
+                nom[k] = v
             end
         end
+    end
 
-        return nom
-    end,
-    ['%'] = function (value, prop)
-        return DynamicValue:new('dynamic', function (widget)
-            return widget.parent[prop]*value/100
-        end)
-    end,
-    ['^'] = function (prop)
+    return nom
+end
+
+function NOM.percent(value, prop)
+    return DynamicValue:new('dynamic', function (widget)
+        return widget.parent[prop]*value/100
+    end)
+end
+
+NOM.parent = {
+    __index = function (self, prop)
         return DynamicValue:new('dynamic', function (widget)
             return widget.parent[prop]
         end)
-    end,
-    ['.'] = function (prop)
-        return DynamicValue:new('dynamic', function (widget)
-            return widget[prop]
-        end)
-    end,
-    ['fn'] = function (f)
-        return DynamicValue:new('dynamic', f)
-    end,
-    ['+'] = function (a, b)
-        return DynamicValue:new('dynamic', function(w)
-            if type(a) == 'table' and a.isdynamicvalue then
-                a = a:get(w)
-            end
-
-            if type(b) == 'table' and b.isdynamicvalue then
-                b = b:get(w)
-            end
-
-            return a+b
-        end)
-    end,
-    ['-'] = function (a, b)
-        return DynamicValue:new('dynamic', function(w)
-            if type(a) == 'table' and a.isdynamicvalue then
-                a = a:get(w)
-            end
-
-            if type(b) == 'table' and b.isdynamicvalue then
-                b = b:get(w)
-            end
-
-            return a-b
-        end)
-    end,
-    ['*'] = function (a, b)
-        return DynamicValue:new('dynamic', function(w)
-            if type(a) == 'table' and a.isdynamicvalue then
-                a = a:get(w)
-            end
-
-            if type(b) == 'table' and b.isdynamicvalue then
-                b = b:get(w)
-            end
-
-            return a*b
-        end)
-    end,
-    ['/'] = function (a, b)
-        return DynamicValue:new('dynamic', function(w)
-            if type(a) == 'table' and a.isdynamicvalue then
-                a = a:get(w)
-            end
-
-            if type(b) == 'table' and b.isdynamicvalue then
-                b = b:get(w)
-            end
-
-            return a/b
-        end)
-    end,
+    end
 }
 
-function NOM.dynamic (k)
-    return NOM.helpers[k]
+setmetatable(NOM.parent, NOM.parent)
+
+function NOM.self(prop)
+    return DynamicValue:new('dynamic', function (widget)
+        return widget[prop]
+    end)
 end
 
-NOM.helpers['top'] = NOM.dynamic '^' 'y'
-NOM.helpers['left'] = NOM.dynamic '^' 'x'
-NOM.helpers['right'] = NOM.dynamic '+' (NOM.dynamic 'left', NOM.dynamic '^' 'w')
-NOM.helpers['bottom'] = NOM.dynamic '+' (NOM.dynamic 'top', NOM.dynamic '^' 'h')
+function NOM.fn(fn)
+    return DynamicValue:new('dynamic', fn)
+end
+
+function NOM.bottom_of(id)
+    return DynamicValue:new('dynamic', function (widget)
+        local element = widget.parent:find(id)
+
+        if element then
+            return element.y+element.h
+        else
+            terminal_print('bottom_of: could not find ', element)
+        end
+    end)
+end
+
+NOM.top = NOM.parent.y
+NOM.left = NOM.parent.x
+
+NOM.right = NOM.left+NOM.parent.w
+NOM.bottom = NOM.top+NOM.parent.h
+
+NOM.width = NOM.parent.w
+NOM.height = NOM.parent.h
 
 -- static: Makes a document from a description
 function NOM:make_document(desc, parent)
     local widget_desc = desc
+
     local widget = Widget:new(widget_desc, self, parent)
 
     for k, v in pairs(desc) do
@@ -131,15 +97,15 @@ function NOM:new(desc)
         cursor = {
             --offset = { x = -6, y = -8 },
             offset = { x = -1, y = 0 },
-            normal = {
+            default = {
                 x = 56, y = 80,
                 w = 8, h = 8
             },
-            pressing = {
+            pointer = {
                 x = 64, y = 80,
                 w = 8, h = 8
             },
-            state = 'normal'
+            state = 'default'
         },
         mouse = { x = 0, y = 0 }
     }
@@ -185,19 +151,7 @@ function NOM:find(selector, node)
         local id = selector:sub(2, -1)
 
         if node then
-            if node.id == id then
-                return node
-            end
-
-            for _, c in ipairs(node.children) do
-                local r = self:find(selector, c)
-
-                if r then
-                    return r
-                end
-            end
-
-            return nil
+            return node:find(id)
         else
             local found = self:find(selector, self.root)
 
@@ -228,10 +182,7 @@ function NOM:update_mouse()
     end
 
     if mouse_button_down(MOUSE_LEFT) then
-        self.cursor.state = 'pressing'
         drag = true
-    else
-        self.cursor.state = 'normal'
     end
 
     if mouse_button_release(MOUSE_LEFT) then

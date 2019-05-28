@@ -4,8 +4,6 @@ local InterpolatedValue = {}
 
 function InterpolatedValue:new(v, w)
     local instance = {
-        value = v,
-
         -- Valor inicial e final + função de interpolação
         interpolation = {
             to = {
@@ -17,10 +15,43 @@ function InterpolatedValue:new(v, w)
             easing = Easing.Linear
         }
     }
+    
+    local mt = {
+        __index = function (self, idx)
+            if idx == 'value' then
+                if type(self.interpolation.from.v) == 'number' then
+                    -- Elapsed time
+                    local et = clock() - self.interpolation.from.t
+                    -- Total time
+                    local t = self.interpolation.to.t-self.interpolation.from.t
+                    -- Position
+                    local p = et/t
 
-    instanceof(instance, InterpolatedValue)
+                    if p ~= p then
+                        p = 0
+                    end
 
-    instance.value = instance:get(instance.value, w)
+                    -- Interpolated value (0-1)
+                    local i = self.interpolation.easing(p)
+
+                    -- Initial value
+                    local iv = self:get(self.interpolation.from.v, w)
+
+                    -- Interpolation delta
+                    local dv = self:get(self.interpolation.to.v, w)-iv
+
+                    -- Set interpolated value
+                    return iv+dv*i
+                else
+                    return self:get(self.interpolation.from.v, w)
+                end
+            else
+                return rawget(self, idx) or rawget(InterpolatedValue, idx)
+            end
+        end
+    }
+
+    setmetatable(instance, mt)
 
     return instance
 end
@@ -46,44 +77,17 @@ function InterpolatedValue:set(v, time, easing)
 
     -- From
     self.interpolation.from.v = self.value
-    self.interpolation.from.t = clock()*10
+    self.interpolation.from.t = clock()
 
     -- To
     self.interpolation.to.v = v
-    self.interpolation.to.t = clock()*10+time
+    self.interpolation.to.t = clock()+time
 
     -- Using easing
     self.interpolation.easing = easing
 end
 
 function InterpolatedValue:update(dt, w)
-    -- Elapsed time
-    local et = clock()*10 - self.interpolation.from.t
-    -- Total time
-    local t = self.interpolation.to.t-self.interpolation.from.t
-    -- Position
-    local p = et/t
-
-    if p ~= p then
-        p = 0
-    end
-
-    -- Interpolated value (0-1)
-    local i = self.interpolation.easing(p)
-
-    -- Initial value
-    local iv = self:get(self.interpolation.from.v, w)
-
-    -- Interpolation delta
-    local dv = self:get(self.interpolation.to.v, w)-iv
-
-    -- For change test
-    local prev = self.value
-
-    -- Set interpolated value
-    self.value = iv+dv*i
-
-    return self.value ~= prev
 end
 
 return InterpolatedValue

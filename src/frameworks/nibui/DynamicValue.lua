@@ -14,7 +14,47 @@ function DynamicValue:new(kind, value, w)
         instance.value = iv:new(value, w)
     end
 
-    instanceof(instance, DynamicValue)
+    local function get_value(value, w)
+        if type(value) == 'table' and value.isdynamicvalue then
+            return value:get(w)
+        end
+
+        return value
+    end
+
+    local meta = {
+        __index = DynamicValue,
+        __add = function(a, b)
+            return DynamicValue:new('dynamic', function(w)
+                local va, vb = get_value(a, w), get_value(b, w)
+
+                return va+vb
+            end)
+        end,
+        __sub = function(a, b)
+            return DynamicValue:new('dynamic', function(w)
+                local va, vb = get_value(a, w), get_value(b, w)
+
+                return va-vb
+            end)
+        end,
+        __mul = function(a, b)
+            return DynamicValue:new('dynamic', function(w)
+                local va, vb = get_value(a, w), get_value(b, w)
+
+                return va*vb
+            end)
+        end,
+        __div = function(a, b)
+            return DynamicValue:new('dynamic', function(w)
+                local va, vb = get_value(a, w), get_value(b, w)
+
+                return va/vb
+            end)
+        end,
+    }
+
+    setmetatable(instance, meta)
 
     return instance
 end
@@ -40,11 +80,15 @@ function DynamicValue:get(w)
     elseif self.kind == 'dynamic' then
         return self.value(w)
     elseif self.kind == 'interpolated' then
-        return self.value.value
+        self.cache = self.cache or self.value.value
+
+        return self.cache
     end
 end
 
 function DynamicValue:update(dt, w)
+    self.cache = nil
+
     return self.value:update(dt, w)
 end
 

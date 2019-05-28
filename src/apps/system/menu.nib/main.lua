@@ -1,44 +1,95 @@
-local prev_screen = ""
+require 'nibui.Neact'
+local NOM = require 'nibui.NOM'
+local Dialog = require 'uikit.Dialog'
+local Button = require 'uikit.Button'
 
-local x=320/2-160/2
-local y=240/2-80/2
-local vx=2
-local vy=1
-local dt=1
+local Menu = Neact.Component:new()
+
+local menu, nom = nil, nil
+
+function Menu:new(props)
+    return new(Menu, {
+                   state = props,
+                   props = props
+    })
+end
+
+function Menu:render(state, props)
+    local body = {}
+
+    if env.app.env.menu then
+        for k, v in ipairs(env.app.env.menu) do
+            push(body, {
+                     x = NOM.left, y = NOM.top+16*k, w = NOM.width, h = 16,
+                     content = v,
+            })
+        end
+    end
+
+    return {
+        x = NOM.top, y = NOM.h,
+        w = NOM.parent.w, h = NOM.parent.h,
+
+        --background = 14,
+        background = 0,
+
+        {Dialog, w = 160, h = 128, header = {
+             {
+                 x = NOM.left, y = NOM.top, w = NOM.width, h = NOM.height,
+                 content = state.time
+             },
+             {
+                 Button,
+                 side = 'right',
+                 color = 'black',
+                 content = 'close'
+             },
+             {
+                 Button,
+                 side = 'left',
+                 color = 'white',
+                 content = 'back',
+                 w = measure('close'),
+             }
+        }, body = body}
+    }
+end
+
+function get_time()
+    return date("%H:%M")
+end
 
 function init()
-    prev_screen = read(768, 75*1024)
+    mask_color(0)
+
+    menu = Menu:new({ time = get_time() })
+    nom = menu:nom():use('cursor')
+
+    pause_app(env.app.pid)
 end
 
 function draw()
-    --write(768, prev_screen)
-
-    fill_rect(x-2, y-2, 164, 84, 3)
-    fill_rect(x, y, 160, 80, 2)
-
-    local x = x + 4
-    local y = y + 4
-
-    print("FPS: "..tostring(math.floor(1/dt+0.5)), x+94, y)
-    print("Menu", x, y)
-    print("v1", x, y+10)
-    print("ENV PID: "..env.pid, x, y+20)
-    print("ENV APP.PID: "..env.app.pid, x, y+30)
-
-    print("\08 go back", x, y+50)
-    print("\09 close cartridge", x, y+60)
+    nom:draw()
 end
 
-function update(delta)
-    dt = delta or 1
-
-    if button_press(RED) then
-        stop_app(env.app.pid)
-        return stop_app(0)
+function update(dt)
+    if time()%60 == 0 then
+        menu:set_state({time = get_time() })
     end
 
-    if button_press(BLUE) then
-        env.menu = { entry = "back" }
-        return stop_app(0)
+    nom:update(dt)
+
+    if button_down(BLACK) then
+        stop_app(env.app.pid)
+        stop_app(0)
+
+        return
+    end
+
+    if button_down(WHITE) then
+        resume_app(env.app.pid)
+        stop_app(0)
+
+        return
     end
 end

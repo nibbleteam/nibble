@@ -1,3 +1,10 @@
+env.menu = {
+    'Nibble Synth',
+    'v0.1',
+    '',
+    'by Felipe Tavares'
+}
+
 local Text = require 'nibui.Text'
 local Textarea = require 'nibui.Textarea'
 

@@ -39,23 +39,37 @@ function audio_tick()
 end
 
 function menu()
-    pid_counter += 1
+    if not get_running_process('apps/system/menu.nib') then
+        pid_counter += 1
 
-    processes[pid_counter] = make_process('apps/system/menu.nib', {
-        pid = 0,
-        app = {
-            pid = pid_counter
-        }
-    })
+        processes[pid_counter] = make_process('apps/system/menu.nib', {
+            pid = pid_counter,
+            app = {
+                env = executing_process.pub.env,
+                pid = executing_process.priv.pid
+            },
+        })
+    end
 end
 
 --
 -- Gerenciamento de processos
 --
+--
+
+function get_running_process(entrypoint)
+    for _, proc in pairs(processes) do
+        if proc.priv.entrypoint == entrypoint and proc.priv.running then
+            return proc
+        end
+    end
+
+    return nil
+end
 
 -- Cria um processo, composto de um conjunto
 -- de infromações acessíveis apenas ao kernel
--- e um conjunto de informações públicsa ao código
+-- e um conjunto de informações públicas ao código
 -- do processo
 function make_process(entrypoint, env)
     local proc = {}
@@ -73,6 +87,7 @@ function make_process(entrypoint, env)
         message_queue = {},
         pid = pid_counter,
         parent = executing_process,
+        entrypoint = entrypoint,
     }
 
     proc.pub = nib_api(entrypoint, proc)
@@ -251,6 +266,22 @@ function nib_api(entrypoint, proc)
                 end
             end
         end,
+        pause_app = function (pid)
+            local process = processes[pid]
+
+            if process then
+                process.priv.screen = hw.read(768, 320*240)
+                process.priv.running = false
+            end
+        end,
+        resume_app = function (pid)
+            local process = processes[pid]
+
+            if process then
+                process.priv.running = true
+                hw.write(768, process.priv.screen)
+            end
+        end,
         send_message = function(pid, message)
             if processes[pid] and message then
                 table.insert(processes[pid].priv.message_queue, 1, message)
@@ -258,18 +289,6 @@ function nib_api(entrypoint, proc)
         end,
         receive_message = function()
             return table.remove(executing_process.priv.message_queue)
-        end,
-        send_system_message = function(pid, message)
-            local process = processes[pid]
-
-            if process then
-                if message == 'play' then
-                    process.priv.running = true
-                    table.insert(process.priv.message_queue, 1, {resume = true})
-                elseif message == 'pause' then
-                    process.priv.running = false
-                end
-            end
         end,
         -- Ferramentas para a linguagem
         instanceof = lang.instanceof,
@@ -282,6 +301,8 @@ function nib_api(entrypoint, proc)
         -- Funções matemática
         math = math,
         -- Funções gerais
+        time = os.time,
+        date = os.date,
         clock = function() return global_time end,
         ipairs = ipairs, next = next, type = type,
         setmetatable = setmetatable, pairs = pairs, rawget = rawget,
@@ -307,6 +328,7 @@ function nib_api(entrypoint, proc)
         quad = hw.quad,
         clip = hw.clip,
         print = hw.print,
+        measure = hw.measure,
         start_capturing = hw.start_capturing,
         stop_capturing = hw.stop_capturing,
         get_pixel = gpu.get_pixel,

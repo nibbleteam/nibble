@@ -13,7 +13,11 @@ function NeactComponent:set_state(state)
 
     local nom = NOM:new(self._root:_render_to_description(self._root, {}))
 
-    self._root._nom.root = nom.root;
+    for k, v in pairs(nom) do
+        if k ~= 'features' then
+            self._root._nom[k] = v
+        end
+    end
 end
 
 function NeactComponent:_render_table_to_description(root, id, description)
@@ -52,7 +56,9 @@ function NeactComponent:_render_to_description(root, id)
 end
 
 function NeactComponent:nom()
-    local nom = NOM:new(self:_render_to_description(self, {}))
+    local desc = self:_render_to_description(self, {})
+
+    local nom = NOM:new(desc)
 
     self._nom = nom
 

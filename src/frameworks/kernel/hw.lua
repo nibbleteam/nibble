@@ -254,6 +254,10 @@ function hw.print(str, dstx, dsty, pal)
     end
 end
 
+function hw.measure(str)
+    return #str*DEFAULT_CH_W
+end
+
 -- Funções customizadas
 
 function hw.read16(p)

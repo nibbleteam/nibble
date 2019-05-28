@@ -10,6 +10,8 @@ local FRAMES = 32
 
 local SPEED = 12
 
+local SKIP_INTRO = true
+
 function init()
     -- Inicializa o serviço de terminal
     --local tty, err = kernel.exec("apps/system/core/terminal.nib", {})
@@ -21,17 +23,19 @@ function init()
 end
 
 function update(dt)
-    start_app("apps/neact.nib", {})
-    stop_app(0)
+    if SKIP_INTRO then
+        start_app("apps/synth.nib", {})
+        stop_app(0)
+    else
+        if clock() > (FRAMES*3/2)/SPEED then
+            for i=0,15 do
+                swap_colors(i, i)
+            end
 
-    if clock() > (FRAMES*3/2)/SPEED then
-        for i=0,15 do
-            swap_colors(i, i)
+            start_app("apps/taskbar.nib", {})
+            --start_app("apps/synth.nib", {})
+            stop_app(0)
         end
-
-        --start_app("apps/taskbar.nib", {})
-        --start_app("apps/synth.nib", {})
-        --stop_app(0)
     end
 end
 

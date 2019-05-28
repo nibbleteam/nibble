@@ -27,6 +27,11 @@ function Neact.component_to_instance(component_id, component, props)
             instances = children[k]
         else
             local instance = component:new(props)
+
+            if props.ref then
+                props.ref(instance)
+            end
+
             children[k] = {instance, {}}
 
             return instance

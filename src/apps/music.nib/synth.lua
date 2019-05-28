@@ -60,9 +60,9 @@ tick = 0
 subtick = 0
 
 function audio_tick()
-    if not RUNNING then
-        return
-    end
+    --if not RUNNING then
+    --    return
+    --end
 
     if playing then
         subtick += 1
