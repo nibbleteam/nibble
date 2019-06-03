@@ -1,3 +1,4 @@
+#ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
 #ifndef NIBBLE_MIDI_H
 #define NIBBLE_MIDI_H
 
@@ -21,3 +22,4 @@ public:
 };
 
 #endif /* NIBBLE_MIDI_H */
+#endif

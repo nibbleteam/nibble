@@ -4,6 +4,7 @@
 #include <kernel/FMSynthesizer.hpp>
 #include <kernel/Memory.hpp>
 #include <kernel/Wave.hpp>
+#include <queue>
 #include <map>
 using namespace std;
 
@@ -23,13 +24,15 @@ public:
         NoteOff = 2
     };
 
-#pragma pack(push, 1)
-    typedef struct CmdLayout {
-        uint8_t cmd;
+    typedef struct Command {
+        uint64_t timestamp;
+
+        Cmd cmd;
         uint8_t note;
         uint8_t intensity;
-    }CmdLayout;
-#pragma pack(pop)
+    } Command;
+
+    queue<Command> commands;
 
 #pragma pack(push, 1)
     typedef struct DelayLayout {
@@ -41,20 +44,23 @@ public:
 #pragma pack(push, 1)
     typedef struct MemoryLayout {
         FMSynthesizer::MemoryLayout synthesizer;
-        CmdLayout commands[AUDIO_CMD_AMOUNT];
         DelayLayout delay;
     }MemoryLayout;
 #pragma pack(pop)
 
     MemoryLayout &memory;
 public:
-	Channel(Memory&);
-	~Channel();
+    Channel(Memory&);
+    ~Channel();
 
-	void fill(int16_t*, const unsigned int); 
+    void fill(int16_t*, const unsigned int);
 
     void press(uint8_t, uint8_t);
     void release(uint8_t);
+
+    void enqueue_command(const uint64_t, const uint8_t, const uint8_t, const uint8_t);
+
+    void execute_commands(const uint64_t);
 private:
     void reverb(int16_t*, int16_t*, const unsigned int);
 };

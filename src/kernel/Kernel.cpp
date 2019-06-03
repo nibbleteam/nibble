@@ -24,7 +24,10 @@ Kernel::Kernel() {
     controller = make_unique<Controller>(memory);
     keyboard = make_unique<Keyboard>(memory);
     mouse = make_unique<Mouse>(memory);
+
+#ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
     midi_controller = make_unique<MidiController>(memory);
+#endif
 
     cout << "==========================================" << endl << endl;
 
@@ -46,7 +49,9 @@ void Kernel::startup() {
     audio->startup();
     keyboard->startup();
     controller->startup();
+#ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
     midi_controller->shutdown();
+#endif
 
     auto entrypoint = Path("./frameworks/kernel/");
 
@@ -59,14 +64,10 @@ void Kernel::startup() {
 }
 
 void Kernel::menu() {
-    audio_mutex.lock();
-    process->menu();
-    audio_mutex.unlock();
+    open_menu_next_frame = true;
 }
 
 void Kernel::shutdown() {
-    // TODO: talvez desligar áudio antes?
-
     /* Shutdown dos periféricos */
 
     gpu->shutdown();
@@ -76,6 +77,8 @@ void Kernel::shutdown() {
     controller->shutdown();
     midi_controller->shutdown();
 
+    // TODO: Hack para dealocar memória dos processos
+    // mas não dos despositivos
     memory.deallocate(79856);
 }
 
@@ -94,7 +97,9 @@ void Kernel::loop() {
         controller->update();
         mouse->update();
         keyboard->update();
+#ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
         midi_controller->update();
+#endif
 
         // Event handling
         while (SDL_PollEvent(&event)) {
@@ -197,27 +202,23 @@ void Kernel::loop() {
         // Espera a gpu inicializar
         if (gpu->cycle > BOOT_CYCLES) {
             // Roda o processo no topo da lista de processos
-            audio_mutex.lock();
             if (process->initialized) {
+                if (open_menu_next_frame) {
+                    open_menu_next_frame = false;
+
+                    process->menu();
+                }
+
                 process->update(delta);
             } else {
                 process->init();
             }
-            audio_mutex.unlock();
         }
 
         SDL_Delay(max<int>((1000/GPU_FRAMERATE-1)-(SDL_GetTicks()-last_time), 0));
 
         gpu->draw();
     }
-}
-
-void Kernel::audio_tick() {
-    audio_mutex.lock();
-    if (process->initialized) {
-        process->audio_tick();
-    }
-    audio_mutex.unlock();
 }
 
 size_t Kernel::api_write(const size_t where, const size_t wanted_size, const uint8_t* what) {
@@ -387,4 +388,12 @@ LuaString* api_list_files(const char* path, size_t* length_out, int* ok_out) {
     } else {
         return nullptr;
     }
+}
+
+API void audio_enqueue_command(const uint64_t timestamp,
+                               const uint8_t ch,
+                               const uint8_t cmd,
+                               const uint8_t note,
+                               const uint8_t intensity) {
+    KernelSingleton.lock()->audio->enqueue_command(timestamp, ch, cmd, note, intensity);
 }

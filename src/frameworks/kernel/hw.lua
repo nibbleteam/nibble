@@ -37,6 +37,13 @@ LuaString* api_list_files(const char*, size_t*, int*);
 
 int gpu_start_capturing(const char*);
 int gpu_stop_capturing();
+
+
+void audio_enqueue_command(const uint64_t,
+                           const uint8_t,
+                           const uint8_t,
+                           const uint8_t,
+                           const uint8_t);
 ]]
 
 -- Wrappers
@@ -260,6 +267,28 @@ end
 
 -- Funções customizadas
 
+function hw.readn(p, bytes, n)
+    n = n or 0
+
+    if bytes == 0 then
+        return 0
+    else
+        return hw.read(p, 1):byte()*math.pow(2, 8*n)+hw.readn(p+1, bytes-1, n+1)
+    end
+end
+
+function hw.read64(p)
+    return hw.readn(p, 8)
+end
+
+function hw.read32(p)
+    local data = hw.read(p, 4)
+
+    local value = data:byte(4)
+
+    value = value + data:byte(3)*256 + data:byte(2)*256*256 + data.byte(1)*256*256*256
+end
+
 function hw.read16(p)
     local data = hw.read(p, 2)
     local value = data:byte(2)
@@ -312,6 +341,10 @@ function hw.stop_capturing()
     else
         return false
     end
+end
+
+function hw.enqueue_command(t, ch, cmd, note, intensity)
+    ffi.C.audio_enqueue_command(t, ch, cmd, note, intensity)
 end
 
 return hw

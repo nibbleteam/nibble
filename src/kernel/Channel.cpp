@@ -24,20 +24,6 @@ Channel::~Channel() {
 }
 
 void Channel::fill(int16_t* output, const unsigned int sample_count) {
-    // Toca notas, máximo de 16 notas on/off
-    for (size_t i=0;i<AUDIO_CMD_AMOUNT;i++) {
-        switch (memory.commands[i].cmd) {
-            case NoteOn:
-                press(memory.commands[i].note, memory.commands[i].intensity);
-                memory.commands[i].cmd = 0;
-                break;
-            case NoteOff:
-                release(memory.commands[i].note);
-                memory.commands[i].cmd = 0;
-                break;
-        }
-    }
-
     memset(samples, 0, sample_count*sizeof(int16_t));
 
     for (auto it=synthesizers.cbegin(); it != synthesizers.cend();) {
@@ -105,5 +91,34 @@ void Channel::press(uint8_t note, uint8_t intensity) {
 void Channel::release(uint8_t note) {
     if (synthesizers.find(note) != synthesizers.end()) {
         synthesizers[note]->off();
+    }
+}
+
+void Channel::enqueue_command(uint64_t timestamp,
+                              uint8_t command,
+                              uint8_t note,
+                              uint8_t velocity) {
+    commands.push(Command {
+        timestamp,
+        (Cmd)command,
+        note,
+        velocity,
+    });
+}
+
+void Channel::execute_commands(const uint64_t t) {
+    while (!commands.empty() && commands.front().timestamp <= t) {
+        const auto command = commands.front();
+
+        switch (command.cmd) {
+            case NoteOn:
+                press(command.note, command.intensity);
+                break;
+            case NoteOff:
+                release(command.note);
+                break;
+        }
+
+        commands.pop();
     }
 }

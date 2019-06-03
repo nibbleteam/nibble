@@ -39,13 +39,12 @@ private:
     /* Processo -> Roda Código Lua */
     unique_ptr<Process> process;
 
-    // Usado para sincronizar o vídeo com a placa
-    // de áudio
-    mutex audio_mutex;
+    /* Devemos abrir o menu na próxima frame? */
+    bool open_menu_next_frame;
 public:
     /* Dispositivos */
 
-    // GPU 
+    // GPU
     unique_ptr<GPU> gpu;
     // APU
     unique_ptr<Audio> audio;
@@ -53,7 +52,9 @@ public:
     unique_ptr<Keyboard> keyboard;
     unique_ptr<Mouse> mouse;
     unique_ptr<Controller> controller;
+#ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
     unique_ptr<MidiController> midi_controller;
+#endif
 public:
     Kernel();
     ~Kernel();
@@ -63,9 +64,6 @@ public:
     void shutdown();
     void reset();
     void menu();
-
-    // Sinal de sincronização do áudio
-    void audio_tick();
 
     // Loop principal do console.
     // Roda o processo (código Lua)
@@ -117,7 +115,14 @@ extern "C" {
     API int gpu_start_capturing(const char*);
     API int gpu_stop_capturing();
 
-#include <cstdlib>
+    // Áudio
+    API void audio_enqueue_command(const uint64_t,
+                                   const uint8_t,
+                                   const uint8_t,
+                                   const uint8_t,
+                                   const uint8_t);
+
+    #include <cstdlib>
 }
 
 extern weak_ptr<Kernel> KernelSingleton;

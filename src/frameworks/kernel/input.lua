@@ -1,10 +1,10 @@
 local hw = require 'frameworks.kernel.hw'
 local input = {}
 
-input.MIDI_CONTROLLER   = 78832
-input.CONTROLLER        = 78784
-input.KEYBOARD          = 78794
-input.MOUSE             = 78826
+input.MIDI_CONTROLLER   = 78456
+input.CONTROLLER        = 78408
+input.KEYBOARD          = 78418
+input.MOUSE             = 78450
 
 input.STUP       = 0
 input.STPRESSED  = 1

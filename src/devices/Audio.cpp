@@ -6,11 +6,14 @@
 #include <iostream>
 using namespace std;
 
-Audio::Audio(Memory &memory): next_tick(0), t(0) {
+Audio::Audio(Memory &memory): next_tick(0) {
     // Cria canais
     for (size_t ch=0;ch<AUDIO_CHANNEL_AMOUNT;ch++) {
         channels[ch] = make_unique<Channel>(memory);
     }
+
+    t = (uint64_t*)memory.allocate(sizeof(uint64_t), "Audio Sample Register");
+    *t = 0;
 
     // Calcula velocidade da sincronização
     calc_tick_period(AUDIO_UPDATE_RATE);
@@ -72,7 +75,7 @@ void Audio::shutdown() {
 }
 
 void Audio::fill(int16_t *samples, int missing_sample_count) {
-    unsigned int initial_t = t;
+    unsigned int initial_t = *t;
 
     memset(samples, 0, AUDIO_SAMPLE_MEM_SIZE*2);
 
@@ -80,25 +83,22 @@ void Audio::fill(int16_t *samples, int missing_sample_count) {
     do {
         // Caso o tick precise ser rodado antes
         // de completar todos os samples
-        if (t+missing_sample_count > next_tick) {
-            unsigned int final_sample_count = ((next_tick-t)/2)*2;
+        if (*t+missing_sample_count > next_tick) {
+            unsigned int final_sample_count = ((next_tick-*t)/2)*2;
 
-            mix(samples+(t-initial_t), final_sample_count);
+            mix(samples+(*t-initial_t), final_sample_count);
 
-            t += final_sample_count;
+            *t += final_sample_count;
             missing_sample_count -= final_sample_count;
 
-            auto kernel = KernelSingleton.lock();
-
-            if (kernel) {
-                kernel->audio_tick();
-            }
+            // Roda o tick
+            execute_commands(*t);
 
             calc_next_tick();
         } else {
-            mix(samples+(t-initial_t), missing_sample_count);
+            mix(samples+(*t-initial_t), missing_sample_count);
 
-            t += missing_sample_count;
+            *t += missing_sample_count;
             missing_sample_count = 0;
             break;
         }
@@ -122,6 +122,20 @@ void Audio::calc_tick_period(const double frequency) {
 
 void Audio::calc_next_tick() {
     next_tick += tick_period;
+}
+
+void Audio::execute_commands(const uint64_t t) {
+    for (size_t ch=0;ch<AUDIO_CHANNEL_AMOUNT;ch++) {
+        channels[ch]->execute_commands(t);
+    }
+}
+
+void Audio::enqueue_command(const uint64_t timestamp,
+                            const uint8_t ch,
+                            const uint8_t cmd,
+                            const uint8_t note,
+                            const uint8_t intensity) {
+    channels[ch%AUDIO_CHANNEL_AMOUNT]->enqueue_command(timestamp, cmd, note, intensity);
 }
 
 float Audio::tof(uint8_t n) {

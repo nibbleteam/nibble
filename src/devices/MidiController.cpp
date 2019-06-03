@@ -1,3 +1,4 @@
+#ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
 #include <devices/MidiController.hpp>
 
 #include <vector>
@@ -58,3 +59,4 @@ void MidiController::update() {
     }
 }
 
+#endif

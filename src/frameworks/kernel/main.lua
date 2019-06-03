@@ -28,6 +28,8 @@ function update(dt)
     global_time += dt
 
     exec_processes(dt)
+
+    audio_tick()
 end
 
 function audio_tick()
@@ -65,6 +67,15 @@ function get_running_process(entrypoint)
     end
 
     return nil
+end
+
+function nib_open_asset(entrypoint, asset, kind)
+    local path = entrypoint..'/'..asset:gsub("%.", "/")..'.'..kind:gsub("%.", "")
+
+    print('loading', asset, '('..kind..')')
+    print('at', path)
+
+    return io.open(path, "r+")
 end
 
 -- Cria um processo, composto de um conjunto
@@ -301,6 +312,7 @@ function nib_api(entrypoint, proc)
         -- Funções matemática
         math = math,
         -- Funções gerais
+        bit = require 'bit',
         time = os.time,
         date = os.date,
         clock = function() return global_time end,
@@ -313,6 +325,7 @@ function nib_api(entrypoint, proc)
         insert = table.insert,
         sort = table.sort,
         unwrap = unpack,
+        from_ascii = string.char,
         -- GPU
         clear = hw.clr,
         sprite = hw.spr,
@@ -336,6 +349,9 @@ function nib_api(entrypoint, proc)
         get_sheet_pixel = function(x, y)
             local sheet = executing_process.priv.spritesheet
             return gpu.get_sheet_pixel(sheet.ptr, sheet.w, sheet.h, x, y)
+        end,
+        open_asset = function(asset, kind)
+            return nib_open_asset(entrypoint, asset, kind)
         end,
         -- Color manipulation
         copy_palette = gpu.copy_palette,

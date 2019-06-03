@@ -10,8 +10,6 @@ local Textarea = require 'nibui.Textarea'
 
 local messages = Textarea:new(8, 8, 320-16, 120)
 
-local audio_command_ptr = 0
-
 local keys_num = 84
 local pressed_keys = {}
 local pressed_keys_frames = require 'pressed_keys'
@@ -120,6 +118,7 @@ function update(dt)
     for _, msg in ipairs(midi_messages) do
         local cmd = math.floor(msg[1]/16)
 
+
         if cmd == MIDI_NOTEON then
             say('note on '..tostring(msg[2])..', '..tostring(msg[3]*2-1))
 
@@ -140,8 +139,7 @@ function update(dt)
             end
 
             channel(CH1)
-            noteon(note, audio_command_ptr%16, velocity)
-            audio_command_ptr += 1
+            noteon(note,  velocity)
 
             pressed_keys[msg[2]] = true
         elseif cmd == MIDI_NOTEOFF then
@@ -156,8 +154,7 @@ function update(dt)
             end
 
             channel(CH1)
-            noteoff(note, audio_command_ptr%16)
-            audio_command_ptr += 1
+            noteoff(note)
 
             pressed_keys[msg[2]] = false
         end
