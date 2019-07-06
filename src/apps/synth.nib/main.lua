@@ -8,6 +8,43 @@ env.menu = {
 local Text = require 'nibui.Text'
 local Textarea = require 'nibui.Textarea'
 
+local envelopes = {
+    {
+        volume = 1,
+        sustain = 0,
+        a = 0,
+        d = 0,
+        s = 0,
+        r = 0
+    },
+    {
+        volume = 1,
+        sustain = 0,
+        a = 0,
+        d = 0,
+        s = 0,
+        r = 0
+    },
+    {
+        volume = 1,
+        sustain = 0,
+        a = 0,
+        d = 0,
+        s = 0,
+        r = 0
+    },
+    {
+        volume = 1,
+        sustain = 0,
+        a = 0,
+        d = 0,
+        s = 0,
+        r = 0
+    },
+}
+
+local current_envelope, current_parameter = 1, 1
+
 local messages = Textarea:new(8, 8, 320-16, 120)
 
 local keys_num = 84
@@ -66,6 +103,8 @@ function key_to_pixel(k)
 end
 
 function init()
+    math.randomseed(time())
+
     copy_palette(0, 1)
     mask_color(0)
 
@@ -83,19 +122,37 @@ function init()
     route(OP3, OP1, 0.01)
     route(OP4, OP1, 0.01)
 
+--    channel(CH1)
+--    -- Frequências
+--    freqs(8.0, 1.0, 1.0, 1.0)
+--    -- Envelopes
+--    envelope(OP1, 0, 1, 0.5, 0.0, 0.1, 0.1, 0)
+--    envelope(OP2, 0, 1, 0.5, 0.0, 0.1, 0.1, 0)
+--    envelope(OP3, 0, 1, 0.5, 0.0, 0.2, 0.3, 0)
+--    envelope(OP4, 0, 1, 0.5, 0.0, 0.2, 0.3, 0)
+--    -- Roteia
+--    route(OP1, OP2, 1.0)
+--    route(OP2, OUT, 0.05)
+--    route(OP3, OP4, 0.3)
+--    route(OP4, OUT, 0.2)
+
     channel(CH1)
     -- Frequências
-    freqs(8.0, 1.0, 1.0, 1.0)
+    if math.random() < 0.5 then
+        freqs(math.random(), math.random(), math.random(), math.random())
+    else
+        freqs(math.random(1, 8)/4, math.random(1, 8)/4, 1.0, math.random(1, 8)/4)
+    end
     -- Envelopes
-    envelope(OP1, 0, 1, 0.5, 0.0, 0.1, 0.1, 0)
-    envelope(OP2, 0, 1, 0.5, 0.0, 0.1, 0.1, 0)
-    envelope(OP3, 0, 1, 0.5, 0.0, 0.2, 0.3, 0)
-    envelope(OP4, 0, 1, 0.5, 0.0, 0.2, 0.3, 0)
+    envelope(OP1, 0, 1, 0.5, math.random()*0.1, math.random(), math.random(), 0)
+    envelope(OP2, 0, 1, 0.5, math.random()*0.2, math.random(), math.random(), 0)
+    envelope(OP3, 0, 1, 0.5, math.random()*0.3, math.random(), math.random(), 0)
+    envelope(OP4, 0, 1, 0.5, math.random()*0.4, math.random(),math.random(), 0)
     -- Roteia
-    route(OP1, OP2, 1.0)
-    route(OP2, OUT, 0.05)
-    route(OP3, OP4, 0.3)
-    route(OP4, OUT, 0.2)
+    route(OP1, OUT, 0.8)
+    route(OP2, OP3, 0.8)
+    route(OP3, OP4, 0.8)
+    route(OP4, OUT, 0.8)
 end
 
 function draw()
@@ -106,6 +163,12 @@ function draw()
     for k=0,keys_num do
         if pressed_keys[k] then
             press_key(k)
+        end
+    end
+
+    for i=1,#envelopes do
+        if i == current_envelope then
+            draw_envelope(160, 100, envelopes[i], 8+i, true)
         end
     end
 
@@ -159,6 +222,10 @@ function update(dt)
             pressed_keys[msg[2]] = false
         end
     end
+
+    write_parameters()
+
+    handle_input()
 end
 
 function press_key(k)
@@ -172,4 +239,95 @@ end
 function say(what)
     messages:add(Text:new(what))
     messages:newline()
+end
+
+function write_parameters()
+--    channel(CH1)
+--
+--    for i=1,#envelopes do
+--        local env = envelopes[i]
+--
+--        envelope(OP1+i-1, 0, env.volume,
+--                 env.d, env.a, env.s, env.r, 0)
+--    end
+end
+
+function handle_input()
+    local param = ({"a", "d", "s", "r"})[current_parameter]
+
+    if button_press(DOWN) then
+        current_envelope -= 1
+
+        if current_envelope < 1 then
+            current_envelope = #envelopes
+        end
+    end
+
+    if button_press(UP) then
+        current_envelope += 1
+
+        if current_envelope > #envelopes then
+            current_envelope = 1
+        end
+    end
+
+    if button_down(RIGHT) then
+        envelopes[current_envelope][param] += 0.01
+    end
+
+    if button_down(LEFT) then
+        envelopes[current_envelope][param] = math.max(0, envelopes[current_envelope][param]-0.01)
+    end
+
+    if button_press(WHITE) then
+        current_parameter -= 1
+
+        if current_parameter < 1 then
+            current_parameter = 4
+        end
+    end
+
+    if button_press(BLACK) then
+        current_parameter += 1
+
+        if current_parameter > 4 then
+            current_parameter = 1
+        end
+    end
+end
+
+function draw_envelope(x, y, env, color, blink)
+    local scale_x, scale_y = 100, 20
+    local ray = 2
+    local sustain_time = 0
+
+    --x = x-(env.a+env.d+sustain_time+env.r)*scale_x/2
+    x = x-100
+
+    local points = {
+        {x, y},
+        {x+env.a*scale_x, y-env.volume*scale_y},
+        {x+(env.a+env.d)*scale_x, y-env.s*scale_y},
+        {x+(env.a+env.d+sustain_time)*scale_x, y-env.s*scale_y},
+        {x+(env.a+env.d+sustain_time+env.r)*scale_x, y},
+    }
+
+    for i, point in ipairs(points) do
+        if blink then
+            if current_parameter == i-1 then
+                fill_circ(point[1], point[2], ray+math.sin(clock()*8)*ray, color)
+            else
+                circ(point[1], point[2], ray+math.sin(clock()*8)*ray, color)
+            end
+        else
+            circ(point[1], point[2], ray, color)
+        end
+    end
+
+    for i=2,#points do
+        local p1 = points[i-1]
+        local p2 = points[i]
+
+        line(p1[1], p1[2], p2[1], p2[2], color)
+    end
 end

@@ -23,7 +23,7 @@ using namespace std;
 #define J_RIGHT 12
 #define J_DOWN 10
 #define J_LEFT 11
-#define J_RED 0
+#define J_RED 1 // 0
 #define J_BLUE 3
 #define J_BLACK_ALT 4
 #define J_WHITE_ALT 5

@@ -340,7 +340,7 @@ void GPU::line(int16_t x1, int16_t y1,
     const int16_t dy = -abs(y1-y2);
     const int16_t yi = y1>y2 ? -1 : 1; 
     const int16_t xi = x1>x2 ? -1 : 1; 
-    register int16_t D2;
+    int16_t D2;
     int16_t D = dx + dy;
 
     while (true) {
@@ -488,7 +488,7 @@ void GPU::ordered_tri_fill(int16_t x1, int16_t y1,
                            int16_t x3, int16_t y3,
                            uint8_t color) {
     // Casos especiais
-    if ((x1 == x2 && x2 == x3) ||(y1 == y2 && y2 == y3)) {
+    if ((x1 == x2 && x2 == x3) || (y1 == y2 && y2 == y3)) {
         tri(x1, y1, x2, y2, x3, y3, color);
         return;
     }
@@ -498,16 +498,16 @@ void GPU::ordered_tri_fill(int16_t x1, int16_t y1,
 
     const int16_t dxa = abs(x1-x3);
     const int16_t dya = -abs(y1-y3);
-    const int16_t yia = y1>y3 ? -1 : 1; 
-    const int16_t xia = x1>x3 ? -1 : 1; 
-    register int16_t D2a;
+    const int16_t yia = y1>y3 ? -1 : 1;
+    const int16_t xia = x1>x3 ? -1 : 1;
+    int16_t D2a;
     int16_t Da = dxa + dya;
 
     int16_t dxb = abs(x1-x2);
     int16_t dyb = -abs(y1-y2);
-    int16_t yib = y1>y2 ? -1 : 1; 
-    int16_t xib = x1>x2 ? -1 : 1; 
-    register int16_t D2b;
+    int16_t yib = y1>y2 ? -1 : 1;
+    int16_t xib = x1>x2 ? -1 : 1;
+    int16_t D2b;
     int16_t Db = dxb + dyb;
 
     int16_t x1b = x1, y1b = y1;
@@ -536,6 +536,9 @@ start:
                 }
 
                 if (D2b <= dxb) {
+                    if (y1 == y1b) {
+                    }
+
                     if (y1b == y2 && first_line) goto prepare_second_line;
 
                     Db += dxb;
@@ -543,7 +546,7 @@ start:
                 }
 
             }
-            
+
             if (cmp_a) {
                 D2a = Da<<1;
 
@@ -568,8 +571,8 @@ prepare_second_line:
 
     dxb = abs(x2-x3);
     dyb = -abs(y2-y3);
-    yib = y2>y3 ? -1 : 1; 
-    xib = x2>x3 ? -1 : 1; 
+    yib = y2>y3 ? -1 : 1;
+    xib = x2>x3 ? -1 : 1;
     Db = dxb + dyb;
 
     x1b = x2; y1b = y2;
