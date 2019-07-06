@@ -77,7 +77,7 @@ void Audio::shutdown() {
 void Audio::fill(int16_t *samples, int missing_sample_count) {
     unsigned int initial_t = *t;
 
-    memset(samples, 0, AUDIO_SAMPLE_MEM_SIZE*2);
+    memset(samples, 0, missing_sample_count*sizeof(int16_t));
 
     // Preenche o buffer "samples"
     do {

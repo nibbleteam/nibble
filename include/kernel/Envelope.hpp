@@ -19,9 +19,9 @@ public:
     struct MemoryLayout {
         int16_t sustained;
         int16_t level;
-        int16_t sustain;
         int16_t attack;
         int16_t decay;
+        int16_t sustain;
         int16_t release;
     };
 #pragma pack(pop)

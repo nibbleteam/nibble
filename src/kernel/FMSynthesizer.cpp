@@ -14,16 +14,7 @@ FMSynthesizer::FMSynthesizer(MemoryLayout &memory, uint8_t note): memory(memory)
     base = 440.0*pow(1.059463094359, double(note-48));
 
     for (size_t op=0;op<AUDIO_OPERATOR_AMOUNT;op++) {
-        outputs[op] = 0;
         envelopes[op] = make_unique<Envelope>(memory.envelopes[op]);
-        frequencies[op] = Audio::tof16(memory.frequencies[op]) * base * float(UINT16_MAX)/float(44100);
-        wave_types[op] = memory.wave_types[op];
-    }
-
-    for (size_t o1=0;o1<=AUDIO_OPERATOR_AMOUNT;o1++) {
-        for (size_t o2=0;o2<AUDIO_OPERATOR_AMOUNT;o2++) {
-           amplitudes[FM_MATRIX(o2, o1)] = Audio::tof16(memory.amplitudes[FM_MATRIX(o2, o1)]);
-        }
     }
 }
 
@@ -50,6 +41,17 @@ void FMSynthesizer::off() {
 }
 
 void FMSynthesizer::fill(int16_t* samples, int16_t* clean, unsigned int sample_count) {
+    for (size_t op=0;op<AUDIO_OPERATOR_AMOUNT;op++) {
+        outputs[op] = 0;
+        frequencies[op] = Audio::tof16(memory.frequencies[op]) * base * float(UINT16_MAX)/float(44100);
+        wave_types[op] = memory.wave_types[op];
+    }
+    for (size_t o1=0;o1<=AUDIO_OPERATOR_AMOUNT;o1++) {
+        for (size_t o2=0;o2<AUDIO_OPERATOR_AMOUNT;o2++) {
+           amplitudes[FM_MATRIX(o2, o1)] = Audio::tof16(memory.amplitudes[FM_MATRIX(o2, o1)]);
+        }
+    }
+
     for (size_t s=0;s<sample_count;s+=2) {
         int16_t delta = synthesize();
         int out;

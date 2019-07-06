@@ -46,12 +46,12 @@ Kernel::~Kernel() {
 void Kernel::startup() {
     gpu->startup();
     mouse->startup();
-    audio->startup();
     keyboard->startup();
     controller->startup();
 #ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
     midi_controller->shutdown();
 #endif
+    audio->startup();
 
     auto entrypoint = Path("./frameworks/kernel/");
 

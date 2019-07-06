@@ -9,7 +9,9 @@ Envelope::Envelope(MemoryLayout &memory):
     memory(memory),
     intensity(255),
     amplitude(0),
-    done(false) {
+    done(false) { }
+
+float Envelope::get_amplitude() {
     level = Audio::tof16(memory.level)*float(intensity)/255.0;
     sustain = Audio::tof16(memory.sustain);
 
@@ -17,9 +19,6 @@ Envelope::Envelope(MemoryLayout &memory):
     decay = Audio::tof16(memory.decay);
     release = Audio::tof16(memory.release);
 
-}
-
-float Envelope::get_amplitude() {
     switch (status) {
         case ATTACK:
             if (memory.attack == 0) {
@@ -52,7 +51,7 @@ float Envelope::get_amplitude() {
             }
             break;
         case RELEASE:
-            if (memory.release == 0) {
+            if (memory.release == 0 || sustain == 0) {
                 amplitude = 0;
             } else {
                 amplitude -= sustain/release/44100;
