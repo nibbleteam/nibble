@@ -6,15 +6,14 @@ local prompt_color = 9
 
 sh = {
     path = {
-        "apps/system/utilities/",
-        "apps/user/demos/",
-        "apps/user/creator/",
-        "apps/user/",
+        "apps/system/",
+        "apps/demos/",
+        "apps/",
     }
 }
 
 function shprint(str, bg)
-    kernel.send(tty, { print = str, background = bg})
+    send_message(tty, { print = str, background = bg})
 end
 
 function print_prompt()
@@ -23,10 +22,10 @@ function print_prompt()
 end
 
 function init()
-    tty = tonumber(kernel.getenv('tty'))
+    tty = env.tty
 
     -- Avisa que quer receber mensagens com entrada do usuário
-    kernel.send(tty, { subscribe = tonumber(kernel.getenv('pid')), name = name })
+    send_message(tty, { subscribe = env.pid, name = name })
 
     -- Desenha prompt
     print_prompt()
@@ -43,8 +42,8 @@ end
 function parse(line)
     local words = {}
 
-    for word in line:gmatch('%a+') do
-        table.insert(words, word)
+    for word in line:gmatch('%w+') do
+        insert(words, word)
     end
 
     return words
@@ -55,24 +54,20 @@ function execute(cmd)
 
     if #cmd > 0 then
         local found = false
-        
+
         for _, search_path in ipairs(sh.path) do
             local path = search_path..cmd[1]..".nib"
 
-            local child, err = kernel.exec(path, {})
+            local child, err = start_app(path, {
+                                             tty = env.tty,
+                                             shell = env.pid,
+                                             params = cmd,
+            })
 
-            if child > 0 then
-                kernel.kill(child)
+            if child then
+                send_message(tty, { unsubscribe=env.pid })
+                send_message(tty, { disable = true })
 
-                local monitor = kernel.exec("apps/system/core/monitor.nib", {
-                    shell = kernel.getenv("pid"),
-                    tty = kernel.getenv("tty"),
-                    exec = path
-                })
-
-                kernel.send(tty, {unsubscribe=tonumber(kernel.getenv('pid'))})
-                kernel.wait(monitor)
-                
                 found = true
 
                 break
@@ -96,19 +91,26 @@ function execute(cmd)
 end
 
 function receive_messages()
-    local message = kernel.receive()
+    local message = receive_message()
 
     if message then
         if message.input and type(message.input) == 'string' then
             return message.input
         end
 
+        if message.tty then
+            terminal_print("received tty message")
+
+            send_message(tty, { enable = true })
+        end
+
         if message.app_started then
         end
 
         if message.app_stopped then
-            kernel.send(tty, {unsubscribe=message.app_stopped})
-            kernel.send(tty, {subscribe=tonumber(kernel.getenv('pid')), name = name})
+            send_message(tty, { unsubscribe = message.app_stopped })
+            send_message(tty, { subscribe = env.pid, name = name })
+            send_message(tty, { enable = true })
             print_prompt()
         end
     end
