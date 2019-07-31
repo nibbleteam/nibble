@@ -11,7 +11,7 @@ SawWave FMSynthesizer::saw_wave;
 TriangleWave FMSynthesizer::triangle_wave;
 
 FMSynthesizer::FMSynthesizer(MemoryLayout &memory, uint8_t note): memory(memory) {
-    base = 440.0*pow(1.059463094359, double(note-48));
+    base = 440.0*pow(1.059463094359, double(note-69));
 
     for (size_t op=0;op<AUDIO_OPERATOR_AMOUNT;op++) {
         envelopes[op] = make_unique<Envelope>(memory.envelopes[op]);
