@@ -18,7 +18,7 @@ local global_time = 0
 
 --
 -- Pontos de entrada a partir do cpp
--- 
+--
 
 function init()
     processes[0] = make_process('apps/system/init.nib', {})
@@ -103,6 +103,7 @@ function make_process(entrypoint, env)
 
     proc.pub = nib_api(entrypoint, proc)
     proc.pub.env = env
+    proc.pub.env.pid = proc.priv.pid
 
     proc.priv.ok, err = exec(entrypoint..'/main.lua', proc.pub)
     proc.priv.running = true
@@ -262,14 +263,31 @@ function nib_api(entrypoint, proc)
         start_app = function(app, env)
             pid_counter += 1
             processes[pid_counter] = make_process(app, env)
-            return pid_counter, ''
+
+            if processes[pid_counter].priv.ok then
+                return pid_counter, ''
+            else
+                return nil
+            end
         end,
         stop_app = function(pid)
+            local send_stopped = function(proc)
+                if proc and proc.priv.parent then
+                    local parent = proc.priv.parent
+
+                    table.insert(parent.priv.message_queue, 1, { app_stopped = executing_process.priv.pid })
+                end
+            end
+
             if pid == 0 then
+                send_stopped(executing_process)
+
                 -- TODO: limpar a memória alocada pelo processo
                 processes[executing_process.priv.pid] = nil
             else
                 local process = processes[pid]
+
+                send_stopped(process)
 
                 if process and process.priv.parent == executing_process then
                     -- TODO: limpar a memória alocada pelo processo
@@ -309,6 +327,10 @@ function nib_api(entrypoint, proc)
         concat = lang.concat,
         zip = lang.zip,
         debug = error,
+        load = load,
+        pcall = pcall,
+        assert = assert,
+        _VERSION = _VERSION,
         -- Funções matemática
         math = math,
         -- Funções gerais
@@ -353,6 +375,7 @@ function nib_api(entrypoint, proc)
         open_asset = function(asset, kind)
             return nib_open_asset(entrypoint, asset, kind)
         end,
+        open = io.open,
         -- Color manipulation
         copy_palette = gpu.copy_palette,
         mask_color = gpu.mask_color,
@@ -388,6 +411,9 @@ function nib_api(entrypoint, proc)
         read_midi = input.read_midi,
         -- Sistema de arquivos
         list_directory = hw.list,
+        create_directory = hw.create_directory,
+        touch_file = hw.touch_file,
+        create_file = hw.create_file,
         -- Audio
         encode = audio.encode,
         channel = audio.channel,

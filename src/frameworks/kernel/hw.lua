@@ -34,10 +34,12 @@ void gpu_api_circle(int16_t, int16_t, int16_t, uint8_t);
 void gpu_api_quad(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
 
 LuaString* api_list_files(const char*, size_t*, int*);
+int api_create_directory(const char*);
+int api_touch_file(const char*);
+int api_create_file(const char*);
 
 int gpu_start_capturing(const char*);
 int gpu_stop_capturing();
-
 
 void audio_enqueue_command(const uint64_t,
                            const uint8_t,
@@ -327,20 +329,24 @@ function hw.list(path)
     end
 end
 
+function hw.create_directory(path)
+    return ffi.C.api_create_directory(path) == 1
+end
+
+function hw.touch_file(path)
+    return ffi.C.api_touch_file(path) == 1
+end
+
+function hw.create_file(path)
+    return ffi.C.api_create_file(path) == 1
+end
+
 function hw.start_capturing(path)
-    if ffi.C.gpu_start_capturing(path) == 1 then
-        return true
-    else
-        return false
-    end
+    return ffi.C.gpu_start_capturing(path) == 1
 end
 
 function hw.stop_capturing()
-    if ffi.C.gpu_stop_capturing() == 1 then
-        return true
-    else
-        return false
-    end
+    return ffi.C.gpu_stop_capturing() == 1
 end
 
 function hw.enqueue_command(t, ch, cmd, note, intensity)
