@@ -22,19 +22,25 @@ function init()
     --})
 end
 
+function run_app()
+    -- Start the shell
+    local tty = start_app("apps/system/terminal.nib", {})
+    start_app("apps/system/shell.nib", { tty = tty })
+
+    -- Close the app
+    stop_app(0)
+end
+
 function update(dt)
     if SKIP_INTRO then
-        start_app("apps/synth.nib", {})
-        stop_app(0)
+        run_app()
     else
         if clock() > (FRAMES*3/2)/SPEED then
             for i=0,15 do
                 swap_colors(i, i)
             end
 
-            start_app("apps/taskbar.nib", {})
-            --start_app("apps/synth.nib", {})
-            stop_app(0)
+            run_app()
         end
     end
 end
