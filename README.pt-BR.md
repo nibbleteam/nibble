@@ -2,18 +2,18 @@
 
 # Nibble
 
-A Fantasy Console, designed to run on *real* hardware and with a strong focus on
-UX and design.
+É um Console-Fantasia feito para funcionar em hardware de verdade e muito
+foco em UX e design.
 
-# Getting Started
+# Primeiros Passos
 
-First, you will need to download the emulator and SDK:
+Primeiro, baixe o emulador e a SDK:
 
 - [Windows](...)
 - [macOS](...)
 - [Linux](...)
 
-You will be greeted by this:
+A primeira coisa que você vai ver será isso:
 
 <p align="center">
         <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.gif" width="640" height="480"/>
