@@ -29,7 +29,7 @@ using namespace std;
 class Path {
 	string path; // plataform-specific string
 	string original_path; // non plataform-specific string
-	
+
 	class Terminal {
 		string value;
 	public:
@@ -50,7 +50,7 @@ public:
 	void normalize();
 	Path resolve(Path);
 	Path resolve(const string);
-    vector<Path> get_tree();
+	vector<Path> get_tree();
 private:
 	void set_windows_path(string);
 	void set_linux_path(string);
@@ -65,13 +65,13 @@ public:
 	fs ();
 	~fs	 ();
 
-    static bool touch_file (Path&);
+	static bool touch_file (Path&);
 	static bool file_exists (Path);
 	static bool copy_file (Path,Path,bool);
 	static bool rename_file (Path,Path);
 	static bool delete_file (Path);
 	static bool create_file (Path);
-    static bool create_directory (Path&);
+	static bool create_directory (Path&);
 	static bool is_dir (Path);
 	static size_t get_file_size (Path);
 	static char* get_file_data (Path);

@@ -93,6 +93,9 @@ extern "C" {
 
     // Arquivos
     API LuaString* api_list_files(const char*, size_t*, int*);
+    API int api_create_directory(const char*);
+    API int api_touch_file(const char*);
+    API int api_create_file(const char*);
 
     // Desenho
     API void gpu_api_line(int16_t, int16_t, int16_t, int16_t, uint8_t);

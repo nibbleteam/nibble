@@ -137,13 +137,17 @@ void Kernel::loop() {
                 } break;
 
                 case SDL_KEYDOWN: {
-                    if (event.key.keysym.sym == SDLK_r && 
+                    if (event.key.keysym.sym == SDLK_r &&
                         (event.key.keysym.mod&KMOD_LCTRL ||
                          event.key.keysym.mod&KMOD_RCTRL)) {
                         shutdown();
                         startup();
                     } else if (event.key.keysym.sym == SDLK_ESCAPE) {
                         menu();
+                    } else if (event.key.keysym.sym == SDLK_RETURN) {
+                        keyboard->input(13);
+                    } else if (event.key.keysym.sym == SDLK_BACKSPACE) {
+                        keyboard->input(8);
                     } else {
                         controller->kbd_pressed(event);
                     }
@@ -388,6 +392,24 @@ LuaString* api_list_files(const char* path, size_t* length_out, int* ok_out) {
     } else {
         return nullptr;
     }
+}
+
+API int api_create_directory(const char* strpath) {
+    auto path = Path(string(strpath));
+
+    return (int)fs::create_directory(path);
+}
+
+API int api_create_file(const char* strpath) {
+    auto path = Path(string(strpath));
+
+    return (int)fs::create_file(path);
+}
+
+API int api_touch_file(const char* strpath) {
+    auto path = Path(string(strpath));
+
+    return (int)fs::touch_file(path);
 }
 
 API void audio_enqueue_command(const uint64_t timestamp,
