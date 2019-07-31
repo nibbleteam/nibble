@@ -3,18 +3,18 @@ local Widget = require 'nibui.Widget'
 local Textarea = require 'nibui.Textarea'
 local Text = require 'nibui.Text'
 local Lexer = require 'Lexer'
-local d = NOM.dynamic
 
 local editor_margin = 1
 
 local function read_file(file)
-    --local f = assert(io.open(file, "rb"))
-    --local content = f:read("*all")
-    --f:close()
-    return ""
+    local f = assert(open(file))
+    local content = f:read("*all")
+    f:close()
+
+    return content
 end
 
-local code = read_file('apps/code.nib/editor.lua')
+local code = read_file('apps/'..env.params[2]..'.nib/main.lua')
 
 local lexer = Lexer:new()
 lexer:add_keyword('function')
@@ -38,6 +38,7 @@ lexer:add_keyword(':')
 lexer:add_keyword(',')
 lexer:add_keyword('.')
 lexer:add_delimiters("'", "'")
+lexer:add_delimiters('"', '"')
 lexer:add_identifier('alphanumeric')
 lexer:compile()
 
@@ -53,19 +54,19 @@ local function code2fragments(code)
             if matches then
                 for _, match in ipairs(matches) do
                     if match.name == 'alphanumeric' then
-                        table.insert(fragments, Text:new(match.matched))
+                        insert(fragments, Text:new(match.matched))
                     else
                         if #match.name > 1  then
                             if match.name == 'function' or match.name == 'local' or match.name == 'require' then
-                                table.insert(fragments, Text:new(match.matched):set('color', 6))
+                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 6 }))
                             else
-                                table.insert(fragments, Text:new(match.matched):set('color', 10))
+                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 10 }))
                             end
                         else
                             if match.name == '(' or match.name == ')' then
-                                table.insert(fragments, Text:new(match.matched):set('color', 11))
+                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 11 }))
                             else
-                                table.insert(fragments, Text:new(match.matched):set('color', 9))
+                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 9 }))
                             end
                         end
                     end
@@ -78,11 +79,11 @@ local function code2fragments(code)
         end
 
         if c == ' ' then
-            table.insert(fragments, Text:new(' '))
+            insert(fragments, Text:new(' '))
         end
 
         if c == '\n' then
-            table.insert(fragments, false)
+            insert(fragments, false)
         end
     end
 
@@ -90,10 +91,11 @@ local function code2fragments(code)
 end
 
 return {
-    w = d'-'(d'^' 'w', 2*editor_margin),
-    h = d'-'(d'^' 'h', 2*editor_margin),
-    x = d'+'(d'left', editor_margin),
-    y = d'+'(d'top', editor_margin),
+    w = NOM.width-2*editor_margin,
+    h = NOM.height-2*editor_margin,
+    x = NOM.left+editor_margin,
+    y = NOM.top+editor_margin,
+
     background = 1,
 
     draw = function (self)
@@ -115,6 +117,28 @@ return {
 
         clip(self.x, self.y, self.w, self.h)
         self.textarea:draw()
+
+        fill_rect(self.textarea.cursor_x, self.textarea.cursor_y, 4, 8, 15)
+    end,
+
+    update = function(self)
+        local input = read_keys()
+
+        for i=1,#input do
+            local char = input:sub(i, i)
+
+            if char == "\08" then
+                self.textarea:delete(1)
+            elseif char == "\13" then
+                self.textarea:newline()
+            else
+                self.textarea:add(Text:new(char))
+            end
+        end
+
+        if #input > 0 then
+            self:set_dirty()
+        end
     end,
 
     onmove = function (self, event)

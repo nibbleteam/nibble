@@ -34,7 +34,7 @@ function Lexer:matches()
     if self.machine:finished() then
         for _, state in ipairs(self.machine.state) do
             if state.finish then
-                table.insert(matches, state)
+                insert(matches, state)
             end
         end
     end

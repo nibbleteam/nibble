@@ -48,13 +48,15 @@ function StateMachine:consume(char)
     for _, state in ipairs(self.state) do
         if not state.finish then
             for tr_char, tr_state in pairs(state.transitions) do
+                local state = copy(state)
+
                 if tr_char == 'alphanumeric' and (char:match('%W') == nil or char == '_') then
                     if tr_state ~= 'stay' then
                         tr_state.matched = state.matched .. char
-                        table.insert(states, tr_state)
+                        insert(states, tr_state)
                     else
                         state.matched = (state.matched or '') .. char
-                        table.insert(states, state)
+                        insert(states, state)
                     end
                 end
 
@@ -62,10 +64,10 @@ function StateMachine:consume(char)
                     if tr_state ~= 'stay' then
                         if tr_state.backtrack then
                             tr_state.matched = state.matched
-                            table.insert(states, tr_state)
+                            insert(states, tr_state)
                         else
                             tr_state.matched = state.matched .. char
-                            table.insert(states, state)
+                            insert(states, state)
                         end
                     end
                 end
@@ -74,24 +76,24 @@ function StateMachine:consume(char)
                     if tr_state ~= 'stay' then
                         if tr_state.backtrack then
                             tr_state.matched = state.matched
-                            table.insert(states, tr_state)
+                            insert(states, tr_state)
                         else
                             tr_state.matched = state.matched .. char
-                            table.insert(states, state)
+                            insert(states, state)
                         end
                     else
                         state.matched = state.matched .. char
-                        table.insert(states, state)
+                        insert(states, state)
                     end
                 end
 
                 if tr_char == char then
                     if tr_state ~= 'stay' then
                         tr_state.matched = state.matched .. char
-                        table.insert(states, tr_state)
+                        insert(states, tr_state)
                     else
                         state.matched = state.matched .. char
-                        table.insert(states, state)
+                        insert(states, state)
                     end
                 end
             end
@@ -165,12 +167,12 @@ function StateMachine:from_delimiters(begin, finish, priority)
             transitions = {
                 [begin] = {
                     transitions = {
-                        any = 'stay',
                         [finish] = {
                             finish = true,
                             transitions = {},
                             name = begin..', '..finish
-                        }
+                        },
+                        any = 'stay'
                     }
                 }
             },
