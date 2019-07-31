@@ -2,7 +2,7 @@
 local Text = require('nibui.Text')
 
 local cursor_active = 0
-local user_input = "" 
+local user_input = ""
 
 local text = Textarea:new(8, 8, 320-16, 200)
 
@@ -15,16 +15,16 @@ local disabled = false
 function init()
     -- Copia a paleta padrão
     for i=1,7 do
-        cppal(0, i)
+        copy_palette(0, i)
     end
 
     -- Cor 0 transparente
-    mask(0)
+    mask_color(0)
 end
 
 function draw()
     if not disabled then
-        clr(16)
+        clear(16)
 
         text:draw()
 
@@ -61,7 +61,7 @@ function draw_cursor()
             rect(text.cursor_x, text.cursor_y, 4, 8, 15)
         end
     else
-        rectf(text.cursor_x, text.cursor_y, 4, 8, 15)
+        fill_rect(text.cursor_x, text.cursor_y, 4, 8, 15)
     end
 end
 
@@ -71,9 +71,11 @@ function update(dt)
     receive_messages()
 
     if not disabled and has_listeners() then
-        local input = kernel.read(81606, 1)
+        local input = read_keys()
 
-        if input:byte() > 0 then
+        if #input > 0 then
+            input = input:sub(1, 1)
+
             cursor_active = .5
 
             if input == "\08" then
@@ -86,11 +88,11 @@ function update(dt)
 
                 send_to_listeners(user_input)
 
-                user_input = "" 
+                user_input = ""
             elseif input == '\18' then
             else
                 text:add(Text:new(input))
-                user_input = user_input..input 
+                user_input = user_input..input
             end
         end
 
@@ -99,6 +101,9 @@ function update(dt)
         else
             cursor_active = 0
         end
+
+        if button_press(UP) then text:scroll(8) end
+        if button_press(DOWN) then text:scroll(-8) end
     end
 end
 
@@ -106,6 +111,8 @@ function has_listeners()
     for _, _ in pairs(listeners) do
         return true
     end
+
+    return false
 end
 
 function lineiter(s)
@@ -130,7 +137,7 @@ function add_text(str, bg, fg, swap)
             text:newline()
             line = ''
         else
-            line ..= c
+            line = line..c
         end
     end
 
@@ -147,32 +154,40 @@ end
 
 function send_to_listeners(text)
     for listener, _ in pairs(listeners) do
-        kernel.send(listener, {input=text})
+        send_message(listener, {input=text})
     end
 end
 
 function receive_messages()
-    local message = kernel.receive()
+    local message
 
-    if message then
-        if message.print and type(message.print) == "string" then
-            add_text(message.print, message.background)
-        end
+    repeat
+        message = receive_message()
 
-        if message.subscribe and type(message.subscribe) == "number" then
-            listeners[message.subscribe] = message.name
-        end
+        if message then
+            if message.print and type(message.print) == "string" then
+                add_text(message.print, message.background)
+            end
 
-        if message.unsubscribe and type(message.unsubscribe) == "number" then
-            listeners[message.unsubscribe] = nil
-        end
+            if message.subscribe and type(message.subscribe) == "number" then
+                listeners[message.subscribe] = message.name
+            end
 
-        if message.disable then
-            disabled = true
-        end
+            if message.unsubscribe and type(message.unsubscribe) == "number" then
+                listeners[message.unsubscribe] = nil
+            end
 
-        if message.enable then
-            disabled = false
+            if message.disable then
+                terminal_print("disabling tty")
+
+                disabled = true
+            end
+
+            if message.enable then
+                terminal_print("enabling tty")
+
+                disabled = false
+            end
         end
-    end
+    until not message
 end

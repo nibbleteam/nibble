@@ -40,6 +40,8 @@ function Textarea:delete(n)
         local deleted = self:try_delete(n)
         n -= deleted
         self.cursor -= deleted
+
+        if deleted == 0 then break end
     end
 
     if #self.text > 0 then
@@ -54,16 +56,20 @@ function Textarea:delete(n)
 end
 
 function Textarea:try_delete(n)
-    local deleted = 0
-    local from = self.text[#self.text]
-    
-    if n < #from.text then
-        from.text = from.text:sub(0, #from.text-n)
+    if #self.text > 0 then
+        local deleted = 0
+        local from = self.text[#self.text]
 
-        return n
+        if n < #from.text then
+            from.text = from.text:sub(0, #from.text-n)
+
+            return n
+        else
+            remove(self.text, #self.text)
+            return #from.text
+        end
     else
-        remove(self.text, #self.text)
-        return #from.text
+        return 0
     end
 end
 
