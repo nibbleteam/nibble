@@ -10,6 +10,12 @@ local lang = require('frameworks.kernel.lang')
 local gpu = require('frameworks.kernel.gpu')
 local pprint = require('frameworks.kernel.pprint')
 
+-- Moonscript
+package.loaded.moonscript = require("frameworks.kernel.moonscript")
+
+local moon_parse = require("moonscript.parse")
+local moon_compile = require("moonscript.compile")
+
 local processes = {}
 local pid_counter = 0
 local executing_process = nil
@@ -105,7 +111,7 @@ function make_process(entrypoint, env)
     proc.pub.env = env
     proc.pub.env.pid = proc.priv.pid
 
-    proc.priv.ok, err = exec(entrypoint..'/main.lua', proc.pub)
+    proc.priv.ok, err = exec(entrypoint..'/main', proc.pub)
     proc.priv.running = true
 
     if not proc.priv.ok then
@@ -187,8 +193,29 @@ function exec_audio_tick(process)
     end
 end
 
+function loadmoon(path)
+    local moon_file = io.open(path, "rb")
+
+    if moon_file then
+        local moon_script = moon_file:read("*all")
+        moon_file:close()
+
+        local lua_script = moon_compile.tree(moon_parse.string(moon_script))
+
+        print(lua_script)
+
+        return loadstring(lua_script)
+    else
+        return nil, "No such file or directory"
+    end
+end
+
 function exec(path, env, args)
-    local fn, msg = loadfile(path)
+    local fn, msg = loadmoon(path..".moon")
+
+    if not fn then
+        fn, msg = loadfile(path..".lua")
+    end
 
     if not fn then
        return nil, msg
@@ -217,20 +244,30 @@ end
 
 function nib_require(entrypoint, module, proc)
     local paths = {
-        entrypoint..'/'..module:gsub("%.", "/")..'.lua',
-        'frameworks/'..module:gsub("%.", "/")..'.lua',
+        entrypoint..'/'..module:gsub("%.", "/"),
+        'frameworks/'..module:gsub("%.", "/"),
     }
+
+    local extensions = { ".lua", ".moon" }
 
     local errors = {}
 
     for _, path in ipairs(paths) do
-        local fn, err = loadfile(path)
+        for _, extension in ipairs(extensions) do
+            local fn, err
 
-        if not fn then
-            table.insert(errors, 'require "'..path..'"): '..err)
-        else
-            sandbox_fn(fn, proc.pub)
-            return fn()
+            if extension == ".lua" then
+                fn, err = loadfile(path..extension)
+            else
+                fn, err = loadmoon(path..extension)
+            end
+
+            if not fn then
+                table.insert(errors, 'require "'..path..'"): '..tostring(err))
+            else
+                sandbox_fn(fn, proc.pub)
+                return fn()
+            end
         end
     end
 
