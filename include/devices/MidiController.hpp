@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-#include <RtMidi.h> 
+#include <RtMidi.h>
 #include <kernel/Memory.hpp>
 #include <kernel/Device.hpp>
 
