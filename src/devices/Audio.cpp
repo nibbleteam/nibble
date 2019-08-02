@@ -51,7 +51,7 @@ SDL_AudioDeviceID Audio::initialize() {
 #endif
 
     // Open the device
-    device = SDL_OpenAudioDevice(nullptr, 0, &spec_in, &spec_out, SDL_AUDIO_ALLOW_ANY_CHANGE);
+    device = SDL_OpenAudioDevice(nullptr, 0, &spec_in, &spec_out, 0);
     //device = SDL_OpenAudioDevice(nullptr, 0, &spec_in, &spec_out, SDL_AUDIO_ALLOW_ANY_CHANGE);
 
     cout << "[nibble] audio: freq: " << spec_out.freq << endl;
