@@ -12,8 +12,8 @@ using namespace std;
 Channel::Channel(Memory &memory):
                 reverb_position(0),
                 memory(*((MemoryLayout*)memory.allocate(sizeof(MemoryLayout), "FM Audio Channel"))) {
-    buffer = new int16_t[AUDIO_DELAY_SIZE];
-    samples = new int16_t[AUDIO_SAMPLE_AMOUNT];
+    buffer = new int16_t[AUDIO_DELAY_SIZE*2];
+    samples = new int16_t[AUDIO_SAMPLE_AMOUNT*2];
 
     memset(buffer, 0, AUDIO_DELAY_MEM_SIZE);
 }

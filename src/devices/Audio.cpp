@@ -38,7 +38,7 @@ SDL_AudioDeviceID Audio::initialize() {
     spec_in.samples  = AUDIO_SAMPLE_AMOUNT;
 
     spec_in.callback = [] (void *udata, Uint8 *stream, int len) {
-        ((Audio*)udata)->fill((int16_t*)stream, len/2);
+        ((Audio*)udata)->fill((int16_t*)stream, len/AUDIO_SAMPLE_LENGTH/2);
     };
 
     spec_in.userdata = (void*)this;
@@ -74,19 +74,21 @@ void Audio::shutdown() {
     SDL_PauseAudioDevice(device, 1);
 }
 
+// Each sample should be 4 bytes:
+// [ L: 2 ] [ R: 2 ]
 void Audio::fill(int16_t *samples, int missing_sample_count) {
     unsigned int initial_t = *t;
 
-    memset(samples, 0, missing_sample_count*sizeof(int16_t));
+    memset(samples, 0, missing_sample_count*AUDIO_SAMPLE_LENGTH*2);
 
     // Preenche o buffer "samples"
-    do {
+    while (missing_sample_count > 0) {
         // Caso o tick precise ser rodado antes
         // de completar todos os samples
         if (*t+missing_sample_count > next_tick) {
-            unsigned int final_sample_count = ((next_tick-*t)/2)*2;
+            unsigned int final_sample_count = next_tick-*t;
 
-            mix(samples+(*t-initial_t), final_sample_count);
+            mix(samples+2*(*t-initial_t), final_sample_count);
 
             *t += final_sample_count;
             missing_sample_count -= final_sample_count;
@@ -96,19 +98,18 @@ void Audio::fill(int16_t *samples, int missing_sample_count) {
 
             calc_next_tick();
         } else {
-            mix(samples+(*t-initial_t), missing_sample_count);
+            mix(samples+2*(*t-initial_t), missing_sample_count);
 
             *t += missing_sample_count;
             missing_sample_count = 0;
-            break;
         }
-    } while (missing_sample_count > 0);
+    }
 }
 
 void Audio::mix(int16_t* samples, unsigned int sample_count) {
     // Preenche samples de cada canal
     for (unsigned int c=0;c<AUDIO_CHANNEL_AMOUNT;c++) {
-        channels[c]->fill(samples, sample_count);
+        channels[c]->fill(samples, sample_count*2);
     }
 }
 
