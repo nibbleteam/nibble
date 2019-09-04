@@ -3,6 +3,8 @@
 #include <cstring>
 #include <cmath>
 
+#include <png.h>
+
 #include <devices/GPU.hpp>
 
 #include <Icon.hpp>
@@ -35,12 +37,13 @@ GPU::GPU(Memory& memory):
     // Não mostra o cursor
     SDL_ShowCursor(SDL_DISABLE);
 
-    // TODO
-    // Coloca o ícone
-    // sf::Image Icon;
-	// if (Icon.load_from_memory(icon_png, icon_png_len)) {
-    //    window.setIcon(icon_width, icon_height, Icon.getPixelsPtr());
-    //}
+    uint8_t *pixels;
+    auto icon_surface = icon_to_surface(pixels);
+
+    SDL_SetWindowIcon(window, icon_surface);
+
+    SDL_FreeSurface(icon_surface);
+    delete pixels;
 
     framebuffer = SDL_CreateTexture(renderer,
                                     SDL_PIXELFORMAT_ABGR8888,
@@ -770,4 +773,32 @@ void GPU::clear(uint8_t color) {
         return;
 
     memset(video_memory, COLMAP1(color), GPU_VIDEO_MEM_SIZE);
+}
+
+SDL_Surface* GPU::icon_to_surface(uint8_t* &pixels) {
+    png_image img;
+    png_bytep img_data;
+
+    memset(&img, 0, sizeof(png_image));
+    img.version = PNG_IMAGE_VERSION;
+
+    if (!png_image_begin_read_from_memory(&img, icon_png, icon_png_len)) {
+        cout << "Could not load icon (header)" << endl;
+        return nullptr;
+    }
+
+    img.format = PNG_FORMAT_RGBA;
+
+    img_data = new uint8_t[PNG_IMAGE_SIZE(img)];
+
+    if (png_image_finish_read(&img, NULL, img_data, 0, NULL) == 0) {
+        cout << "Could not load icon (body)" << endl;
+        return nullptr;
+    }
+
+    pixels = img_data;
+
+    return SDL_CreateRGBSurfaceFrom(img_data,
+                                    img.width, img.height, 32, img.width*4,
+                                    0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
 }

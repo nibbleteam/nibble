@@ -106,6 +106,8 @@ private:
     bool capture_frame();
     ColorMapObject* get_color_map();
 
+    SDL_Surface* icon_to_surface(uint8_t* &);
+
     void paint_boot_animation();
 };
 
