@@ -100,9 +100,11 @@ public:
     bool start_capturing(const string&);
     bool stop_capturing();
 private:
-    void copy_scan_line(uint8_t *, uint8_t *, size_t, uint8_t);
-    void scan_line(int16_t, int16_t, int16_t, uint8_t);
-    void fix_rect_bounds(int16_t&, int16_t&, int16_t&, int16_t&, int16_t, int16_t);
+    void copy_scan_line(uint8_t *, uint8_t *, size_t, uint8_t) const;
+    void scan_line(int16_t, int16_t, int16_t, uint8_t) const;
+    void fix_rect_bounds(int16_t&, int16_t&, int16_t&, int16_t&, int16_t, int16_t) const;
+    void fix_line_bounds(int16_t&, int16_t&, int16_t&, int16_t&) const;
+    uint8_t find_point_region(const int16_t, const int16_t) const;
     bool capture_frame();
     ColorMapObject* get_color_map();
 

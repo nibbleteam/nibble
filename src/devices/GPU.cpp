@@ -312,9 +312,59 @@ ColorMapObject* GPU::get_color_map() {
 // Render de Software
 //
 
+uint8_t GPU::find_point_region(int16_t x, int16_t y) const {
+    return (x < target_clip_start_x) | (x > target_clip_end_x)<<1 | (y < target_clip_start_y)<<2 | (y > target_clip_end_y)<<3;
+}
+
+void GPU::fix_line_bounds(int16_t& x1, int16_t& y1, int16_t& x2, int16_t& y2) const {
+    uint8_t start = find_point_region(x1, y1);
+    uint8_t end = find_point_region(x2, y2);
+
+    uint8_t region;
+    int16_t x, y;
+
+    for (;;) {
+        // Dentro da tela
+        if (!(start + end)) {
+            return;
+        }
+
+        // Fora da tela
+        if (start & end) {
+            return;
+        }
+
+        region = start? start : end;
+
+        if (region & 1) {
+            y = y1+(target_clip_start_x-x1)*(y2-y1)/float(x2-x1);
+            x = target_clip_start_x;
+        } else if (region & 2) {
+            y = y1+(target_clip_end_x-x1)*(y2-y1)/float(x2-x1);
+            x = target_clip_end_x;
+        } else if (region & 4) {
+            x = x1+(target_clip_start_y-y1)*(x2-x1)/float(y2-y1);
+            y = target_clip_start_y;
+        } else if (region & 8) {
+            x = x1+(target_clip_end_y-y1)*(x2-x1)/float(y2-y1);
+            y = target_clip_end_y;
+        }
+
+        if (region == start) {
+            x1 = x; y1 = y;
+
+            start = find_point_region(x1, y1);
+        } else {
+            x2 = x; y2 = y;
+
+            end = find_point_region(x2, y2);
+        }
+    }
+}
+
 void GPU::fix_rect_bounds(int16_t& x, int16_t& y,
                           int16_t& w, int16_t& h,
-                          int16_t bw, int16_t bh) {
+                          int16_t bw, int16_t bh) const {
     if (x < 0) {
         w = max(w+x, 0);
         x = 0;
@@ -337,6 +387,9 @@ void GPU::line(int16_t x1, int16_t y1,
                uint8_t color) {
     if (TRANSPARENT(color))
         return;
+
+    // Algorítmo Cohen-Sutherland de clipping
+    fix_line_bounds(x1, y1, x2, y2);
 
     // Bresenham para inteiros
     const int16_t dx = abs(x1-x2);
@@ -637,7 +690,7 @@ void GPU::quad_fill(int16_t x1, int16_t y1,
     }
 }
 
-void GPU::scan_line(int16_t x1, int16_t x2, int16_t y, uint8_t color) {
+void GPU::scan_line(int16_t x1, int16_t x2, int16_t y, uint8_t color) const {
     if (TRANSPARENT(color))
         return;
 
@@ -676,7 +729,7 @@ void GPU::circle_fill(int16_t dx, int16_t dy, int16_t r, uint8_t color) {
     }
 }
 
-void GPU::copy_scan_line(uint8_t *dst, uint8_t *src, size_t bytes, uint8_t pal) {
+void GPU::copy_scan_line(uint8_t *dst, uint8_t *src, size_t bytes, uint8_t pal) const {
     const auto end_src = src+bytes;
 
     while (src < end_src) {
