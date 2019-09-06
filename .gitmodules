@@ -1,0 +1,6 @@
+[submodule "extern/SDL2"]
+	path = extern/SDL2
+	url = https://github.com/spurious/SDL-mirror
+[submodule "extern/libpng"]
+	path = extern/libpng
+	url = https://github.com/glennrp/libpng

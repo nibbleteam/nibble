@@ -1,0 +1,58 @@
+os: Visual Studio 2017
+
+branches:
+    only:
+        - master 
+        - dev
+
+environment:
+    matrix:
+        #- arch: x86
+        #  compiler: msvc2017
+        - arch: x64
+          compiler: msvc2017
+
+platform:
+  - x64
+
+install:
+    # Download ninja & rcedit
+    - cmd: mkdir C:\deps
+    - ps: (new-object net.webclient).DownloadFile('https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe', 'C:\deps\rcedit.exe')
+    - ps: (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'C:\deps\ninja.exe')
+    - cmd: set PATH=%cd%;C:\deps;%PATH%
+    # Set up the build environment
+    - cmd: if %compiler%==msvc2015 ( call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %arch% )
+    - cmd: if %compiler%==msvc2017 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %arch% )
+
+build_script:
+    - cmd: echo Building on %arch% with %compiler%
+    - cmd: cd subprojects\luajit\src
+    - cmd: msvcbuild.bat
+    - cmd: cd ..\..\..
+    - cmd: mkdir builddir
+    - cmd: cd builddir
+    - cmd: cmake .. -G Ninja
+    - cmd: ninja -v
+    - cmd: cd ..
+
+on_success:
+    - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
+    - ps: ./send.ps1 success $env:WEBHOOK_URL
+
+on_failure:
+    - ps: Invoke-RestMethod https://raw.githubusercontent.com/k3rn31p4nic/appveyor-discord-webhook/master/send.ps1 -o send.ps1
+    - ps: ./send.ps1 failure $env:WEBHOOK_URL
+
+after_build:
+    #- cd C:\projects\nibble
+    - mkdir nibble
+    - move builddir\nibble.exe nibble
+    - move subprojects\luajit\src\lua51.dll nibble
+    - move src\apps nibble
+    - move src\frameworks nibble
+    - rcedit "nibble/nibble.exe" --set-icon "assets/icon.ico"
+    - 7z a nibble.zip nibble 
+
+artifacts:
+    - path: nibble.zip
