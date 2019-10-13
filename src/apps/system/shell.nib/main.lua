@@ -7,7 +7,6 @@ local prompt_color = 9
 sh = {
     path = {
         "apps/system/",
-        "apps/demos/",
         "apps/",
     }
 }
@@ -82,7 +81,11 @@ function execute(cmd)
         end
 
         if not found then
-            shprint(cmd[1]..' not found\n', 6)
+            shprint(cmd[1], 6)
+            shprint(' not found\n')
+            shprint('type help for help\n')
+            shprint('(searched apps/ and apps/system/)\n')
+
             print_prompt()
         end
     else

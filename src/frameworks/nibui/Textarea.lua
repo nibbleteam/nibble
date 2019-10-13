@@ -22,6 +22,8 @@ function Textarea:new(x, y, w, h)
         cursor_y = y or 0,
         -- altura da linha
         line_height = 12,
+        -- line wrapping
+        wrap = true,
         -- Várias instâncias de DecoratedText
         text = {}
     }
@@ -123,7 +125,7 @@ function Textarea:advance_cursor(text)
 
     self.cursor_x += measure(by)
     
-    if self.cursor_x > self.x+self.w then
+    if self.cursor_x > self.x+self.w and self.wrap then
         local overflow = math.ceil((self.cursor_x-(self.x+self.w))/CHAR_W)
 
         self.cursor_x = self.x

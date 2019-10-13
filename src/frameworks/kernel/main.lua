@@ -250,8 +250,15 @@ function handle_process_error(err)
     })
 end
 
+function is_privileged(entrypoint)
+    -- !! Todos os aplicativos nessa pasta são privilegiados !!
+    local privileged_path = "apps/system/"
+
+    return entrypoint:sub(1, #privileged_path) == privileged_path
+end
+
 function nib_api(entrypoint, proc)
-    return {
+    local api = {
         -- Processos podem usar require limitado,
         require = function(module)
             return nib_require(entrypoint, module, proc)
@@ -375,7 +382,6 @@ function nib_api(entrypoint, proc)
         open_asset = function(asset, kind)
             return nib_open_asset(entrypoint, asset, kind)
         end,
-        open = io.open,
         -- Color manipulation
         copy_palette = gpu.copy_palette,
         mask_color = gpu.mask_color,
@@ -409,11 +415,6 @@ function nib_api(entrypoint, proc)
         mouse_position = input.mouse_position,
         read_keys = input.read_keys,
         read_midi = input.read_midi,
-        -- Sistema de arquivos
-        list_directory = hw.list,
-        create_directory = hw.create_directory,
-        touch_file = hw.touch_file,
-        create_file = hw.create_file,
         -- Audio
         encode = audio.encode,
         channel = audio.channel,
@@ -437,4 +438,19 @@ function nib_api(entrypoint, proc)
         CH7 = audio.CH7,
         CH8 = audio.CH8,
     }
+
+    -- Expõe o sistema de arquivos para processos
+    -- privilegiados
+    if is_privileged(entrypoint) then
+        api.io = io
+
+        api.list_directory = hw.list
+        api.create_directory = hw.create_directory
+        api.touch_file = hw.touch_file
+        api.create_file = hw.create_file
+
+        print("privileged:", entrypoint)
+    end
+
+    return api
 end

@@ -4,17 +4,9 @@ local Textarea = require 'nibui.Textarea'
 local Text = require 'nibui.Text'
 local Lexer = require 'Lexer'
 
+local Editor = require 'Editor'
+
 local editor_margin = 1
-
-local function read_file(file)
-    local f = assert(open(file))
-    local content = f:read("*all")
-    f:close()
-
-    return content
-end
-
-local code = read_file('apps/'..env.params[2]..'.nib/main.lua')
 
 local lexer = Lexer:new()
 lexer:add_keyword('function')
@@ -37,6 +29,14 @@ lexer:add_keyword('=')
 lexer:add_keyword(':')
 lexer:add_keyword(',')
 lexer:add_keyword('.')
+lexer:add_keyword('+')
+lexer:add_keyword('-')
+lexer:add_keyword('/')
+lexer:add_keyword('*')
+lexer:add_keyword('+=')
+lexer:add_keyword('-=')
+lexer:add_keyword('/=')
+lexer:add_keyword('*=')
 lexer:add_delimiters("'", "'")
 lexer:add_delimiters('"', '"')
 lexer:add_identifier('alphanumeric')
@@ -90,6 +90,8 @@ local function code2fragments(code)
     return fragments
 end
 
+local init_y = 0
+
 return {
     w = NOM.width-2*editor_margin,
     h = NOM.height-2*editor_margin,
@@ -99,26 +101,13 @@ return {
     background = 1,
 
     draw = function (self)
-        if not self.textarea then
-            self.textarea = Textarea:new(self.x, self.y, self.w, self.h)
-
-            local fragments = code2fragments(code)
-
-            for _, frag in ipairs(fragments) do
-                if frag then
-                    self.textarea:add(frag)
-                else
-                    self.textarea:newline()
-                end
-            end
+        if not self.editor then
+            self.editor = Editor:new(self.code)
         end
 
-        Widget.draw(self)
-
         clip(self.x, self.y, self.w, self.h)
-        self.textarea:draw()
 
-        fill_rect(self.textarea.cursor_x, self.textarea.cursor_y, 4, 8, 15)
+        self.editor:draw(self.x, self.y, self.w, self.h)
     end,
 
     update = function(self)
@@ -128,12 +117,28 @@ return {
             local char = input:sub(i, i)
 
             if char == "\08" then
-                self.textarea:delete(1)
+                self.editor:remove_chars(-1)
             elseif char == "\13" then
-                self.textarea:newline()
+                self.editor:insert_line()
             else
-                self.textarea:add(Text:new(char))
+                self.editor:insert_chars(char)
             end
+        end
+
+        if button_press(RIGHT) then
+            self.editor:move_by_chars(1)
+        end
+
+        if button_press(LEFT) then
+            self.editor:move_by_chars(-1)
+        end
+
+        if button_press(DOWN) then
+            self.editor:move_by_lines(1)
+        end
+
+        if button_press(UP) then
+            self.editor:move_by_lines(-1)
         end
 
         if #input > 0 then
@@ -143,10 +148,10 @@ return {
 
     onmove = function (self, event)
         if event.drag then
-            self.textarea:scroll(event.y-self.init_y)
+            self.textarea:scroll(event.y-init_y)
             self.parent:set_dirty()
         end
 
-        self.init_y = event.y
+        init_y = event.y
     end
 }
