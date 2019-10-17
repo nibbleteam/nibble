@@ -38,44 +38,86 @@ namespace mmap {
                 return {0, 0, 0};
             }
 
-            img.format = PNG_FORMAT_RGBA;
+            // A imagem tem uma paleta
+            if (img.format & PNG_FORMAT_FLAG_COLORMAP) {
+                img.format = PNG_FORMAT_RGBA_COLORMAP;
 
-            img_data = new uint8_t[PNG_IMAGE_SIZE(img)];
+                png_bytep palette = new uint8_t[PNG_IMAGE_COLORMAP_SIZE(img)];
+                img_data = new uint8_t[PNG_IMAGE_SIZE(img)];
 
-            if (png_image_finish_read(&img, NULL, img_data, 0, NULL) == 0) {
-                cout << "Could not load image: " << path.get_path() << endl;
-                return {0, 0, 0};
-            }
-
-            // Verifica o tamanho
-            if (img.width > SPRITESHEET_W || img.height > SPRITESHEET_H) {
-                cout << "spritesheet is too big" << endl;   
-                delete img_data;
-                return {0, 0, 0};
-            }
-
-            auto img_mem = memory.allocate_with_position(img.width*img.height, "Memory Mapped Image");
-            auto img_mem_data = get<0>(img_mem);
-            auto img_mem_pos = get<1>(img_mem);
-
-            // Converte a imagem e escreve array data
-            for (size_t y=0;y<img.height;y++) {
-                for (size_t x=0;x<img.width;x++) {
-                    auto p = (y*img.width+x)*4;
-                    uint8_t pix = color2index(SDL_Color {
-                                                img_data[p+0],
-                                                img_data[p+1],
-                                                img_data[p+2],
-                                                img_data[p+3]
-                                              });
-
-                    img_mem_data[y*img.width+x] = pix&0x0F;
+                if (png_image_finish_read(&img, NULL, img_data, 0, palette) == 0) {
+                    cout << "Could not load image: " << path.get_path() << endl;
+                    return {0, 0, 0};
                 }
+
+                // Verifica o tamanho
+                if (img.width > SPRITESHEET_W || img.height > SPRITESHEET_H) {
+                    cout << "spritesheet is too big" << endl;
+                    delete img_data;
+                    delete palette;
+                    png_image_free(&img);
+                    return {0, 0, 0};
+                }
+
+                auto img_mem = memory.allocate_with_position(img.width*img.height, "Memory Mapped Image");
+                auto img_mem_data = get<0>(img_mem);
+                auto img_mem_pos = get<1>(img_mem);
+
+                // Converte a imagem e escreve array data
+                for (size_t y=0;y<img.height;y++) {
+                    for (size_t x=0;x<img.width;x++) {
+                        auto p = (y*img.width+x);
+                        img_mem_data[p] = img_data[p]%16;
+                    }
+                }
+
+                delete img_data;
+                delete palette;
+                png_image_free(&img);
+
+                return {img_mem_pos, img.width, img.height};
+            } else {
+                img.format = PNG_FORMAT_RGBA;
+
+                img_data = new uint8_t[PNG_IMAGE_SIZE(img)];
+
+                if (png_image_finish_read(&img, NULL, img_data, 0, NULL) == 0) {
+                    cout << "Could not load image: " << path.get_path() << endl;
+                    return {0, 0, 0};
+                }
+
+                // Verifica o tamanho
+                if (img.width > SPRITESHEET_W || img.height > SPRITESHEET_H) {
+                    cout << "spritesheet is too big" << endl;
+                    delete img_data;
+                    png_image_free(&img);
+                    return {0, 0, 0};
+                }
+
+                auto img_mem = memory.allocate_with_position(img.width*img.height, "Memory Mapped Image");
+                auto img_mem_data = get<0>(img_mem);
+                auto img_mem_pos = get<1>(img_mem);
+
+                // Converte a imagem e escreve array data
+                for (size_t y=0;y<img.height;y++) {
+                    for (size_t x=0;x<img.width;x++) {
+                        auto p = (y*img.width+x)*4;
+                        uint8_t pix = color2index(SDL_Color {
+                                                    img_data[p+0],
+                                                    img_data[p+1],
+                                                    img_data[p+2],
+                                                    img_data[p+3]
+                                                });
+
+                        img_mem_data[y*img.width+x] = pix&0x0F;
+                    }
+                }
+
+                delete img_data;
+                png_image_free(&img);
+
+                return {img_mem_pos, img.width, img.height};
             }
-
-            delete img_data;
-
-            return {img_mem_pos, img.width, img.height};
         }
 
         return {0, 0, 0};
