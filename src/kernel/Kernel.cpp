@@ -75,7 +75,9 @@ void Kernel::shutdown() {
     mouse->shutdown();
     keyboard->shutdown();
     controller->shutdown();
+#ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
     midi_controller->shutdown();
+#endif
 
     // TODO: Hack para dealocar memória dos processos
     // mas não dos despositivos
