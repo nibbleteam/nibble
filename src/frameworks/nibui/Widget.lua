@@ -119,6 +119,10 @@ function Widget:update(dt)
     for _, child in ipairs(self.children) do
         child:update(dt)
     end
+
+    if self.onupdate then
+        self:onupdate()
+    end
 end
 
 function Widget:draw_3slice(x, y, w, h, sx, sy, sw, sh, sl1, sl2)
