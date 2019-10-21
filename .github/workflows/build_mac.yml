@@ -18,6 +18,8 @@ jobs:
       run: brew install cmake ninja
     - name: cd subprojects/luajit && make
       run: cd subprojects/luajit && make
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 10.6
     - name: mkdir build
       run: mkdir build
     - name: cd build && cmake .. -GNinja
@@ -31,7 +33,7 @@ jobs:
     - name: cp build/nibble nibble
       run: cp build/nibble nibble
     - name: cp src/{apps,frameworks} nibble
-      run: cp src{apps,frameworks} nibble
+      run: cp src/{apps,frameworks} nibble
     - uses: actions/upload-artifact@master
       with:
         name: Nibble for macOS (x64)
