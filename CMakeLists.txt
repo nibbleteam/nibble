@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.12)
 
 project(nibble VERSION 0.1
                DESCRIPTION "A fantasy console designed to run on real hardware"
