@@ -13,8 +13,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: sudo apt install ninja-build
-      run: sudo apt install ninja-build
+    - name: sudo apt install...
+      run: sudo apt install ninja-build libasound2-dev
     - name: mkdir build
       run: mkdir build
     - name: cd build && cmake ..
