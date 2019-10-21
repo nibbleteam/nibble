@@ -15,10 +15,12 @@ jobs:
     - uses: actions/checkout@v1
     - name: sudo apt install...
       run: sudo apt install ninja-build libasound2-dev
+    - name: cd subprojects/luajit && make
+      run: cd subprojects/luajit && make
     - name: mkdir build
       run: mkdir build
-    - name: cd build && cmake ..
-      run: cd build && cmake ..
+    - name: cd build && cmake .. -GNinja
+      run: cd build && cmake .. -GNinja
     - name: cd build && ninja
       run: cd build && ninja
     - name: cp build/nibble src
