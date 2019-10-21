@@ -28,4 +28,4 @@ jobs:
     - uses: actions/upload-artifact@master
       with:
         name: Nibble for Linux (x64)
-        path: src/*
+        path: src/
