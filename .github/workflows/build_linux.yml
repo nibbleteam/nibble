@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: sudo apt install...
-      run: sudo apt install ninja-build libasound2-dev
+      run: sudo apt install ninja-build libasound2-dev mesa-utils
     - name: cd subprojects/luajit && make
       run: cd subprojects/luajit && make
     - name: mkdir build
@@ -25,11 +25,7 @@ jobs:
       run: cd build && ninja
     - name: cp build/nibble src
       run: cp build/nibble src
-    - name: mv src nibble
-      run: mv src nibble
-    - name: zip -r nibble-linux64.zip nibble
-      run: zip -r nibble-linux64.zip nibble
     - uses: actions/upload-artifact@master
       with:
         name: Nibble for Linux (x64)
-        path: nibble-linux64.zip
+        path: src/*
