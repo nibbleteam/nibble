@@ -13,8 +13,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: sudo apt install ninja
-      run: sudo apt install ninja
+    - name: sudo apt install ninja-build
+      run: sudo apt install ninja-build
     - name: mkdir build && cd build
       run: mkdir build && cd build
     - name: cmake ..
