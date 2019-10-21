@@ -1,4 +1,4 @@
-name: Linux Build
+name: macOS Build
 
 on:
   push:
@@ -9,12 +9,13 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-    
+    runs-on: macOS-latest
+
+
     steps:
     - uses: actions/checkout@v1
     - name: sudo apt install...
-      run: sudo apt install ninja-build libasound2-dev mesa-utils
+      run: brew install cmake ninja
     - name: cd subprojects/luajit && make
       run: cd subprojects/luajit && make
     - name: mkdir build
@@ -33,5 +34,5 @@ jobs:
       run: cp src{apps,frameworks} nibble
     - uses: actions/upload-artifact@master
       with:
-        name: Nibble for Linux (x64)
+        name: Nibble for macOS (x64)
         path: nibble/
