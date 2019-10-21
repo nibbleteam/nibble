@@ -1,0 +1,35 @@
+name: Linux Build
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: sudo apt install ninja
+      run: sudo apt install ninja
+    - name: mkdir build && cd build
+      run: mkdir build && cd build
+    - name: cmake ..
+      run: cmake ..
+    - name: ninja
+      run: ninja
+    - name: cd ..
+      run: cd ..
+    - name: cp build/nibble src
+      run: cp build/nibble src
+    - name: mv src nibble
+      run: mv src nibble
+    - name: zip -r nibble-linux64.zip nibble
+      run: zip -r nibble-linux64.zip nibble
+    - uses: actions/upload-artifact@master
+      with:
+        name: Nibble for Linux (x64)
+        path: nibble-linux64.zip
