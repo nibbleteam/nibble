@@ -15,8 +15,10 @@ jobs:
     - uses: actions/checkout@v1
     - name: sudo apt install ninja-build
       run: sudo apt install ninja-build
-    - name: mkdir build && cd build
-      run: mkdir build && cd build
+    - name: mkdir build
+      run: mkdir build
+    - name: cd build
+      run: cd build
     - name: cmake ..
       run: cmake ..
     - name: ninja
