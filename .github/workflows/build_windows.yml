@@ -30,7 +30,7 @@ jobs:
       run: |
         set PATH=%cd%;C:\deps;%PATH%
         cd build
-        cmake.exe .. -G Ninja
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat" & cmake.exe .. -G Ninja
       shell: cmd
     - name: cd build && ninja
       run: |
