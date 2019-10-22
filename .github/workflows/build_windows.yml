@@ -49,8 +49,8 @@ jobs:
       shell: cmd
     - name: cp src/{apps,frameworks} nibble
       run: |
-        xcopy src/apps nibble
-        xcopy src/frameworks nibble
+        xcopy src\apps nibble
+        xcopy src\frameworks nibble
       shell: cmd
     - uses: actions/upload-artifact@master
       with:
