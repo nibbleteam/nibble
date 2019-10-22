@@ -15,8 +15,9 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install deps
       run: |
-        (new-object net.webclient).DownloadFile('https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe', 'rcedit.exe')
-        (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'ninja.exe')
+        mkdir C:\deps
+        (new-object net.webclient).DownloadFile('https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe', 'C:\deps\rcedit.exe')
+        (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'C:\deps\ninja.exe')
       shell: pwsh
     - name: cd subprojects/luajit && make
       run: |
@@ -28,10 +29,10 @@ jobs:
       run: mkdir build
     - name: cd build && cmake .. -GNinja
       run: |
-        $env:path += ";."
+        set PATH=%cd%;C:\deps;%PATH%
         cd build
         cmake.exe .. -G Ninja
-      shell: pwsh
+      shell: cmd
     - name: cd build && ninja
       run: |
         cd build
