@@ -22,6 +22,7 @@ jobs:
     - name: cd subprojects/luajit && make
       run: |
         cd subprojects\luajit\src
+        VsDevCmd.bat
         msvcbuild.bat
       shell: pwsh
     - name: mkdir build
