@@ -22,7 +22,7 @@ jobs:
     - name: cd subprojects/luajit && make
       run: |
         cd subprojects\luajit\src
-        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Commot7\Tools\VsDevCmd.bat"
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
         msvcbuild.bat
       shell: cmd
     - name: mkdir build
