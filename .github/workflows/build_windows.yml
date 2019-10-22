@@ -34,16 +34,24 @@ jobs:
       shell: cmd
     - name: cd build && ninja
       run: |
+        set PATH=%cd%;C:\deps;%PATH%
         cd build
         ninja.exe
+      shell: cmd
     - name: cp build/nibble src
-      run: cp build/nibble src
+      run: copy build/nibble src
+      shell: cmd
     - name: mkdir nibble
       run: mkdir nibble
+      shell: cmd
     - name: cp build/nibble nibble
-      run: cp build/nibble nibble
+      run: copy build/nibble nibble
+      shell: cmd
     - name: cp src/{apps,frameworks} nibble
-      run: cp -r src/{apps,frameworks} nibble
+      run: |
+        copy src/apps nibble
+        copy src/frameworks nibble
+      shell: cmd
     - uses: actions/upload-artifact@master
       with:
         name: Nibble for Windows (x64)
