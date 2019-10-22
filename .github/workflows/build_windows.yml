@@ -19,6 +19,7 @@ jobs:
         (new-object net.webclient).DownloadFile('https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe', 'C:\deps\rcedit.exe')
         (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'C:\deps\ninja.exe')
         set PATH=%cd%;C:\deps;%PATH%
+      shell: pwsh
     - name: cd subprojects/luajit && make
       run: |
         cd subprojects\luajit\src
