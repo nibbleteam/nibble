@@ -24,7 +24,7 @@ jobs:
         cd subprojects\luajit\src
         VsDevCmd.bat
         msvcbuild.bat
-      shell: pwsh
+      shell: cmd
     - name: mkdir build
       run: mkdir build
     - name: cd build && cmake .. -GNinja
