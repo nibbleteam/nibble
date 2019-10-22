@@ -49,8 +49,8 @@ jobs:
       shell: cmd
     - name: cp src/{apps,frameworks} nibble
       run: |
-        xcopy src\apps nibble
-        xcopy src\frameworks nibble
+        move src\apps nibble
+        move src\frameworks nibble
         move subprojects\luajit\src\lua51.dll nibble
       shell: cmd
     - uses: actions/upload-artifact@master
