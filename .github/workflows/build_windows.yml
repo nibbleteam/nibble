@@ -1,0 +1,47 @@
+name: Windows Build
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install deps
+      run: |
+        mkdir C:\deps
+        (new-object net.webclient).DownloadFile('https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe', 'C:\deps\rcedit.exe')
+        (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'C:\deps\ninja.exe')
+        set PATH=%cd%;C:\deps;%PATH%
+    - name: cd subprojects/luajit && make
+      run: |
+        cd subprojects\luajit\src
+        msvcbuild.bat
+    - name: mkdir build
+      run: mkdir build
+    - name: cd build && cmake .. -GNinja
+      run: |
+        cd build
+        cmake.exe .. -GNinja
+    - name: cd build && ninja
+      run: |
+        cd build
+        ninja.exe
+    - name: cp build/nibble src
+      run: cp build/nibble src
+    - name: mkdir nibble
+      run: mkdir nibble
+    - name: cp build/nibble nibble
+      run: cp build/nibble nibble
+    - name: cp src/{apps,frameworks} nibble
+      run: cp -r src/{apps,frameworks} nibble
+    - uses: actions/upload-artifact@master
+      with:
+        name: Nibble for Windows (x64)
+        path: nibble/

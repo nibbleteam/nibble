@@ -11,10 +11,9 @@ jobs:
 
     runs-on: macOS-latest
 
-
     steps:
     - uses: actions/checkout@v1
-    - name: sudo apt install...
+    - name: brew install cmake ninja
       run: brew install cmake ninja
     - name: cd subprojects/luajit && make
       run: cd subprojects/luajit && make
