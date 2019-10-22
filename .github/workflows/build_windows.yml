@@ -17,13 +17,13 @@ jobs:
       run: |
         (new-object net.webclient).DownloadFile('https://github.com/electron/rcedit/releases/download/v1.0.0/rcedit-x64.exe', 'rcedit.exe')
         (new-object net.webclient).DownloadFile('https://github.com/mesonbuild/cidata/raw/master/ninja.exe', 'ninja.exe')
-
       shell: pwsh
     - name: cd subprojects/luajit && make
       run: |
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
         cd subprojects\luajit\src
         msvcbuild.bat
-      shell: cmd /k "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
+      shell: cmd
     - name: mkdir build
       run: mkdir build
     - name: cd build && cmake .. -GNinja
