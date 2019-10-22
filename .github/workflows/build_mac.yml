@@ -33,7 +33,7 @@ jobs:
     - name: cp build/nibble nibble
       run: cp build/nibble nibble
     - name: cp src/{apps,frameworks} nibble
-      run: cp src/{apps,frameworks} nibble
+      run: cp -r src/{apps,frameworks} nibble
     - uses: actions/upload-artifact@master
       with:
         name: Nibble for macOS (x64)
