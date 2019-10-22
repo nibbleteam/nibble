@@ -46,7 +46,7 @@ jobs:
       shell: cmd
     - name: cp src/{apps,frameworks} nibble
       run: |
-        move build/nibble.exe nibble
+        move build\nibble.exe nibble
         move src\apps nibble
         move src\frameworks nibble
         move subprojects\luajit\src\lua51.dll nibble
