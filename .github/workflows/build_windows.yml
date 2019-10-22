@@ -44,14 +44,13 @@ jobs:
     - name: mkdir nibble
       run: mkdir nibble
       shell: cmd
-    - name: cp build/nibble nibble
-      run: copy build/nibble nibble
-      shell: cmd
     - name: cp src/{apps,frameworks} nibble
       run: |
+        move build/nibble.exe nibble
         move src\apps nibble
         move src\frameworks nibble
         move subprojects\luajit\src\lua51.dll nibble
+        C:\deps\rcedit "nibble/nibble.exe" --set-icon "assets/icon.ico"
       shell: cmd
     - uses: actions/upload-artifact@master
       with:
