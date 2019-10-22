@@ -30,13 +30,13 @@ jobs:
       run: |
         set PATH=%cd%;C:\deps;%PATH%
         cd build
-        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat" & cmake.exe .. -G Ninja
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat" & cmake.exe .. -G Ninja -D CMAKE_C_COMPILER=cl -D CMAKE_CXX_COMPILER=cl
       shell: cmd
     - name: cd build && ninja
       run: |
         set PATH=%cd%;C:\deps;%PATH%
         cd build
-        ninja.exe
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat" & ninja.exe
       shell: cmd
     - name: cp build/nibble src
       run: copy build/nibble src
