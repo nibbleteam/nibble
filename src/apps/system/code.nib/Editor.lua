@@ -37,7 +37,6 @@ function Editor.build_lines(text)
   return first_line
 end
 
-
 function Editor:new(text)
   local first_line = Editor.build_lines(text)
 
@@ -46,7 +45,8 @@ function Editor:new(text)
                view = {
                  start = first_line,
                  height = 24
-               }
+               },
+               first = first_line,
   })
 end
 
@@ -102,6 +102,19 @@ function Editor:draw(x, y, w, h)
         self.view.start = self.view.start.prev
     end
   end
+end
+
+function Editor:text()
+  local line = self.first
+  local text = ""
+
+  while line do
+    text = text .. line.content .. "\n"
+
+    line = line.next
+  end
+
+  return text
 end
 
 return Editor

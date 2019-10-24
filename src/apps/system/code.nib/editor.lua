@@ -1,93 +1,106 @@
 local NOM = require 'nibui.NOM'
-local Widget = require 'nibui.Widget'
-local Textarea = require 'nibui.Textarea'
-local Text = require 'nibui.Text'
-local Lexer = require 'Lexer'
+--local Widget = require 'nibui.Widget'
+--local Textarea = require 'nibui.Textarea'
+--local Text = require 'nibui.Text'
+--local Lexer = require 'Lexer'
 
 local Editor = require 'Editor'
 
 local editor_margin = 1
 
-local lexer = Lexer:new()
-lexer:add_keyword('function')
-lexer:add_keyword('end')
-lexer:add_keyword('if')
-lexer:add_keyword('else')
-lexer:add_keyword('elseif')
-lexer:add_keyword('then')
-lexer:add_keyword('do')
-lexer:add_keyword('local')
-lexer:add_keyword('self')
-lexer:add_keyword('require')
-lexer:add_keyword('(')
-lexer:add_keyword(')')
-lexer:add_keyword('[')
-lexer:add_keyword(']')
-lexer:add_keyword('{')
-lexer:add_keyword('}')
-lexer:add_keyword('=')
-lexer:add_keyword(':')
-lexer:add_keyword(',')
-lexer:add_keyword('.')
-lexer:add_keyword('+')
-lexer:add_keyword('-')
-lexer:add_keyword('/')
-lexer:add_keyword('*')
-lexer:add_keyword('+=')
-lexer:add_keyword('-=')
-lexer:add_keyword('/=')
-lexer:add_keyword('*=')
-lexer:add_delimiters("'", "'")
-lexer:add_delimiters('"', '"')
-lexer:add_identifier('alphanumeric')
-lexer:compile()
+--local lexer = Lexer:new()
+--lexer:add_keyword('function')
+--lexer:add_keyword('end')
+--lexer:add_keyword('if')
+--lexer:add_keyword('else')
+--lexer:add_keyword('elseif')
+--lexer:add_keyword('then')
+--lexer:add_keyword('do')
+--lexer:add_keyword('local')
+--lexer:add_keyword('self')
+--lexer:add_keyword('require')
+--lexer:add_keyword('(')
+--lexer:add_keyword(')')
+--lexer:add_keyword('[')
+--lexer:add_keyword(']')
+--lexer:add_keyword('{')
+--lexer:add_keyword('}')
+--lexer:add_keyword('=')
+--lexer:add_keyword(':')
+--lexer:add_keyword(',')
+--lexer:add_keyword('.')
+--lexer:add_keyword('+')
+--lexer:add_keyword('-')
+--lexer:add_keyword('/')
+--lexer:add_keyword('*')
+--lexer:add_keyword('+=')
+--lexer:add_keyword('-=')
+--lexer:add_keyword('/=')
+--lexer:add_keyword('*=')
+--lexer:add_delimiters("'", "'")
+--lexer:add_delimiters('"', '"')
+--lexer:add_identifier('alphanumeric')
+--lexer:compile()
 
-local function code2fragments(code)
-    local fragments = {}
+--local function code2fragments(code)
+--    local fragments = {}
+--
+--    for c in code:gmatch '.' do
+--        for i=1,2 do
+--            lexer:consume(c)
+--
+--            local matches = lexer:matches()
+--
+--            if matches then
+--                for _, match in ipairs(matches) do
+--                    if match.name == 'alphanumeric' then
+--                        insert(fragments, Text:new(match.matched))
+--                    else
+--                        if #match.name > 1  then
+--                            if match.name == 'function' or match.name == 'local' or match.name == 'require' then
+--                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 6 }))
+--                            else
+--                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 10 }))
+--                            end
+--                        else
+--                            if match.name == '(' or match.name == ')' then
+--                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 11 }))
+--                            else
+--                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 9 }))
+--                            end
+--                        end
+--                    end
+--                end
+--            end
+    --
+--            if not lexer:backtracked() then
+--                break
+--            end
+--        end
+    --
+--        if c == ' ' then
+--            insert(fragments, Text:new(' '))
+--        end
+    --
+--        if c == '\n' then
+--            insert(fragments, false)
+--        end
+--    end
+    --
+--    return fragments
+--end
 
-    for c in code:gmatch '.' do
-        for i=1,2 do
-            lexer:consume(c)
+function write_file(file, text)
+    local f = io.open(file, "w")
 
-            local matches = lexer:matches()
+    if f then
+        f:write(text)
+        f:close()
 
-            if matches then
-                for _, match in ipairs(matches) do
-                    if match.name == 'alphanumeric' then
-                        insert(fragments, Text:new(match.matched))
-                    else
-                        if #match.name > 1  then
-                            if match.name == 'function' or match.name == 'local' or match.name == 'require' then
-                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 6 }))
-                            else
-                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 10 }))
-                            end
-                        else
-                            if match.name == '(' or match.name == ')' then
-                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 11 }))
-                            else
-                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 9 }))
-                            end
-                        end
-                    end
-                end
-            end
-
-            if not lexer:backtracked() then
-                break
-            end
-        end
-
-        if c == ' ' then
-            insert(fragments, Text:new(' '))
-        end
-
-        if c == '\n' then
-            insert(fragments, false)
-        end
+        return true
     end
 
-    return fragments
+    return nil
 end
 
 local init_y = 0
@@ -123,6 +136,8 @@ return {
             else
                 self.editor:insert_chars(char)
             end
+
+            write_file(self.filename, self.editor:text())
         end
 
         if button_press(RIGHT) then

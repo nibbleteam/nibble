@@ -40,10 +40,31 @@ end
 
 function parse(line)
     local words = {}
+    local quoting = false
+    local buffer = ""
 
-    for word in line:gmatch('%w+') do
-        insert(words, word)
+    for char in line:gmatch "." do
+        if quoting then
+            if char == '"' then
+                insert(words, buffer)
+                buffer = ""
+                quoting = false
+            else
+                buffer = buffer .. char
+            end
+        else
+            if char == ' ' then
+                insert(words, buffer)
+                buffer = ""
+            elseif char == '"' and buffer == "" then
+                quoting = true
+            else
+                buffer = buffer .. char
+            end
+        end
     end
+
+    insert(words, buffer)
 
     return words
 end

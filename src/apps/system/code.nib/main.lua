@@ -2,18 +2,25 @@ local NOM = require 'nibui.NOM'
 local nom = nil
 
 function read_file(file)
-    local f = assert(io.open(file))
-    local content = f:read("*all")
-    f:close()
+    local f = io.open(file)
 
-    return content
+    if f then
+        local content = f:read("*all")
+        f:close()
+
+        return content
+    end
 end
 
-function print_available_apps_and_exit()
+function print_available_apps_and_exit(not_found)
     local dirname = 'apps/';
 
     -- Enable tty
     send_message(env.shell, { tty = true })
+
+    if not_found then
+        send_message(env.tty, { print = "app entrypoint not found\n" })
+    end
 
     send_message(env.tty, { print = "Use: code <app>\n" })
 
@@ -25,7 +32,7 @@ function print_available_apps_and_exit()
     local chars_in_line = 0
 
     for _, dir in ipairs(dirs) do
-        local app = dir:match("(%w*)%.nib")
+        local app = dir:match("/(.*).nib")
 
         if app then
             send_message(env.tty, { print = app, background = 2 })
@@ -47,15 +54,33 @@ end
 
 function init()
     if env.params[2] then
-        local code = read_file('apps/'..env.params[2]..'.nib/main.lua')
+        local filenames = {
+            'apps/'..env.params[2]..'.nib/main.lua',
+            'apps/system/'..env.params[2]..'.nib/main.lua',
+        }
 
-        nom = NOM:new({
-            w = 320,
-            h = 240,
-            x = 0, y = 0,
-            background = 11,
-            NOM.require("editor", { code = code })
-        }):use('cursor')
+        local code, opened_file
+
+        for _, filename in ipairs(filenames) do
+            code = read_file(filename)
+
+            if code then
+                opened_file = filename
+                break
+            end
+        end
+
+        if code then
+            nom = NOM:new({
+                w = 320,
+                h = 240,
+                x = 0, y = 0,
+                background = 11,
+                NOM.require("editor", { code = code, filename = opened_file })
+            }):use('cursor')
+        else
+            print_available_apps_and_exit(true)
+        end
     else
         print_available_apps_and_exit()
     end

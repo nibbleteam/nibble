@@ -1,4 +1,4 @@
-﻿local Textarea = require('nibui.Textarea')
+local Textarea = require('nibui.Textarea')
 local Text = require('nibui.Text')
 
 local cursor_active = 0
@@ -39,7 +39,7 @@ function listeners_line()
     local line = ''
 
     for pid, name in pairs(listeners) do
-        line = line..('\12 '..name..'('..tostring(pid)..')')
+        line = line..('\12 '..name)
     end
 
     if line ~= '' then
@@ -191,3 +191,4 @@ function receive_messages()
         end
     until not message
 end
+
