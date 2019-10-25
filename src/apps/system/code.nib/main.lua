@@ -79,7 +79,7 @@ function init()
 
         if code then
             nom = NOM:new({
-                w = 320,
+                w = 400,
                 h = 240,
                 x = 0, y = 0,
                 background = 11,
@@ -110,4 +110,5 @@ function update(dt)
 
     run_timeouts(dt)
 end
+
 

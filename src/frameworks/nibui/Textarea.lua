@@ -5,7 +5,7 @@
 -- atributos diferentes
 local Textarea = {}
 
-local DEFAULT_W = 320
+local DEFAULT_W = 400
 local DEFAULT_H = 240
 local CHAR_W = 8
 local CHAR_H = 8

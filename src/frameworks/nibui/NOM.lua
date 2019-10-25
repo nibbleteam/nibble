@@ -2,7 +2,7 @@ local iv = require('nibui.InterpolatedValue')
 local Widget = require('nibui.Widget')
 local DynamicValue = require('nibui.DynamicValue')
 
-local DEFAULT_W = 320
+local DEFAULT_W = 400
 local DEFAULT_H = 240
 
 local NOM = {}
@@ -128,7 +128,7 @@ end
 
 function NOM:draw()
     self.root:draw()
-    clip(0, 0, 320, 240)
+    clip(0, 0, 400, 240)
 
     if self.features.cursor then
         self:draw_cursor()

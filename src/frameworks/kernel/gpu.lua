@@ -34,22 +34,22 @@ function gpu.put_pixel(x, y, color)
     assert(y, "putp() needs a y value")
     assert(color, "putp() needs a color value")
 
-    x = math.abs(math.floor(x))%320
+    x = math.abs(math.floor(x))%400
     y = math.abs(math.floor(y))%240
 
     color = math.abs(math.floor(color))%128
 
-    hw.write(y*320+x+768, string.char(color))
+    hw.write(y*400+x+768, string.char(color))
 end
 
 function gpu.get_pixel(x, y)
     assert(x, "getp() needs a x value")
     assert(y, "getp() needs a y value")
 
-    x = math.abs(math.floor(x))%320
+    x = math.abs(math.floor(x))%400
     y = math.abs(math.floor(y))%240
 
-    return hw.read(y*320+x+768, 1):byte()
+    return hw.read(y*400+x+768, 1):byte()
 end
 
 function gpu.get_sheet_pixel(sheet_location, sheet_w, sheet_h, x, y)
@@ -60,3 +60,4 @@ function gpu.get_sheet_pixel(sheet_location, sheet_w, sheet_h, x, y)
 end
 
 return gpu
+

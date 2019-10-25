@@ -1,11 +1,19 @@
--- help.nib
+require 'tty.write'
 
 function init()
-    -- Enable tty
-    send_message(env.shell, { tty = true })
+  -- Enable tty
+  send_message(env.shell, { tty = true })
 
-    send_message(env.tty, { print = "Type the name of the app you want to\nstart after the \"~\" prompt\n\n" })
-    send_message(env.tty, { print = "For extra help, check out https://github.com/pongboy/nibble/\n\n" })
+  write_line("Type the name of the app you want to")
+  write_line("start after the \"~\" prompt")
 
-    stop_app(0)
+  write_line("") 
+
+  write_line("For extra help, check out:")
+  write_line("") 
+  write_line("https://github.com/pongboy/nibble/")
+
+  stop_app(0)
 end
+
+

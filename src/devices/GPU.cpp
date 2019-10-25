@@ -98,7 +98,7 @@ void GPU::startup() {
         //video_memory[i] = ((i%320+rand()%2)%16 < 15  && i%2 == 0 ? (rand()%0x10) : (0));
         //video_memory[i] = min(((i/17)%0x10*(i/15)%0x08+cycle*2), (size_t)0x11);
 
-        video_memory[i] = (i/20 + i/320/4)%0x10;
+        video_memory[i] = (i/20 + i/400/4)%0x10;
     }
 
     // Aspect-ratio correto

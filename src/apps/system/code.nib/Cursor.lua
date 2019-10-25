@@ -64,7 +64,11 @@ function Cursor:remove_chars(char_count)
   end
 
   if char_count > 0 then
-    self.line.content = content:sub(1, self.position-1)..content:sub(self.position+char_count, -1)
+    if self.position > 0 then
+      self.line.content = content:sub(1, self.position-1)..content:sub(self.position+char_count, -1)
+    else
+      self.merge_lines(1)
+    end
   end
 
   self.line:highlight()
@@ -83,6 +87,11 @@ function Cursor:merge_lines(line_count)
     self.line.prev.content = self.line.prev.content..self.line.content
 
     self.line = self.line.prev
+  else
+    if self.line.next then
+      self.line.content = self.line.content .. self.line.next.content
+      self.line.next = self.line.next.next
+    end
   end
 
   self.line:highlight()
@@ -103,6 +112,10 @@ function Cursor:insert_line()
   self.line.next = new_line
 
   self.line = new_line
+
+  -- Move para o inicio da linha
+  self.user_position = 1
+
   self:move_by_chars(0)
 end
 
@@ -127,6 +140,10 @@ function Cursor:draw(x, y)
 end
 
 return Cursor
+
+
+
+
 
 
 

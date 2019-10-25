@@ -16,12 +16,18 @@ local keywords = {
   ["=="] = 8,
   [">="] = 8,
   ["<="] = 8,
+  ["."] = 8,
   [">"] = 8,
   ["<"] = 8,
   ["="] = 6,
+  ["*"] = 6,
+  ["/"] = 6,
+  ["-"] = 6,
+  ["+"] = 6,
+  [".."] = 6,
   [","] = 10,
-  ["{"] = 11,
-  ["}"] = 11,
+  ["{"] = 10,
+  ["}"] = 10,
   ["function"] = 6,
   ["in"] = 6,
   ["for"] = 6,
@@ -34,6 +40,7 @@ local keywords = {
   ["local"] = 6,
   ["if"] = 6,
   ["else"] = 6,
+  ["elseif"] = 6,
   ["do"] = 6,
   ["return"] = 6,
   ["not"] = 12,
@@ -50,10 +57,20 @@ local keywords = {
   ["alphanumeric"] = 15,
   ["numeric"] = 8,
 
-  ["UP"] = 6,
-  ["DOWN"] = 6,
-  ["LEFT"] = 6,
-  ["RIGHT"] = 6,
+  ["UP"] = 13,
+  ["DOWN"] = 13,
+  ["LEFT"] = 13,
+  ["RIGHT"] = 13,
+  ["BLACK"] = 2,
+  ["WHITE"] = 14,
+  ["RED"] = 6,
+  ["BLUE"] = 8,
+
+  ["print"] = 13,
+  ["measure"] = 13,
+  ["clear"] = 13,
+  ["fill_circ"] = 13,
+  ["circ"] = 13,
 }
 
 local lexer = Lexer:new()
@@ -148,4 +165,6 @@ function Line:draw(x, y)
 end
 
 return Line
+
+
 

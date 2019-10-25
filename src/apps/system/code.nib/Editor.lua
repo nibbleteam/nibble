@@ -120,8 +120,12 @@ function Editor:text()
   local text = ""
 
   while line do
-    text = text .. line.content .. "\n"
-
+    if line.next then 
+      text = text .. line.content .. "\n"
+    else
+      text = text .. line.content
+    end
+  
     line = line.next
   end
 
@@ -129,6 +133,3 @@ function Editor:text()
 end
 
 return Editor
-
-
-

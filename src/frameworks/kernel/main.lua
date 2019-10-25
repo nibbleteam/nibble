@@ -343,7 +343,7 @@ function nib_api(entrypoint, proc)
             local process = processes[pid]
 
             if process then
-                process.priv.screen = hw.read(768, 320*240)
+                process.priv.screen = hw.read(768, 400*240)
                 process.priv.running = false
             end
         end,
@@ -478,7 +478,7 @@ function nib_api(entrypoint, proc)
 
     -- Expõe o sistema de arquivos para processos
     -- privilegiados
-    if is_privileged(entrypoint) then
+    --if is_privileged(entrypoint) then
         api.io = io
 
         api.list_directory = hw.list
@@ -486,8 +486,9 @@ function nib_api(entrypoint, proc)
         api.touch_file = hw.touch_file
         api.create_file = hw.create_file
 
-        print("privileged:", entrypoint)
-    end
+        -- print("privileged:", entrypoint)
+    --end
 
     return api
 end
+

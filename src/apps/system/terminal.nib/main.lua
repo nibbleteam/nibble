@@ -4,7 +4,7 @@ local Text = require('nibui.Text')
 local cursor_active = 0
 local user_input = ""
 
-local text = Textarea:new(8, 8, 320-16, 200)
+local text = Textarea:new(8, 8, 400-16, 200)
 
 local listeners = {}
 
@@ -33,7 +33,7 @@ function draw()
 
         draw_cursor()
 
-        rect(8, 240-24, 320-16, 16, 1)
+        rect(8, 240-24, 400-16, 16, 1)
         print(status_line(), 12, 220)
     end
 end
@@ -221,3 +221,4 @@ function receive_messages()
         end
     until not message
 end
+

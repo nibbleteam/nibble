@@ -1,4 +1,4 @@
-local SCREEN_W = 320
+local SCREEN_W = 400
 local SCREEN_H = 240
 
 local BOOT_ANIM_W = 64
