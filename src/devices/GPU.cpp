@@ -129,6 +129,11 @@ void GPU::draw() {
     }
     cycle++;
 
+    // Grava a frame
+    if (colormap != NULL) {
+        capture_frame();
+    }
+
     // Atualiza a memória de vídeo
     void *data;
     int pitch;
@@ -140,11 +145,6 @@ void GPU::draw() {
     }
 
     SDL_UnlockTexture(framebuffer);
-
-    // Grava a frame
-    if (colormap != NULL) {
-        capture_frame();
-    }
 
     // Só limpa a tela se tivermos barras horizontais ou verticais
     if (screen_offset_x != 0 || screen_offset_y != 0) {
@@ -245,13 +245,15 @@ bool GPU::start_capturing(const string& path) {
 
 bool GPU::stop_capturing() {
     int error;
+
     EGifCloseFile(gif, &error);
-    if (error != GIF_OK) {
-        return false;
-    }
 
     gif = NULL;
     colormap = NULL;
+
+    if (error != GIF_OK) {
+        return false;
+    }
 
     return true;
 }
@@ -261,11 +263,13 @@ bool GPU::capture_frame() {
     char graphics[] {
         0, 4&0xFF, 4>>8, 0
     };
+
     error = EGifPutExtension(
         gif,
         GRAPHICS_EXT_FUNC_CODE,
         sizeof(graphics),
-        &graphics);
+        &graphics
+    );
 
     if (error != GIF_OK) {
         cerr << GifErrorString(error) << endl;

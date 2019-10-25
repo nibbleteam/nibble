@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Kernel::Kernel() {
+Kernel::Kernel(): open_menu_next_frame(false) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         cout << "SDL_Init: " << SDL_GetError() << endl;
     }
@@ -49,7 +49,7 @@ void Kernel::startup() {
     keyboard->startup();
     controller->startup();
 #ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
-    midi_controller->shutdown();
+    midi_controller->startup();
 #endif
     audio->startup();
 
@@ -68,7 +68,7 @@ void Kernel::menu() {
 }
 
 void Kernel::shutdown() {
-    /* Shutdown dos periféricos */
+    /* Shutdown dos perifÃ©ricos */
 
     gpu->shutdown();
     audio->shutdown();
@@ -79,8 +79,8 @@ void Kernel::shutdown() {
     midi_controller->shutdown();
 #endif
 
-    // TODO: Hack para dealocar memória dos processos
-    // mas não dos despositivos
+    // TODO: Hack para dealocar memÃ³ria dos processos
+    // mas nÃ£o dos despositivos
     memory.deallocate(79856);
 }
 
@@ -95,7 +95,7 @@ void Kernel::loop() {
 
         SDL_Event event;
 
-        // Input updating
+        // Atualiza entradas
         controller->update();
         mouse->update();
         keyboard->update();
@@ -103,7 +103,7 @@ void Kernel::loop() {
         midi_controller->update();
 #endif
 
-        // Event handling
+        // Processa eventos
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 // Fecha a janela no "x" ou alt-f4 etc
@@ -113,18 +113,18 @@ void Kernel::loop() {
 
                 case SDL_WINDOWEVENT: {
                     switch (event.window.event) {
-                        // Redimensiona e centraliza o vídeo
+                        // Redimensiona e centraliza o vÃ­deo
                         case SDL_WINDOWEVENT_RESIZED:
                         case SDL_WINDOWEVENT_SIZE_CHANGED: {
                             gpu->resize();
                         } break;
-                        // Solta botões ao perder foco
+                        // Solta botÃµes ao perder foco
                         case SDL_WINDOWEVENT_FOCUS_LOST: {
                             controller->all_released();
                             mouse->released(0);
                             mouse->released(1);
                         } break;
-                        // Solta botões do mouse ao sair
+                        // Solta botÃµes do mouse ao sair
                         case SDL_WINDOWEVENT_LEAVE: {
                             mouse->released(0);
                             mouse->released(1);
@@ -150,6 +150,10 @@ void Kernel::loop() {
                         keyboard->input(13);
                     } else if (event.key.keysym.sym == SDLK_BACKSPACE) {
                         keyboard->input(8);
+                    } else if (event.key.keysym.sym == SDLK_DELETE) {
+                        keyboard->input(127);
+                    } else if (event.key.keysym.sym == SDLK_TAB) {
+                        keyboard->input(9);
                     } else {
                         controller->kbd_pressed(event);
                     }
@@ -270,7 +274,7 @@ tuple<size_t, int, int> Kernel::api_load_spritesheet(const string from_str) {
     return mmap::read_image(memory, path);
 }
 
-// Wrapper estático para a API
+// Wrapper estÃ¡tico para a API
 
 size_t kernel_api_write(const size_t to, const size_t amount, const char* data) {
     return KernelSingleton.lock()->api_write(to, amount, (uint8_t*)data);

@@ -46,6 +46,7 @@ function Cursor:insert_chars(str)
   local content = self.line.content
 
   self.line.content = content:sub(1, self.position-1)..str..content:sub(self.position, -1)
+  self.line:highlight()
 
   self:move_by_chars(#str)
 end
@@ -65,6 +66,8 @@ function Cursor:remove_chars(char_count)
   if char_count > 0 then
     self.line.content = content:sub(1, self.position-1)..content:sub(self.position+char_count, -1)
   end
+
+  self.line:highlight()
 end
 
 function Cursor:merge_lines(line_count)
@@ -81,6 +84,8 @@ function Cursor:merge_lines(line_count)
 
     self.line = self.line.prev
   end
+
+  self.line:highlight()
 end
 
 function Cursor:insert_line()
@@ -105,8 +110,24 @@ function Cursor:is_in_line(line)
   return line == self.line
 end
 
+function Cursor:to_right(x)
+  return self.position * 8 > x
+end
+
+function Cursor:to_left(x)
+  return self.position * 8 < x
+end
+
+function Cursor:screen_position()
+  return self.position * 8
+end
+
 function Cursor:draw(x, y)
-  fill_rect(x+(self.position-1)*8, y, 1, 8, 10)
+  fill_rect(x+(self.position-1)*8, y, 1, 8, 15)
 end
 
 return Cursor
+
+
+
+

@@ -1,4 +1,4 @@
-﻿local tty
+local tty
 
 local name = 'shell.nib'
 local prompt = "~"
@@ -8,7 +8,8 @@ sh = {
     path = {
         "apps/system/",
         "apps/",
-    }
+    },
+    history = {}
 }
 
 function shprint(str, bg)
@@ -34,7 +35,7 @@ function update(dt)
     local input = receive_messages()
 
     if input then
-        execute(input)
+      execute(input)
     end
 end
 
@@ -70,6 +71,8 @@ function parse(line)
 end
 
 function execute(cmd)
+    insert(sh.history, cmd)
+
     cmd = parse(cmd)
 
     if #cmd > 0 then
@@ -139,3 +142,5 @@ function receive_messages()
         end
     end
 end
+
+

@@ -12,6 +12,9 @@ local t = 0
 
 local disabled = false
 
+local history = {}
+local history_ptr = 0
+
 function init()
     -- Copia a paleta padrão
     for i=1,7 do
@@ -87,6 +90,8 @@ function update(dt)
                 text:newline()
 
                 send_to_listeners(user_input)
+                insert(history, user_input)
+                history_ptr = 0
 
                 user_input = ""
             elseif input == '\18' then
@@ -102,8 +107,37 @@ function update(dt)
             cursor_active = 0
         end
 
-        if button_press(UP) then text:scroll(8) end
-        if button_press(DOWN) then text:scroll(-8) end
+        if button_press(LEFT) then
+          text:scroll(8)
+        end
+
+        if button_press(RIGHT) then
+          text:scroll(-8)
+        end
+
+        if button_press(UP) and #history > 0 then
+            text:delete(#user_input)
+            user_input = history[#history-history_ptr]
+            text:add(Text:new(user_input))
+
+            if history_ptr < #history-1 then
+                history_ptr += 1
+            end
+        end
+
+        if button_press(DOWN) and #history > 0 then
+            if history_ptr > 0 then
+                history_ptr -= 1
+
+                text:delete(#user_input)
+                user_input = history[#history-history_ptr]
+                text:add(Text:new(user_input))
+            else
+                text:delete(#user_input)
+                user_input = ""
+                text:add(Text:new(user_input))
+            end
+        end
     end
 end
 
@@ -178,17 +212,12 @@ function receive_messages()
             end
 
             if message.disable then
-                terminal_print("disabling tty")
-
                 disabled = true
             end
 
             if message.enable then
-                terminal_print("enabling tty")
-
                 disabled = false
             end
         end
     until not message
 end
-

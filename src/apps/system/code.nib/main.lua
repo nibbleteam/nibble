@@ -1,3 +1,9 @@
+env.menu = {
+    'Code'
+}
+
+require 'lang.timeout'
+
 local NOM = require 'nibui.NOM'
 local nom = nil
 
@@ -8,14 +14,14 @@ function read_file(file)
         local content = f:read("*all")
         f:close()
 
-        return content
+        return content:gsub("\r", "")
     end
 end
-
+  
 function print_available_apps_and_exit(not_found)
     local dirname = 'apps/';
 
-    -- Enable tty
+      -- Enable tty
     send_message(env.shell, { tty = true })
 
     if not_found then
@@ -30,38 +36,39 @@ function print_available_apps_and_exit(not_found)
     local dirs = list_directory(dirname)
 
     local chars_in_line = 0
-
+  
     for _, dir in ipairs(dirs) do
-        local app = dir:match("/(.*).nib")
+          local app = dir:match("/(.*).nib")
 
-        if app then
+          if app then
             send_message(env.tty, { print = app, background = 2 })
-            send_message(env.tty, { print = " " })
+              send_message(env.tty, { print = " " })
+  
+              chars_in_line += #app
 
-            chars_in_line += #app
-
-            if chars_in_line >= 30 then
+                if chars_in_line >= 30 then
                 chars_in_line = 0
                 send_message(env.tty, { print = "\n" })
-            end
-        end
-    end
-
+                end
+          end
+      end
+    
     send_message(env.tty, { print = "\n" })
-
+  
     stop_app(0)
 end
-
+    
 function init()
     if env.params[2] then
         local filenames = {
             'apps/'..env.params[2]..'.nib/main.lua',
             'apps/system/'..env.params[2]..'.nib/main.lua',
+            env.params[2]
         }
 
         local code, opened_file
 
-        for _, filename in ipairs(filenames) do
+          for _, filename in ipairs(filenames) do
             code = read_file(filename)
 
             if code then
@@ -77,7 +84,7 @@ function init()
                 x = 0, y = 0,
                 background = 11,
                 NOM.require("editor", { code = code, filename = opened_file })
-            }):use('cursor')
+            })
         else
             print_available_apps_and_exit(true)
         end
@@ -100,4 +107,7 @@ function update(dt)
     end
 
     nom:update(dt)
+
+    run_timeouts(dt)
 end
+

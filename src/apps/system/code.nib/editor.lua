@@ -1,96 +1,13 @@
 local NOM = require 'nibui.NOM'
---local Widget = require 'nibui.Widget'
---local Textarea = require 'nibui.Textarea'
---local Text = require 'nibui.Text'
---local Lexer = require 'Lexer'
 
 local Editor = require 'Editor'
 
-local editor_margin = 1
+local editor_margin = 0
 
---local lexer = Lexer:new()
---lexer:add_keyword('function')
---lexer:add_keyword('end')
---lexer:add_keyword('if')
---lexer:add_keyword('else')
---lexer:add_keyword('elseif')
---lexer:add_keyword('then')
---lexer:add_keyword('do')
---lexer:add_keyword('local')
---lexer:add_keyword('self')
---lexer:add_keyword('require')
---lexer:add_keyword('(')
---lexer:add_keyword(')')
---lexer:add_keyword('[')
---lexer:add_keyword(']')
---lexer:add_keyword('{')
---lexer:add_keyword('}')
---lexer:add_keyword('=')
---lexer:add_keyword(':')
---lexer:add_keyword(',')
---lexer:add_keyword('.')
---lexer:add_keyword('+')
---lexer:add_keyword('-')
---lexer:add_keyword('/')
---lexer:add_keyword('*')
---lexer:add_keyword('+=')
---lexer:add_keyword('-=')
---lexer:add_keyword('/=')
---lexer:add_keyword('*=')
---lexer:add_delimiters("'", "'")
---lexer:add_delimiters('"', '"')
---lexer:add_identifier('alphanumeric')
---lexer:compile()
+local AUTOPRESS_TIME = 0.01
+local AUTOPRESS_WAIT = 0.25
 
---local function code2fragments(code)
---    local fragments = {}
---
---    for c in code:gmatch '.' do
---        for i=1,2 do
---            lexer:consume(c)
---
---            local matches = lexer:matches()
---
---            if matches then
---                for _, match in ipairs(matches) do
---                    if match.name == 'alphanumeric' then
---                        insert(fragments, Text:new(match.matched))
---                    else
---                        if #match.name > 1  then
---                            if match.name == 'function' or match.name == 'local' or match.name == 'require' then
---                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 6 }))
---                            else
---                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 10 }))
---                            end
---                        else
---                            if match.name == '(' or match.name == ')' then
---                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 11 }))
---                            else
---                                insert(fragments, Text:new(match.matched):set('colormap', { [15] = 9 }))
---                            end
---                        end
---                    end
---                end
---            end
-    --
---            if not lexer:backtracked() then
---                break
---            end
---        end
-    --
---        if c == ' ' then
---            insert(fragments, Text:new(' '))
---        end
-    --
---        if c == '\n' then
---            insert(fragments, false)
---        end
---    end
-    --
---    return fragments
---end
-
-function write_file(file, text)
+local function write_file(file, text)
     local f = io.open(file, "w")
 
     if f then
@@ -103,7 +20,29 @@ function write_file(file, text)
     return nil
 end
 
-local init_y = 0
+local function autopress(button, action)
+    if button_press(button) then
+        local function move()
+            if button_down(button) then
+                action()
+
+                set_timeout(AUTOPRESS_TIME, move)
+            end
+        end
+
+        local function move_wait_and_move()
+            action()
+
+            set_timeout(AUTOPRESS_WAIT, function()
+                            if button_down(button) then
+                                move()
+                            end
+            end)
+        end
+
+        move_wait_and_move();
+    end
+end
 
 return {
     w = NOM.width-2*editor_margin,
@@ -131,6 +70,10 @@ return {
 
             if char == "\08" then
                 self.editor:remove_chars(-1)
+            elseif char == "\127" then
+                self.editor:remove_chars(1)
+            elseif char == "\09" then
+                self.editor:insert_chars("  ")
             elseif char == "\13" then
                 self.editor:insert_line()
             else
@@ -140,33 +83,25 @@ return {
             write_file(self.filename, self.editor:text())
         end
 
-        if button_press(RIGHT) then
-            self.editor:move_by_chars(1)
-        end
+        autopress(RIGHT, function()
+                      self.editor:move_by_chars(1)
+        end)
 
-        if button_press(LEFT) then
+
+        autopress(LEFT, function()
             self.editor:move_by_chars(-1)
-        end
+        end)
 
-        if button_press(DOWN) then
+        autopress(DOWN, function()
             self.editor:move_by_lines(1)
-        end
+        end)
 
-        if button_press(UP) then
+        autopress(UP, function()
             self.editor:move_by_lines(-1)
-        end
+        end)
 
         if #input > 0 then
             self:set_dirty()
         end
-    end,
-
-    onmove = function (self, event)
-        if event.drag then
-            self.textarea:scroll(event.y-init_y)
-            self.parent:set_dirty()
-        end
-
-        init_y = event.y
     end
 }

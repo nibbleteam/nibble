@@ -24,12 +24,12 @@ end
 
 function StateMachine:finished()
     for _, state in ipairs(self.state) do
-        if state.finish then
-            return true
+        if not state.finish then
+            return false
         end
     end
 
-    return false
+    return true
 end
 
 function StateMachine:backtracked()
@@ -48,7 +48,7 @@ function StateMachine:consume(char)
     for _, state in ipairs(self.state) do
         if not state.finish then
             for tr_char, tr_state in pairs(state.transitions) do
-                local state = copy(state)
+                local state = state
 
                 if tr_char == 'alphanumeric' and (char:match('%W') == nil or char == '_') then
                     if tr_state ~= 'stay' then
@@ -57,6 +57,28 @@ function StateMachine:consume(char)
                     else
                         state.matched = (state.matched or '') .. char
                         insert(states, state)
+                    end
+                end
+
+                if tr_char == 'numeric' and char:match('%D') == nil then
+                    if tr_state ~= 'stay' then
+                        tr_state.matched = state.matched .. char
+                        insert(states, tr_state)
+                    else
+                        state.matched = (state.matched or '') .. char
+                        insert(states, state)
+                    end
+                end
+
+                if tr_char == 'nonnumeric' and char:match('%D') ~= nil then
+                    if tr_state ~= 'stay' then
+                        if tr_state.backtrack then
+                            tr_state.matched = state.matched
+                            insert(states, tr_state)
+                        else
+                            state.matched = state.matched .. char
+                            insert(states, state)
+                        end
                     end
                 end
 
@@ -94,6 +116,18 @@ function StateMachine:consume(char)
                     else
                         state.matched = state.matched .. char
                         insert(states, state)
+                    end
+                end
+
+                if tr_char:sub(1, 1) == "^" then
+                    if tr_char:sub(2, 2) ~= char then
+                        if tr_state ~= 'stay' then
+                            tr_state.matched = state.matched .. char
+                            insert(states, tr_state)
+                        else
+                            state.matched = state.matched .. char
+                            insert(states, state)
+                        end
                     end
                 end
             end
@@ -134,9 +168,15 @@ end
 
 function StateMachine:from_str(str, priority)
     local state = {
-        finish = true,
-        name = str,
-        transitions = {},
+        transitions = {
+            any = {
+                finish = true,
+                name = str,
+                backtrack = true,
+                transitions = {},
+                priority = priority,
+            }
+        }
     }
 
     for s=#str,1,-1 do
@@ -162,22 +202,36 @@ function StateMachine:from_str(str, priority)
 end
 
 function StateMachine:from_delimiters(begin, finish, priority)
+    local function match_str_and_then(str, st)
+        if #str > 0 then
+            return match_str_and_then(str:sub(1, #str-1), {
+                                   transitions = {
+                                       [str:sub(#str, #str)] = st
+                                   }
+            })
+        else
+            st.matched = ""
+            return st
+        end
+    end
+
     local o = {
-        state = {
+        state = match_str_and_then(begin, {
             transitions = {
-                [begin] = {
+                [finish] = {
                     transitions = {
-                        [finish] = {
+                        any = {
                             finish = true,
+                            backtrack = true,
+                            name = begin..', '..finish,
                             transitions = {},
-                            name = begin..', '..finish
-                        },
-                        any = 'stay'
+                            priority = priority,
+                        }
                     }
-                }
-            },
-            matched = ''
-        }
+                },
+                ['^'..finish] = 'stay'
+            }
+        }),
     }
 
     o.initial = o.state
@@ -194,11 +248,12 @@ function StateMachine:from_characters(kind, priority)
                 [kind] = {
                     transitions = {
                         [kind] = 'stay',
-                        nonalphanumeric = {
+                        ["non"..kind] = {
                             finish = true,
                             backtrack = true,
                             transitions = {},
-                            name = kind
+                            name = kind,
+                            priority = priority
                         }
                     }
                 }
@@ -215,3 +270,4 @@ function StateMachine:from_characters(kind, priority)
 end
 
 return StateMachine
+

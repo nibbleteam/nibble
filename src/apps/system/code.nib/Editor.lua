@@ -3,6 +3,8 @@ local Editor = {}
 local Line = require 'Line'
 local Cursor = require 'Cursor'
 
+local EDITOR_BACKGROUND = 16
+
 function Editor.build_lines(text)
   if text == "" then
     text = "\n"
@@ -44,7 +46,8 @@ function Editor:new(text)
                cursor = Cursor:new(first_line, 1),
                view = {
                  start = first_line,
-                 height = 24
+                 height = 24,
+                 start_x = 0,
                },
                first = first_line,
   })
@@ -71,7 +74,7 @@ function Editor:insert_line()
 end
 
 function Editor:draw(x, y, w, h)
-  fill_rect(x, y, w, h, 1)
+  fill_rect(x, y, w, h, EDITOR_BACKGROUND)
 
   local line = self.view.start
 
@@ -80,15 +83,23 @@ function Editor:draw(x, y, w, h)
       break
     end
 
-    line:draw(x, y)
+    line:draw(x+self.view.start_x, y)
 
     if self.cursor:is_in_line(line) then
-      self.cursor:draw(x, y)
+      self.cursor:draw(x+self.view.start_x, y)
     end
 
     y = y + line:height()
 
     line = line.next
+  end
+
+  if self.cursor:to_left(-self.view.start_x) then
+    self.view.start_x = -self.cursor:screen_position()+8
+  end
+
+  if self.cursor:to_right(w - self.view.start_x) then
+    self.view.start_x = -self.cursor:screen_position()+w
   end
 
   if line and self.cursor.line.weight >= line.weight then
@@ -118,3 +129,6 @@ function Editor:text()
 end
 
 return Editor
+
+
+

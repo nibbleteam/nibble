@@ -1,7 +1,7 @@
 env.menu = {
     'Nibble Fluid Sim',
     'v1.0',
-    'The Hyper Menu',
+    '',
     'by Felipe Tavares'
 }
 
@@ -194,5 +194,8 @@ function draw()
 
     custom_sprite(prevx, prevy, 56, 80, 8, 8)
 end
+
+
+
 
 

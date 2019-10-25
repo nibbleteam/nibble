@@ -29,20 +29,14 @@ function Lexer:consume(c)
 end
 
 function Lexer:matches()
-    local matches = {}
-
     if self.machine:finished() then
-        for _, state in ipairs(self.machine.state) do
-            if state.finish then
-                insert(matches, state)
-            end
-        end
-    end
+        if #self.machine.state > 0 then
+            sort(self.machine.state, function (a, b)
+                            return a.priority < b.priority
+            end)
 
-    if #matches > 0 then
-        return matches
-    else
-        return nil
+            return self.machine.state[1]
+        end
     end
 end
 
@@ -68,4 +62,9 @@ function Lexer:finished()
     return self.machine:finished()
 end
 
+function Lexer:reset()
+  self.machine:reset()
+end
+
 return Lexer
+
