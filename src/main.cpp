@@ -1,5 +1,8 @@
 #include <kernel/Kernel.hpp>
+
+extern "C" {
 #include <getopt.h>
+}
 
 weak_ptr<Kernel> KernelSingleton;
 
