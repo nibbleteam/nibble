@@ -1,6 +1,9 @@
+local write = require 'tty.write'
+local write_line = require 'tty.write_line'
+
 local tty
 
-prompt = '>'
+local prompt = '>'
 local more_prompt = '>>'
 local input = ''
 local prompt_color = 11
@@ -13,9 +16,9 @@ function init()
     send_message(env.shell, { tty = true })
     send_message(env.tty, { subscribe = env.pid, name = 'lua.nib' })
 
-    shprint(_VERSION..'\n', 6)
-    shprint(prompt, prompt_color)
-    shprint(' ')
+    write_line(_VERSION, 6)
+    write(prompt, prompt_color)
+    write(' ')
 end
 
 local more_input = false

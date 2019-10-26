@@ -66,6 +66,10 @@ local keywords = {
   ["RED"] = 6,
   ["BLUE"] = 8,
 
+  ["start_capturing"] = 13,
+  ["stop_capturing"] = 13,
+  ["start_app"] = 13,
+  ["stop_app"] = 13,
   ["print"] = 13,
   ["measure"] = 13,
   ["clear"] = 13,

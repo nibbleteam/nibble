@@ -61,6 +61,7 @@ find_library(LUAJIT NAMES lua51.lib libluajit.a HINTS subprojects/luajit/src)
 # 1. Add the source files and headers
 
 set(SOURCE_FILES src/main.cpp
+                 src/getopt.c
                  src/devices/MidiController.cpp
                  src/devices/Keyboard.cpp
                  src/devices/Controller.cpp

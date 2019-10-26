@@ -50,4 +50,8 @@ function update(dt)
   if button_press(DOWN) then
     area:scroll(-8)
   end
+
+  if button_press(RED) then
+    stop_app(0)
+  end
 end

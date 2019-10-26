@@ -1,7 +1,7 @@
 local hw = require('frameworks.kernel.hw')
 local audio = {}
 
-local audio_addr = 77568
+local audio_addr = 96768
 
 local ch = 0
 
@@ -75,12 +75,12 @@ local function route(from, to, amplitude)
 end
 
 local function noteon(n, intensity)
-  local t = hw.read64(78400)
+  local t = hw.read64(97600)
   hw.enqueue_command(t, ch, 1, n, intensity)
 end
 
 local function noteoff(n)
-  local t = hw.read64(78400)
+  local t = hw.read64(97600)
   hw.enqueue_command(t, ch, 2, n, 0)
 end
 

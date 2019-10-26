@@ -15,6 +15,10 @@ local disabled = false
 local history = {}
 local history_ptr = 0
 
+-- Posicao do cursor dentro da entrda
+-- atual
+local cursor_position = 1
+
 function init()
     -- Copia a paleta padrão
     for i=1,7 do

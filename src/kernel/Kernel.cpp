@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Kernel::Kernel(): open_menu_next_frame(false) {
+Kernel::Kernel(const bool fullscreen_startup): open_menu_next_frame(false) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         cout << "SDL_Init: " << SDL_GetError() << endl;
     }
@@ -19,7 +19,7 @@ Kernel::Kernel(): open_menu_next_frame(false) {
     cout << endl << "=============== Memory Map ===============" << endl;
 
     // Cria dispositivos
-    gpu = make_unique<GPU>(memory);
+    gpu = make_unique<GPU>(memory, fullscreen_startup);
     audio = make_unique<Audio>(memory);
     controller = make_unique<Controller>(memory);
     keyboard = make_unique<Keyboard>(memory);

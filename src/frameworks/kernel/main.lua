@@ -480,6 +480,7 @@ function nib_api(entrypoint, proc)
     -- privilegiados
     --if is_privileged(entrypoint) then
         api.io = io
+        api.os = os
 
         api.list_directory = hw.list
         api.create_directory = hw.create_directory

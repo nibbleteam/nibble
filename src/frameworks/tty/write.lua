@@ -1,9 +1,8 @@
-function write(str)
-  send_message(env.tty, {
-    print = tostring(str)
-  })
-end
+require 'tty.tty'
 
-function write_line(str)
-  write(str .. "\n")
+return function(str, bg_color)
+  send_message(env.tty, {
+    print = tostring(str),
+    background = bg_color
+  })
 end

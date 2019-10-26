@@ -67,7 +67,7 @@ protected:
 
     SDL_Window* window;
 public:
-    GPU(Memory&);
+    GPU(Memory&, const bool);
     ~GPU();
 
     void startup();

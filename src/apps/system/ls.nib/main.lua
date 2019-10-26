@@ -1,12 +1,13 @@
-require 'tty.write'
+local write = require 'tty.write'
+local write_line = require 'tty.write_line'
 
 function init()
   send_message(env.shell, { tty = true })
 
-  local dir = "." 
+  local dir = "."
 
   if #env.params > 1 then
-    dir = env.params[2]
+    dir = "./"..env.params[2]
   end
   
   local files = list_directory(dir)
@@ -16,7 +17,7 @@ function init()
     local is_parent = file:match("/%.") 
 
     if not (is_self or is_parent) then
-      write_line(file)
+      write_line(file:match("^%./(.*)"))
     end 
   end
 

@@ -11,10 +11,10 @@
 
 using namespace std;
 
-GPU::GPU(Memory& memory):
+GPU::GPU(Memory& memory, const bool fullscreen_startup):
     target_clip_start_x(0), target_clip_start_y(0),
     target_clip_end_x(GPU_VIDEO_WIDTH), target_clip_end_y(GPU_VIDEO_HEIGHT),
-    is_fullscreen(false),
+    is_fullscreen(fullscreen_startup),
     cycle(0),
     colormap(NULL), screen_scale(GPU_DEFAULT_SCALING), screen_offset_x(0), screen_offset_y(0) {
 
@@ -23,7 +23,7 @@ GPU::GPU(Memory& memory):
                               SDL_WINDOWPOS_CENTERED,
                               GPU_VIDEO_WIDTH*GPU_DEFAULT_SCALING,
                               GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING,
-                              SDL_WINDOW_SHOWN | /* SDL_WINDOW_FULLSCREEN |*/ SDL_WINDOW_RESIZABLE );
+                              SDL_WINDOW_SHOWN | (is_fullscreen? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_RESIZABLE );
 
     renderer = SDL_CreateRenderer(window, -1, 0);
     //renderer = SDL_CreateSoftwareRenderer(SDL_GetWindowSurface(window));
