@@ -34,7 +34,7 @@
 
 #define GPU_COMMAND_MEM_SIZE    32
 
-#define GPU_VIDEO_WIDTH         320
+#define GPU_VIDEO_WIDTH         400
 #define GPU_VIDEO_HEIGHT        240
 #define GPU_VIDEO_MEM_SIZE      (GPU_VIDEO_WIDTH*GPU_VIDEO_HEIGHT)
 
@@ -52,7 +52,7 @@
 #define AUDIO_SAMPLE_RATE       44100
 #define AUDIO_UPDATE_RATE       60
 
-#define AUDIO_SAMPLE_AMOUNT     512
+#define AUDIO_SAMPLE_AMOUNT     256
 #define AUDIO_SAMPLE_LENGTH     sizeof(int16_t)
 #define AUDIO_SAMPLE_MEM_SIZE   (AUDIO_SAMPLE_LENGTH*AUDIO_SAMPLE_AMOUNT)
 
@@ -125,3 +125,4 @@
                                  PROCESS_MEM_SIZE)
 
 #endif /* SPECS_H */
+
