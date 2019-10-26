@@ -14,6 +14,7 @@ using namespace std;
 GPU::GPU(Memory& memory):
     target_clip_start_x(0), target_clip_start_y(0),
     target_clip_end_x(GPU_VIDEO_WIDTH), target_clip_end_y(GPU_VIDEO_HEIGHT),
+    is_fullscreen(false),
     cycle(0),
     colormap(NULL), screen_scale(GPU_DEFAULT_SCALING), screen_offset_x(0), screen_offset_y(0) {
 
@@ -29,10 +30,6 @@ GPU::GPU(Memory& memory):
 
     palette_memory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
     video_memory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
-
-    // TODO
-    // Não gera múltiplos keypresses se a tecla ficar apertada
-    // window.setKeyRepeatEnabled(false);
 
     // Não mostra o cursor
     SDL_ShowCursor(SDL_DISABLE);
@@ -156,8 +153,17 @@ void GPU::draw() {
     SDL_RenderCopy(renderer, framebuffer, &framebuffer_src, &framebuffer_dst);
 
     // Mostra o resultado na janela
-    //SDL_UpdateWindowSurface(window);
     SDL_RenderPresent(renderer);
+}
+
+void GPU::fullscreen(const bool fullscreen) {
+    SDL_SetWindowFullscreen(window, fullscreen? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+
+    is_fullscreen = fullscreen;
+}
+
+void GPU::toggle_fullscreen() {
+    fullscreen(!is_fullscreen);
 }
 
 void GPU::resize() {

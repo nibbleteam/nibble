@@ -42,6 +42,9 @@ class GPU: public Device {
     int16_t target_clip_start_x, target_clip_start_y;
     int16_t target_clip_end_x, target_clip_end_y;
 
+    // Is the window in fullscreen?
+    bool is_fullscreen;
+
     // Quantas frames foram renderizadas
     size_t cycle;
 
@@ -74,6 +77,8 @@ public:
 
     // Atualiza tamanho da janela
     void resize();
+    void toggle_fullscreen();
+    void fullscreen(const bool);
 
     // Tela -> tela do nibble
     void transform_mouse(int16_t&, int16_t&);

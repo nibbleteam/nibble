@@ -144,6 +144,10 @@ void Kernel::loop() {
                          event.key.keysym.mod&KMOD_RCTRL)) {
                         shutdown();
                         startup();
+                    } else if (event.key.keysym.sym == SDLK_f &&
+                               (event.key.keysym.mod&KMOD_LCTRL ||
+                                event.key.keysym.mod&KMOD_RCTRL)) {
+                        gpu->toggle_fullscreen();
                     } else if (event.key.keysym.sym == SDLK_ESCAPE) {
                         menu();
                     } else if (event.key.keysym.sym == SDLK_RETURN) {
