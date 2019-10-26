@@ -83,7 +83,7 @@ function init()
                 h = 240,
                 x = 0, y = 0,
                 background = 11,
-                NOM.require("editor", { code = code, filename = opened_file })
+                NOM.require("ui", { code = code, filename = opened_file })
             })
         else
             print_available_apps_and_exit(true)
