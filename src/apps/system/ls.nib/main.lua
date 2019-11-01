@@ -1,9 +1,6 @@
-local write = require 'tty.write'
-local write_line = require 'tty.write_line'
+require 'tty'
 
 function init()
-  send_message(env.shell, { tty = true })
-
   local dir = "."
 
   if #env.params > 1 then

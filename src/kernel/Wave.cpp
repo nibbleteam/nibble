@@ -15,7 +15,7 @@ Wave::Wave() {
     }
 }
 
-const int16_t Wave::value_at(uint8_t t) const {
+int16_t Wave::value_at(uint8_t t) const {
     const static uint16_t f = 4*NIBBLE_WAVETABLE_SIZE;
     const static uint8_t h = 2*NIBBLE_WAVETABLE_SIZE;
     const static uint8_t q = 1*NIBBLE_WAVETABLE_SIZE;
@@ -31,7 +31,7 @@ const int16_t Wave::value_at(uint8_t t) const {
     }
 }
 
-const int16_t Wave::operator[](uint16_t t) const {
+int16_t Wave::operator[](uint16_t t) const {
     uint8_t t0 = t >> 8;
     uint8_t t1 = t0+1;
 

@@ -1,9 +1,6 @@
-require 'tty.write'
+require 'tty'
 
 function init()
-  -- Enable tty
-  send_message(env.shell, { tty = true })
-
   write_line("Type the name of the app you want to")
   write_line("start after the \"~\" prompt")
 
@@ -20,5 +17,3 @@ function init()
 
   stop_app(0)
 end
-
-

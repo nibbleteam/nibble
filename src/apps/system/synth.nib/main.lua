@@ -30,30 +30,30 @@ local envelopes = {
         r = 0
     },
     {
-        freq = 1,
-        inf = 0,
+        freq = 0.5,
+        inf = 15,
         volume = 1,
         sustain = 0,
-        a = 0,
-        d = 0,
-        s = 0,
-        r = 0
+        a = 0.05,
+        d = 0.5,
+        s = 1.0,
+        r = 0.05
     },
     {
         freq = 1,
         inf = 1,
         volume = 1,
         sustain = 0,
-        a = 0,
+        a = 0.05,
         d = 0.5,
-        s = 0.8,
-        r = 0.2
+        s = 1.0,
+        r = 0.05
     },
 }
 
 local current_envelope, current_parameter = 1, 1
 
-local messages = Textarea:new(8, 8, 320-16, 120)
+local messages = Textarea:new(8, 8, 400-16, 120)
 
 local keys_num = 84
 local pressed_keys = {}
@@ -177,32 +177,38 @@ function init()
     route(OP3, OP4, 0.3)
     route(OP4, OUT, 0.2)
 
-    channel(CH1)
-    --freqs(1.0, 1.0, 1.0, 1.0)
+    --channel(CH1)
+    ----freqs(1.0, 1.0, 1.0, 1.0)
 
-    -- Frequências
-    if math.random() < 0.5 then
-        freqs(math.random(), math.random(), math.random(), math.random())
-    else
-        freqs(math.random(1, 8)/4, math.random(1, 8)/4, 1.0, math.random(1, 8)/4)
-    end
-    -- Envelopes
-    envelope(OP1, 0, 1, 0.5, math.random()*0.1, math.random(), math.random(), 0)
-    envelope(OP2, 0, 1, 0.5, math.random()*0.2, math.random(), math.random(), 0)
-    envelope(OP3, 0, 1, 0.5, math.random()*0.3, math.random(), math.random(), 0)
-    envelope(OP4, 0, 1, 0.5, math.random()*0.4, math.random(),math.random(), 0)
-    -- Roteia
-    route(OP1, OP2, 0.8)
-    route(OP2, OUT, 0.8)
-    route(OP2, OP3, 0.8)
-    route(OP3, OP4, 0.8)
-    route(OP4, OUT, 0.8)
+    ---- Frequências
+    --if math.random() < 0.5 then
+    --    freqs(math.random(), math.random(), math.random(), math.random())
+    --else
+    --    freqs(math.random(1, 8)/4, math.random(1, 8)/4, 1.0, math.random(1, 8)/4)
+    --end
+    ---- Envelopes
+    --envelope(OP1, 0, 1, 0.5, math.random()*0.1, math.random(), math.random(), 0)
+    --envelope(OP2, 0, 1, 0.5, math.random()*0.2, math.random(), math.random(), 0)
+    --envelope(OP3, 0, 1, 0.5, math.random()*0.3, math.random(), math.random(), 0)
+    --envelope(OP4, 0, 1, 0.5, math.random()*0.4, math.random(),math.random(), 0)
+    ---- Roteia
+    --route(OP1, OP2, 0.8)
+    --route(OP2, OUT, 0.8)
+    --route(OP2, OP3, 0.8)
+    --route(OP3, OP4, 0.8)
+    --route(OP4, OUT, 0.8)
+    --
+    channel(CH1)
+    route(OP1, OP2, 0.0)
+    route(OP2, OP3, 0.1)
+    route(OP3, OP4, 15)
+    route(OP4, OUT, 0.1)
 end
 
 function draw()
     clear(16)
 
-    custom_sprite(0, 120, 0, 120, 320, 120)
+    custom_sprite(40, 120, 0, 120, 320, 120)
 
     for k=0,keys_num do
         if pressed_keys[k] then
@@ -211,7 +217,7 @@ function draw()
     end
 
     for i=1,#envelopes do
-        draw_envelope(160, 4+i*34, envelopes[i], 8+i, true)
+        draw_envelope(200, 4+i*34, envelopes[i], 8+i, true)
     end
 
     if display_log then
@@ -225,7 +231,7 @@ function draw()
     end
 end
 
-function update(dt)
+function audio_tick()
     local input = read_keys()
     local octs = 'zsxdcvgbhnjmq2w3er5t6y7ui9o0p'
 
@@ -245,6 +251,10 @@ function update(dt)
     end
 
     local midi_messages = read_midi()
+
+    local channels = {
+        CH1, CH2, CH3, CH4, CH5, CH6, CH7, CH8
+    }
 
     for _, msg in ipairs(midi_messages) do
         local cmd = math.floor(msg[1]/16)
@@ -267,7 +277,7 @@ function update(dt)
                     note = 0
                 end
 
-                channel(CH1)
+                channel(channels[msg[1]%8])
                 noteoff(note)
 
                 pressed_keys[msg[2]] = false
@@ -282,7 +292,7 @@ function update(dt)
                     note = 0
                 end
 
-                channel(CH1)
+                channel(channels[msg[1]%8])
                 noteon(note,  velocity)
 
                 pressed_keys[msg[2]] = true
@@ -298,7 +308,7 @@ function update(dt)
                 note = 0
             end
 
-            channel(CH1)
+            channel(channels[msg[1]%8])
             noteoff(note)
 
             pressed_keys[msg[2]] = false
@@ -364,7 +374,9 @@ function press_key(k)
     local spr = key_to_pixel(k)
 
     if spr then
-        custom_sprite(unwrap(spr))
+      spr[1] += 40
+
+      custom_sprite(unwrap(spr))
     end
 end
 
@@ -381,7 +393,7 @@ function write_parameters()
     for i=1,#envelopes do
         local env = envelopes[i]
 
-        envelope(OP1+i-1, 1, env.volume, env.a, env.d, env.s, env.r, 0)
+        envelope(OP1+i-1, 1, env.volume, env.a, env.d, env.s, env.r, 1)
 
         insert(f, env.freq)
     end

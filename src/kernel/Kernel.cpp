@@ -229,9 +229,9 @@ void Kernel::loop() {
             }
         }
 
-        SDL_Delay(max<int>((1000/GPU_FRAMERATE-1)-(SDL_GetTicks()-last_time), 0));
-
         gpu->draw();
+
+        SDL_Delay(max<int>((1000/GPU_FRAMERATE)-(SDL_GetTicks()-last_time), 0));
     }
 }
 

@@ -5,19 +5,11 @@ function init()
   
   if #env.params > 1 then
     if env.params[2] == "stop" then
-      stop_capturing()
+      stop_recording()
     else
-      start_capturing(env.params[2])
+      start_recording(env.params[2])
     end
   end
 
   stop_app(0)
 end
-
-
-
-
-
-
-
-

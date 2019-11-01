@@ -246,6 +246,7 @@ function nib_require(entrypoint, module, proc)
     local paths = {
         entrypoint..'/'..module:gsub("%.", "/"),
         'frameworks/'..module:gsub("%.", "/"),
+        'frameworks/'..module:gsub("%.", "/").."/main",
     }
 
     local extensions = { ".lua", ".moon" }
@@ -372,7 +373,11 @@ function nib_api(entrypoint, proc)
         zip = lang.zip,
         debug = error,
         load = load,
-        pcall = pcall,
+        pcall = function(fn)
+            setfenv(fn, executing_process.pub)
+
+            return pcall(fn)
+        end,
         assert = assert,
         _VERSION = _VERSION,
         -- Funções matemática
@@ -408,8 +413,8 @@ function nib_api(entrypoint, proc)
         clip = hw.clip,
         print = hw.print,
         measure = hw.measure,
-        start_capturing = hw.start_capturing,
-        stop_capturing = hw.stop_capturing,
+        start_recording = hw.start_capturing,
+        stop_recording = hw.stop_capturing,
         get_pixel = gpu.get_pixel,
         put_pixel = gpu.put_pixel,
         get_sheet_pixel = function(x, y)

@@ -1,5 +1,4 @@
-local write = require 'tty.write'
-local write_line = require 'tty.write_line'
+require 'tty'
 
 local tty
 
@@ -8,12 +7,7 @@ local more_prompt = '>>'
 local input = ''
 local prompt_color = 11
 
-function shprint(str, bg)
-    send_message(env.tty, { print = str, background = bg})
-end
-
 function init()
-    send_message(env.shell, { tty = true })
     send_message(env.tty, { subscribe = env.pid, name = 'lua.nib' })
 
     write_line(_VERSION, 6)
@@ -52,22 +46,22 @@ function update()
 
             if more_input and err then
                 input = input..message.input..'\n'
-                shprint(more_prompt, prompt_color)
-                shprint(' ')
+                write(more_prompt, prompt_color)
+                write(' ')
                 return
             end
 
             if err then
-                shprint(err..'\n', 6)
+                write(err..'\n', 6)
                 input = ''
             else
                 local ok, ret = pcall(fn)
-                shprint(tostring(ret)..'\n', 2)
+                write(tostring(ret)..'\n', 2)
                 input = ''
             end
 
-            shprint(prompt, prompt_color)
-            shprint(' ')
+            write(prompt, prompt_color)
+            write(' ')
         end
     end
 end

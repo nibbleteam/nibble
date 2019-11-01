@@ -9,6 +9,7 @@
 
 #include <kernel/Device.hpp>
 #include <kernel/Memory.hpp>
+#include <kernel/VideoEncoder.hpp>
 #include <Specs.hpp>
 
 // Número de bytes por pixel em memória na CPU e na GPU
@@ -48,6 +49,8 @@ class GPU: public Device {
     // Quantas frames foram renderizadas
     size_t cycle;
 
+    // Encoder para salvar h264
+    VideoEncoder *h264;
     // Arquivo para salvar gifs
     GifFileType *gif;
     // Paleta do gif

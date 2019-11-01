@@ -110,5 +110,3 @@ function update(dt)
 
     run_timeouts(dt)
 end
-
-

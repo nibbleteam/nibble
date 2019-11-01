@@ -40,3 +40,6 @@ docs/build/
 
 # Clang files
 .clang
+
+# Emacs files
+.el

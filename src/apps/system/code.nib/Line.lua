@@ -33,6 +33,7 @@ local keywords = {
   ["for"] = 6,
   ["repeat"] = 6,
   ["while"] = 6,
+  ["until"] = 6,
   ["end"] = 6,
   ["then"] = 6,
   ["break"] = 6,

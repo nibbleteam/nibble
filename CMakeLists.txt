@@ -54,6 +54,8 @@ add_subdirectory(subprojects/sdl2)
 
 find_library(LUAJIT NAMES lua51.lib libluajit.a HINTS subprojects/luajit/src)
 
+find_library(X264 NAMES libx264.a HINTS subprojects/x264)
+
 #
 # PART 2 - Nibble
 #
@@ -68,6 +70,7 @@ set(SOURCE_FILES src/main.cpp
                  src/devices/Mouse.cpp
                  src/devices/Audio.cpp
                  src/devices/GPU.cpp
+                 src/kernel/VideoEncoder.cpp
                  src/kernel/TriangleWave.cpp
                  src/kernel/FMSynthesizer.cpp
                  src/kernel/Envelope.cpp
@@ -87,6 +90,7 @@ set(SOURCE_FILES src/main.cpp
                  include/devices/Mouse.hpp
                  include/devices/Audio.hpp
                  include/devices/GPU.hpp
+                 include/kernel/VideoEncoder.hpp
                  include/kernel/TriangleWave.hpp
                  include/kernel/FMSynthesizer.hpp
                  include/kernel/Envelope.hpp
@@ -106,6 +110,7 @@ set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
                  ${CMAKE_SOURCE_DIR}/subprojects/luajit/src/
                  ${CMAKE_SOURCE_DIR}/subprojects/giflib/
                  ${CMAKE_SOURCE_DIR}/subprojects/libpng/
+                 ${CMAKE_SOURCE_DIR}/subprojects/x264/common/
                  ${ZLIB_INCLUDE_DIR})
 
 # 2. Create an executable from the files
@@ -132,4 +137,5 @@ target_link_libraries(nibble zlibstatic
                              rtmidi
                              SDL2-static
                              SDL2main
-                             ${LUAJIT})
+                             ${LUAJIT}
+                             ${X264})

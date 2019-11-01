@@ -1,4 +1,4 @@
-local write_line = require 'tty.write_line'
+require 'tty'
 
 function init()
   if #env.params > 1 then
