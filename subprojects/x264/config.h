@@ -9,6 +9,9 @@
 
 #ifdef _WIN32
 #define SYS_WINDOWS 1
+#define HAVE_WIN32THREAD 1
+#else
+#define HAVE_WIN32THREAD 0
 #endif
 
 #define ARCH_X86_64 1
@@ -35,7 +38,6 @@
 #define HAVE_ARMV6T2 0
 #define HAVE_NEON 0
 #define HAVE_BEOSTHREAD 0
-#define HAVE_WIN32THREAD 0
 #define HAVE_SWSCALE 0
 #define HAVE_LAVF 0
 #define HAVE_FFMS 0
