@@ -1,3 +1,5 @@
+#if defined(__unix__) || defined(__APPLE__)
+
 #ifndef MP4V2_PLATFORM_POSIX_H
 #define MP4V2_PLATFORM_POSIX_H
 
@@ -75,3 +77,5 @@ namespace mp4v2 { namespace platform {
 ///////////////////////////////////////////////////////////////////////////////
 
 #endif // MP4V2_PLATFORM_POSIX_H
+
+#endif

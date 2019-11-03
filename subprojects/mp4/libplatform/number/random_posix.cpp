@@ -1,3 +1,5 @@
+#if defined(__unix__) || defined(__APPLE__)
+
 #include "libplatform/impl.h"
 #include <stdlib.h>
 
@@ -22,3 +24,5 @@ srandom( uint32_t seed )
 ///////////////////////////////////////////////////////////////////////////////
 
 }}} // namespace mp4v2::platform::time
+
+#endif

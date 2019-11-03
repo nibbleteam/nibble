@@ -1,3 +1,5 @@
+#if defined(__unix__) || defined(__APPLE__)
+
 #include "libplatform/impl.h"
 #include <sys/time.h>
 
@@ -17,3 +19,5 @@ getLocalTimeMilliseconds()
 ///////////////////////////////////////////////////////////////////////////////
 
 }}} // namespace mp4v2::platform::time
+
+#endif

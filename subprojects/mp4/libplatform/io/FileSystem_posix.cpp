@@ -1,3 +1,5 @@
+#if defined(__unix__) || defined(__APPLE__)
+
 #include "libplatform/impl.h"
 #include <sys/stat.h>
 
@@ -63,3 +65,5 @@ string FileSystem::PATH_SEPARATOR = ":";
 ///////////////////////////////////////////////////////////////////////////////
 
 }}} // namespace mp4v2::platform::io
+
+#endif

@@ -1,3 +1,5 @@
+#if defined(__unix__) || defined(__APPLE__)
+
 #include "libplatform/impl.h"
 
 namespace mp4v2 { namespace platform { namespace io {
@@ -118,3 +120,5 @@ FileProvider::standard()
 ///////////////////////////////////////////////////////////////////////////////
 
 }}} // namespace mp4v2::platform::io
+
+#endif
