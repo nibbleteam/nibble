@@ -18,11 +18,11 @@
 #define HAVE_LOG2F 1
 #define HAVE_STRTOK_R 1
 #define HAVE_CLOCK_GETTIME 1
-#define HAVE_MMAP 1
+#define HAVE_MMAP 0
 #define HAVE_THP 1
 #define HAVE_AVS 1
-#define USE_AVXSYNTH 1
-#define HAVE_VECTOREXT 1
+#define USE_AVXSYNTH 0
+#define HAVE_VECTOREXT 0
 #define fseek fseeko
 #define ftell ftello
 #define HAVE_BITDEPTH8 1
