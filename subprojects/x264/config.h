@@ -1,16 +1,3 @@
-#ifdef linux
-#define HAVE_MALLOC_H 1
-#define SYS_LINUX 1
-#endif
-
-#ifdef __unix__
-#define HAVE_POSIXTHREAD 1
-#endif
-
-#ifdef _WIN32
-#define SYS_WINDOWS 1
-#endif
-
 #define HAVE_WIN32THREAD 0
 #define ARCH_X86_64 1
 #define STACK_ALIGNMENT 64
@@ -53,3 +40,16 @@
 
 #define BIT_DEPTH 8
 #define CPU_COUNT(x) 1
+
+#ifdef linux
+#define HAVE_MALLOC_H 1
+#define SYS_LINUX 1
+#define HAVE_POSIXTHREAD 1
+#endif
+
+#ifdef _WIN32
+#define SYS_WINDOWS 1
+#define fseek _fseeki64
+#define ftell _ftelli64
+#endif
+
