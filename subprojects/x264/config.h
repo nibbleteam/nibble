@@ -1,6 +1,9 @@
+#ifdef linux
 #define HAVE_MALLOC_H 1
-#define ARCH_X86_64 1
 #define SYS_LINUX 1
+#endif
+
+#define ARCH_X86_64 1
 #define STACK_ALIGNMENT 64
 #define HAVE_POSIXTHREAD 1
 #define HAVE_CPU_COUNT 1
