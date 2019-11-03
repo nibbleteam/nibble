@@ -9,11 +9,9 @@
 
 #ifdef _WIN32
 #define SYS_WINDOWS 1
-#define HAVE_WIN32THREAD 1
-#else
-#define HAVE_WIN32THREAD 0
 #endif
 
+#define HAVE_WIN32THREAD 0
 #define ARCH_X86_64 1
 #define STACK_ALIGNMENT 64
 #define HAVE_CPU_COUNT 1
