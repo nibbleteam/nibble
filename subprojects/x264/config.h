@@ -7,6 +7,10 @@
 #define HAVE_POSIXTHREAD 1
 #endif
 
+#ifdef _WIN32
+#define SYS_WINDOWS 1
+#endif
+
 #define ARCH_X86_64 1
 #define STACK_ALIGNMENT 64
 #define HAVE_CPU_COUNT 1
