@@ -17,7 +17,7 @@ function read_file(file)
         return content:gsub("\r", "")
     end
 end
-  
+
 function print_available_apps_and_exit(not_found)
     local dirname = 'apps/';
 
@@ -43,16 +43,14 @@ function print_available_apps_and_exit(not_found)
           if app then
             send_message(env.tty, { print = app, background = 2 })
               send_message(env.tty, { print = " " })
-  
-              chars_in_line += #app
+                chars_in_line += #app
 
                 if chars_in_line >= 30 then
                 chars_in_line = 0
                 send_message(env.tty, { print = "\n" })
                 end
           end
-      end
-    
+      end    
     send_message(env.tty, { print = "\n" })
   
     stop_app(0)
@@ -63,6 +61,10 @@ function init()
         local filenames = {
             'apps/'..env.params[2]..'.nib/main.lua',
             'apps/system/'..env.params[2]..'.nib/main.lua',
+            'frameworks/'..env.params[2]..'/main.lua',
+            'apps/'..env.params[2]..'.lua',
+            'apps/system/'..env.params[2]..'.lua',
+            'frameworks/'..env.params[2]..'.lua',
             env.params[2]
         }
 
@@ -83,7 +85,7 @@ function init()
                 h = 240,
                 x = 0, y = 0,
                 background = 11,
-                NOM.require("ui", { code = code, filename = opened_file })
+                NOM.require("ui", { code = code, filename = opened_file }),
             })
         else
             print_available_apps_and_exit(true)

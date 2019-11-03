@@ -282,7 +282,9 @@ function handle_process_error(err)
     print(err)
     print(debug.traceback())
 
-    processes[0] = make_process('apps/system/debug.nib', {
+    stop_app(executing_process.priv.pid)
+
+    start_app('apps/system/debug.nib', {
         error = err,
         traceback = debug.traceback(),
     })
@@ -293,6 +295,43 @@ function is_privileged(entrypoint)
     local privileged_path = "apps/system/"
 
     return entrypoint:sub(1, #privileged_path) == privileged_path
+end
+
+function start_app(app, env)
+    pid_counter += 1
+    processes[pid_counter] = make_process(app, env)
+
+    if processes[pid_counter].priv.ok then
+        return pid_counter, ''
+    else
+        return nil
+    end
+end
+
+function stop_app(pid)
+    local send_stopped = function(proc)
+        if proc and proc.priv.parent then
+            local parent = proc.priv.parent
+
+            table.insert(parent.priv.message_queue, 1, { app_stopped = executing_process.priv.pid })
+        end
+    end
+
+    if pid == 0 then
+        send_stopped(executing_process)
+
+        -- TODO: limpar a memória alocada pelo processo
+        processes[executing_process.priv.pid] = nil
+    else
+        local process = processes[pid]
+
+        send_stopped(process)
+
+        if process and process.priv.parent == executing_process then
+            -- TODO: limpar a memória alocada pelo processo
+            processes[pid] = nil
+        end
+    end
 end
 
 function nib_api(entrypoint, proc)
@@ -306,39 +345,10 @@ function nib_api(entrypoint, proc)
         terminal_pretty = pprint,
         -- Syscalls
         start_app = function(app, env)
-            pid_counter += 1
-            processes[pid_counter] = make_process(app, env)
-
-            if processes[pid_counter].priv.ok then
-                return pid_counter, ''
-            else
-                return nil
-            end
+            return start_app(app, env)
         end,
         stop_app = function(pid)
-            local send_stopped = function(proc)
-                if proc and proc.priv.parent then
-                    local parent = proc.priv.parent
-
-                    table.insert(parent.priv.message_queue, 1, { app_stopped = executing_process.priv.pid })
-                end
-            end
-
-            if pid == 0 then
-                send_stopped(executing_process)
-
-                -- TODO: limpar a memória alocada pelo processo
-                processes[executing_process.priv.pid] = nil
-            else
-                local process = processes[pid]
-
-                send_stopped(process)
-
-                if process and process.priv.parent == executing_process then
-                    -- TODO: limpar a memória alocada pelo processo
-                    processes[pid] = nil
-                end
-            end
+            return stop_app(pid)
         end,
         pause_app = function (pid)
             local process = processes[pid]

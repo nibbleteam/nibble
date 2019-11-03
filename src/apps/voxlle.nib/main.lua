@@ -57,7 +57,7 @@ function display_vox(vox)
     if rotated[3] > 0 then
       local p = perspective(rotated)
 
-      fill_circ(p[1], p[2], 2, v[4])
+      fill_circ(p[1], p[2], rotated[3]/3+2, v[4])
     end
   end
 

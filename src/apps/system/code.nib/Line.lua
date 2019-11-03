@@ -44,9 +44,9 @@ local keywords = {
   ["elseif"] = 6,
   ["do"] = 6,
   ["return"] = 6,
-  ["not"] = 12,
-  ["or"] = 12,
-  ["and"] = 12,
+  ["not"] = 6,
+  ["or"] = 6,
+  ["and"] = 6,
   ["self"] = 9,
   ["true"] = 8,
   ["false"] = 8,
@@ -71,9 +71,12 @@ local keywords = {
   ["stop_capturing"] = 13,
   ["start_app"] = 13,
   ["stop_app"] = 13,
+  ["pause_app"] = 13,
+  ["resume_app"] = 13,
   ["print"] = 13,
   ["measure"] = 13,
   ["clear"] = 13,
+  ["swap_colors"] = 13,
   ["fill_circ"] = 13,
   ["circ"] = 13,
 }
@@ -129,6 +132,8 @@ end
 
 function Line:new(content, prev, weight)
   return new(Line, {
+               number = prev and prev.number+1 or 1,
+               offset_x = 32, offset_y = 0,
                content = content or "",
                prev = prev,
                next = nil,
@@ -139,6 +144,20 @@ end
 
 function Line:highlight()
   self.spans = colored_spans(self.content)
+
+  self:recalculate_number()
+end
+
+function Line:recalculate_number()
+  if self.prev then
+    self.number = self.prev.number+1
+  else
+    self.number = 1
+  end
+
+  if self.next then
+    self.next:recalculate_number()
+  end
 end
 
 function Line:length()
@@ -154,7 +173,16 @@ function Line:draw(x, y)
     self:highlight()
   end
 
-  print(self.content, x, y)
+  swap_colors(15, 2)
+  swap_colors(7, 1)
+  print(tostring(self.number), x, y)
+  swap_colors(15, 15)
+  swap_colors(7, 7)
+
+  line(x+self.offset_x-1, y+self.offset_y,
+       x+self.offset_x-1, y+self.offset_y+10, 2)
+
+  print(self.content, x+self.offset_x, y+self.offset_y)
  
   for _, span in ipairs(self.spans) do
     local str = self.content:sub(span.i_start, span.i_end)
@@ -162,7 +190,7 @@ function Line:draw(x, y)
     swap_colors(15, keywords[span.name] or 15)
     swap_colors(7, math.max((keywords[span.name] or 15) - 8, 1))
 
-    print(str, x+(span.i_start-1)*8, y)
+    print(str, self.offset_x+x+(span.i_start-1)*8, self.offset_y+y)
   end
 
   swap_colors(15, 15)
@@ -170,6 +198,3 @@ function Line:draw(x, y)
 end
 
 return Line
-
-
-

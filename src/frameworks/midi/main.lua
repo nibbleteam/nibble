@@ -17,14 +17,22 @@ local function decode_msb(str, bits_per_byte)
     end
 end
 
-local function encode_msb(number)
+local function encode_msb(number, bytes)
+    bytes = bytes or 1
+
     local str = ""
 
+    -- Write non-zero bytes
     repeat
         str = from_ascii(number%256) .. str
 
         number = math.floor(number/256)
     until math.floor(number) == 0
+
+    -- Fill up to "bytes" length
+    while #str < bytes do
+      str = '\00' .. str
+    end
 
     return str
 end
@@ -196,7 +204,7 @@ local function write_chunk(file, id, content)
     file:write(id)
 
     -- The chunk size
-    file:write(encode_msb(#content))
+    file:write(encode_msb(#content, 4))
 
     -- The chunk
     file:write(content)
@@ -206,9 +214,29 @@ local function write_track(file, track)
     write_chunk(file, 'MTrk', encode_track(track))
 end
 
+local function encode_header(tracks_count)
+  local buffer = ""
+
+  -- Format
+  buffer = buffer .. encode_msb(1, 2)
+  -- Ntrks
+  buffer = buffer .. encode_msb(tracks_count, 2)
+  -- Division
+  -- Fixed at 96 ticks per 1/4 note
+  buffer = buffer .. encode_msb(96, 2)
+
+  return buffer
+end
+
+local function write_header(file, tracks)
+    write_chunk(file, 'MThd', encode_header(#tracks))
+end
+
 function MIDI.write(file_name, tracks)
   -- Prepare the file for writting
   local file = io.open(file_name, "w")
+
+  write_header(file, tracks)
 
   -- Write all the tracks
   for _, track in ipairs(tracks) do
@@ -221,7 +249,7 @@ end
 function MIDI.test_file(file_name)
     MIDI.write(file_name, {
                    {
-                       { delta = 0, ch = 0, on = true, note = 48, velocity = 255 },
+                       { delta = 0, ch = 0, on = true, note = 48, velocity = 127 },
                        { delta = 128, ch = 0, on = false, note = 48, velocity = 0 },
                    }
     })

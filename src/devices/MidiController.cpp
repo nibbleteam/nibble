@@ -32,6 +32,7 @@ MidiController::MidiController(Memory& memory): ok(true) {
 
         for (size_t p=0;p<ports;p++) {
             midi_in[p]->openPort(p);
+            midi_in[p]->setClientName("Nibble");
         }
     } catch (RtMidiError &error) {
         ok = false;

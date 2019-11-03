@@ -1,4 +1,4 @@
-require 'tty.write'
+require 'tty'
 
 local NEACT_COMPONENT_TEMPLATE = "local NOM = require 'nibui.NOM'\nlocal $$ = Neact.Component:new()\n\nfunction $$:new(props)\n  return new($$, {\n    props = props,\n    state = {}\n  })\nend\n\nfunction $$:render(state)\n  return {}\nend\n\nreturn $$\n"
 

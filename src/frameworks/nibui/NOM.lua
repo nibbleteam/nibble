@@ -56,7 +56,7 @@ function NOM.bottom_of(id)
         if element then
             return element.y+element.h
         else
-            terminal_print('bottom_of: could not find ', element)
+            terminal_print('bottom_of: could not find ', id)
         end
     end)
 end
