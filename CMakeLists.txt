@@ -111,7 +111,7 @@ set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
                  ${CMAKE_SOURCE_DIR}/subprojects/giflib/
                  ${CMAKE_SOURCE_DIR}/subprojects/mp4/mp4v2/
                  ${CMAKE_SOURCE_DIR}/subprojects/libpng/
-                 ${CMAKE_SOURCE_DIR}/subprojects/x264/common/
+                 ${CMAKE_SOURCE_DIR}/subprojects/x264/
                  ${ZLIB_INCLUDE_DIR})
 
 # 2. Create an executable from the files
