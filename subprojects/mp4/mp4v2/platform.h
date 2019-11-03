@@ -1,6 +1,8 @@
 #ifndef MP4V2_PLATFORM_H
 #define MP4V2_PLATFORM_H
 
+#define MP4V2_USE_STATIC_LIB
+
 /*****************************************************************************/
 
 #include <stddef.h>
