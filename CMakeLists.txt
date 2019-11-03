@@ -109,6 +109,7 @@ set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
                  ${CMAKE_SOURCE_DIR}/subprojects/sdl2/include/
                  ${CMAKE_SOURCE_DIR}/subprojects/luajit/src/
                  ${CMAKE_SOURCE_DIR}/subprojects/giflib/
+                 ${CMAKE_SOURCE_DIR}/subprojects/mp4/
                  ${CMAKE_SOURCE_DIR}/subprojects/mp4/mp4v2/
                  ${CMAKE_SOURCE_DIR}/subprojects/libpng/
                  ${CMAKE_SOURCE_DIR}/subprojects/x264/
