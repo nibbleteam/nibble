@@ -19,7 +19,7 @@
 #define HAVE_STRTOK_R 1
 #define HAVE_CLOCK_GETTIME 1
 #define HAVE_MMAP 0
-#define HAVE_THP 1
+#define HAVE_THP 0
 #define HAVE_AVS 1
 #define USE_AVXSYNTH 0
 #define HAVE_VECTOREXT 0
