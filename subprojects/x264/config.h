@@ -29,6 +29,7 @@
 #define fseek fseeko
 #define ftell ftello
 #define HAVE_BITDEPTH8 1
+#define HAVE_BITDEPTH10 1
 #define HAVE_GPL 1
 #define HAVE_INTERLACED 1
 #define HAVE_ALTIVEC 0
@@ -51,7 +52,6 @@
 #define HAVE_WINRT 0
 #define HAVE_VSX 0
 #define HAVE_ARM_INLINE_ASM 0
-#define HAVE_BITDEPTH10 0
 
 #define BIT_DEPTH 8
 #define CPU_COUNT(x) 1
