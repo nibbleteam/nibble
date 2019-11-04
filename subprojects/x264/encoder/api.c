@@ -43,7 +43,7 @@ int  x264_8_encoder_maximum_delayed_frames( x264_t * );
 void x264_8_encoder_intra_refresh( x264_t * );
 int  x264_8_encoder_invalidate_reference( x264_t *, int64_t pts );
 
-#ifndef _WIN32
+#if 0
 x264_t *x264_10_encoder_open( x264_param_t * );
 void x264_10_nal_encode( x264_t *h, uint8_t *dst, x264_nal_t *nal );
 int  x264_10_encoder_reconfig( x264_t *, x264_param_t * );
@@ -98,7 +98,7 @@ static x264_api_t *encoder_open( x264_param_t *param )
     }
     else if( HAVE_BITDEPTH10 && param->i_bitdepth == 10 )
     {
-#ifndef _WIN32
+#if 0
         api->nal_encode = x264_10_nal_encode;
         api->encoder_reconfig = x264_10_encoder_reconfig;
         api->encoder_parameters = x264_10_encoder_parameters;
