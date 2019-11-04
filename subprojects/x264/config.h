@@ -2,7 +2,6 @@
 #define ARCH_X86_64 1
 #define STACK_ALIGNMENT 64
 #define HAVE_CPU_COUNT 1
-#define HAVE_THREAD 0
 #define HAVE_LOG2F 1
 #define HAVE_STRTOK_R 1
 #define HAVE_CLOCK_GETTIME 1
@@ -45,9 +44,15 @@
 #define HAVE_MALLOC_H 1
 #define SYS_LINUX 1
 #define HAVE_POSIXTHREAD 1
+#define HAVE_THREAD 1
+#endif
+
+#ifdef __APPLE__
+#define HAVE_THREAD 1
 #endif
 
 #ifdef _WIN32
+#define HAVE_THREAD 0
 #define HAVE_POSIXTHREAD 0
 #define SYS_WINDOWS 1
 #define fseek _fseeki64
