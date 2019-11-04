@@ -1,3 +1,5 @@
+#ifndef _WIN32
+
 /*****************************************************************************
  * threadpool.c: thread pooling
  *****************************************************************************
@@ -170,3 +172,5 @@ void x264_threadpool_delete( x264_threadpool_t *pool )
     x264_free( pool->thread_handle );
     x264_free( pool );
 }
+
+#endif
