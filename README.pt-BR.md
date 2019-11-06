@@ -22,5 +22,5 @@ Você será recebido pela shell.
 Você pode rodar qualquer programa digitando o nome dele.
 
 <p align="center">
-        <video style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.mp4" width="800" height="480"/>
+        <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.gif" width="800" height="480"/>
 </p>

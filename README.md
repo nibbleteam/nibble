@@ -22,6 +22,6 @@ You will be greeted by the shell.
 You can type the name of any software to start it.
 
 <p align="center">
-        <video style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.mp4" width="800" height="480"/>
+        <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.gif" width="800" height="480"/>
 </p>
 
