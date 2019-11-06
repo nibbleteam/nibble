@@ -9,12 +9,18 @@ foco em UX e design.
 
 Primeiro, baixe o emulador e a SDK:
 
-- [Windows](...)
-- [macOS](...)
-- [Linux](...)
+- [Windows](https://github.com/nibbleteam/nibble/suites/294011958/artifacts/236752)
+- [macOS](https://github.com/nibbleteam/nibble/suites/294011963/artifacts/236748)
+- [Linux](https://github.com/nibbleteam/nibble/suites/294011960/artifacts/236751)
 
-A primeira coisa que você vai ver será isso:
+Para rodar a versão de macOS provavelmente você vai precisar mexer em algo no sistema, porquê ela não é notarizada pela Apple.
+
+Depois de extrair o `.zip` você pode rodar o executável `nibble`.
+
+Você será recebido pela shell.
+
+Você pode rodar qualquer programa digitando o nome dele.
 
 <p align="center">
-        <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.gif" width="640" height="480"/>
+        <video style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.mp4" width="800" height="480"/>
 </p>
