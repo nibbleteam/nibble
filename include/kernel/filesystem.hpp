@@ -42,7 +42,7 @@ public:
 	~Path ();
 
 	void set_path(string);   // set path in non-plataform-specific way (using '/' )
-	string get_path(); // get plataform specific path
+	string get_path() const; // get plataform specific path
 	string get_extension();
 	string get_name();
 	string get_original_path();

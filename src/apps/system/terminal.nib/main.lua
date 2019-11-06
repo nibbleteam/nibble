@@ -15,6 +15,12 @@ local disabled = false
 local history = {}
 local history_ptr = 0
 
+local fps = 0
+
+-- Posicao do cursor dentro da entrda
+-- atual
+local cursor_position = 1
+
 function init()
     -- Copia a paleta padrão
     for i=1,7 do
@@ -35,6 +41,9 @@ function draw()
 
         rect(8, 240-24, 400-16, 16, 1)
         print(status_line(), 12, 220)
+
+        -- Print FPS
+        -- print(tostring(fps), 0, 0)
     end
 end
 
@@ -69,6 +78,8 @@ function draw_cursor()
 end
 
 function update(dt)
+    fps = 1/dt
+
     t += dt
 
     receive_messages()

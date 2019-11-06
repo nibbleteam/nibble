@@ -1,0 +1,28 @@
+#if defined(__unix__) || defined(__APPLE__)
+
+#include "libplatform/impl.h"
+#include <stdlib.h>
+
+namespace mp4v2 { namespace platform { namespace number {
+
+///////////////////////////////////////////////////////////////////////////////
+
+uint32_t
+random32()
+{
+    return uint32_t( ::random() );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void
+srandom( uint32_t seed )
+{
+    ::srandom( seed );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+}}} // namespace mp4v2::platform::time
+
+#endif

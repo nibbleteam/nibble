@@ -9,12 +9,19 @@ UX and design.
 
 First, you will need to download the emulator and SDK:
 
-- [Windows](...)
-- [macOS](...)
-- [Linux](...)
+- [Windows](https://github.com/nibbleteam/nibble/suites/294011958/artifacts/236752)
+- [macOS](https://github.com/nibbleteam/nibble/suites/294011963/artifacts/236748)
+- [Linux](https://github.com/nibbleteam/nibble/suites/294011960/artifacts/236751)
 
-You will be greeted by this:
+The macOS version probably needs some tinkering to run, because it's not notarized by Apple.
+
+After extracting the `.zip` file you can run the `nibble` executable.
+
+You will be greeted by the shell.
+
+You can type the name of any software to start it.
 
 <p align="center">
-        <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.gif" width="640" height="480"/>
+        <video style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.mp4" width="800" height="480"/>
 </p>
+

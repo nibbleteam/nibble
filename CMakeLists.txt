@@ -4,7 +4,7 @@ project(nibble VERSION 0.1
                DESCRIPTION "A fantasy console designed to run on real hardware"
                LANGUAGES CXX C)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -49,6 +49,8 @@ set(SKIP_INSTALL_ALL TRUE)
 
 add_subdirectory(subprojects/libpng)
 add_subdirectory(subprojects/giflib)
+add_subdirectory(subprojects/mp4)
+add_subdirectory(subprojects/x264)
 add_subdirectory(subprojects/rtmidi)
 add_subdirectory(subprojects/sdl2)
 
@@ -61,12 +63,14 @@ find_library(LUAJIT NAMES lua51.lib libluajit.a HINTS subprojects/luajit/src)
 # 1. Add the source files and headers
 
 set(SOURCE_FILES src/main.cpp
+                 src/getopt.c
                  src/devices/MidiController.cpp
                  src/devices/Keyboard.cpp
                  src/devices/Controller.cpp
                  src/devices/Mouse.cpp
                  src/devices/Audio.cpp
                  src/devices/GPU.cpp
+                 src/kernel/VideoEncoder.cpp
                  src/kernel/TriangleWave.cpp
                  src/kernel/FMSynthesizer.cpp
                  src/kernel/Envelope.cpp
@@ -86,6 +90,7 @@ set(SOURCE_FILES src/main.cpp
                  include/devices/Mouse.hpp
                  include/devices/Audio.hpp
                  include/devices/GPU.hpp
+                 include/kernel/VideoEncoder.hpp
                  include/kernel/TriangleWave.hpp
                  include/kernel/FMSynthesizer.hpp
                  include/kernel/Envelope.hpp
@@ -104,7 +109,10 @@ set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
                  ${CMAKE_SOURCE_DIR}/subprojects/sdl2/include/
                  ${CMAKE_SOURCE_DIR}/subprojects/luajit/src/
                  ${CMAKE_SOURCE_DIR}/subprojects/giflib/
+                 ${CMAKE_SOURCE_DIR}/subprojects/mp4/
+                 ${CMAKE_SOURCE_DIR}/subprojects/mp4/mp4v2/
                  ${CMAKE_SOURCE_DIR}/subprojects/libpng/
+                 ${CMAKE_SOURCE_DIR}/subprojects/x264/
                  ${ZLIB_INCLUDE_DIR})
 
 # 2. Create an executable from the files
@@ -131,4 +139,6 @@ target_link_libraries(nibble zlibstatic
                              rtmidi
                              SDL2-static
                              SDL2main
+                             mp4
+                             x264
                              ${LUAJIT})

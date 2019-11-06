@@ -1,25 +1,17 @@
--- new.nib
-
-function tty_print(str)
-    send_message(env.tty, { print = str })
-end
-
-function enable_tty()
-    send_message(env.shell, { tty = true })
-end
+require 'tty'
 
 function make_directory(directory)
-    tty_print("[DIR] ")
-    tty_print(directory)
-    tty_print("\n")
+    write("[DIR] ")
+    write(directory)
+    write("\n")
 
     create_directory(directory)
 end
 
 function make_file(file)
-    tty_print("[FILE] ")
-    tty_print(file)
-    tty_print("\n")
+    write("[FILE] ")
+    write(file)
+    write("\n")
 
     create_file(file)
 end
@@ -47,8 +39,6 @@ function copy_file(from, to)
 end
 
 function init()
-  enable_tty()
-
   local app_name = env.params[2]
 
   local src_sheet = "apps/system/terminal.nib/assets/sheet.png"

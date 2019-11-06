@@ -104,7 +104,7 @@ void Path::set_linux_path (string _path) {
 	path = _path;
 }
 
-string Path::get_path () {
+string Path::get_path () const {
 	return path;
 }
 

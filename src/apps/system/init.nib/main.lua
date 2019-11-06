@@ -1,3 +1,5 @@
+require 'lang.timeout'
+
 local SCREEN_W = 400
 local SCREEN_H = 240
 
@@ -12,14 +14,30 @@ local SPEED = 12
 
 local SKIP_INTRO = true
 
-function init()
-    -- Inicializa o serviço de terminal
-    --local tty, err = kernel.exec("apps/system/core/terminal.nib", {})
+function play()
+  channel(CH1)
 
-    -- Roda o shell
-    --local sh, err = kernel.exec("apps/system/core/shell.nib", {
-    --    tty=tostring(tty)
-    --})
+  freqs(1.0, 4.0, 1.0, 1.0)
+
+  envelope(OP1, 0, 1, 0, 0.2, 0.1, 1.5, 0)
+  envelope(OP2, 0, 1, 0, 0.2, 0.1, 1.0, 0)
+
+  route(OP2, OP1, 1.0)
+  route(OP1, OUT, 1.0)
+
+  local notes = { 32, 33, 35, 33, 35, 37, 39, 40 }
+
+  for i=1,8 do
+    set_timeout(i/2, function()
+      noteon(notes[i]+12, 128)
+    end)
+  end
+
+  reverb(8, 0.5)
+end
+
+function init()
+  --play()
 end
 
 function run_app()
@@ -43,6 +61,8 @@ function update(dt)
             run_app()
         end
     end
+
+    run_timeouts(dt)
 end
 
 function draw()

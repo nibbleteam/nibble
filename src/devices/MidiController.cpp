@@ -13,6 +13,9 @@ MidiController::MidiController(Memory& memory): ok(true) {
 
     try {
         midi_in.push_back(make_unique<RtMidiIn>());
+
+        // Mostra o Nibble em DAWs
+        midi_in[0]->openVirtualPort("Nibble");
     } catch (RtMidiError &error) {
         ok = false;
         error.printMessage();
@@ -29,6 +32,7 @@ MidiController::MidiController(Memory& memory): ok(true) {
 
         for (size_t p=0;p<ports;p++) {
             midi_in[p]->openPort(p);
+            midi_in[p]->setClientName("Nibble");
         }
     } catch (RtMidiError &error) {
         ok = false;

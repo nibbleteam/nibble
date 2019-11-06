@@ -16,7 +16,7 @@ local dirs = {
     {0, -1},
     {-1, -1},
 }
-local W = 80
+local W = 100
 local H = 60
 
 function math.round(x)
@@ -141,7 +141,7 @@ function update()
     if mouse_button_down(MOUSE_LEFT) then
         local v = get(mx, my)
         local dx, dy = (mx-prevx)*0.5, (my-prevy)*0.5
-        local w = 320/W
+        local w = 400/W
         local h = 240/H
 
         set(math.floor(mx/w), math.floor(my/h), {v[1]+100, v[2]+dx, v[3]+dy})
@@ -150,7 +150,7 @@ function update()
     if mouse_button_down(MOUSE_RIGHT) then
         local v = get(mx, my)
         local dx, dy = (mx-prevx)*0.5, (my-prevy)*0.5
-        local w = 320/W
+        local w = 400/W
         local h = 240/H
 
         set(math.floor(mx/w), math.floor(my/h), {v[1]-50, v[2]+dx, v[3]+dy})
@@ -165,7 +165,7 @@ function draw()
         return
     end
 
-    local w = 320/W
+    local w = 400/W
     local h = 240/H
 
     clear(1)

@@ -9,6 +9,7 @@
 
 #include <kernel/Device.hpp>
 #include <kernel/Memory.hpp>
+#include <kernel/VideoEncoder.hpp>
 #include <Specs.hpp>
 
 // Número de bytes por pixel em memória na CPU e na GPU
@@ -42,9 +43,14 @@ class GPU: public Device {
     int16_t target_clip_start_x, target_clip_start_y;
     int16_t target_clip_end_x, target_clip_end_y;
 
+    // Is the window in fullscreen?
+    bool is_fullscreen;
+
     // Quantas frames foram renderizadas
     size_t cycle;
 
+    // Encoder para salvar h264
+    VideoEncoder *h264;
     // Arquivo para salvar gifs
     GifFileType *gif;
     // Paleta do gif
@@ -64,7 +70,7 @@ protected:
 
     SDL_Window* window;
 public:
-    GPU(Memory&);
+    GPU(Memory&, const bool);
     ~GPU();
 
     void startup();
@@ -74,6 +80,8 @@ public:
 
     // Atualiza tamanho da janela
     void resize();
+    void toggle_fullscreen();
+    void fullscreen(const bool);
 
     // Tela -> tela do nibble
     void transform_mouse(int16_t&, int16_t&);

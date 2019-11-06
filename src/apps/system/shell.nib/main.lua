@@ -126,8 +126,6 @@ function receive_messages()
         end
 
         if message.tty then
-            terminal_print("received tty message")
-
             send_message(tty, { enable = true })
         end
 

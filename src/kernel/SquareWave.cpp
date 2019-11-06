@@ -1,6 +1,6 @@
 #include <kernel/SquareWave.hpp>
 
-const int16_t SquareWave::value_at(uint8_t t) const {
+int16_t SquareWave::value_at(uint8_t t) const {
     if (t < 128) {
         return INT16_MIN;
     } else {

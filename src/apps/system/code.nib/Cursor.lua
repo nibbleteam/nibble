@@ -124,19 +124,19 @@ function Cursor:is_in_line(line)
 end
 
 function Cursor:to_right(x)
-  return self.position * 8 > x
+  return self:screen_position() > x
 end
 
 function Cursor:to_left(x)
-  return self.position * 8 < x
+  return self:screen_position() < x
 end
 
 function Cursor:screen_position()
-  return self.position * 8
+  return self.line.offset_x + self.position * 8
 end
 
 function Cursor:draw(x, y)
-  fill_rect(x+(self.position-1)*8, y, 1, 8, 15)
+  fill_rect(self.line.offset_x+x+(self.position-1)*8, self.line.offset_y+y, 1, 8, 15)
 end
 
 return Cursor

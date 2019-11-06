@@ -1,0 +1,9 @@
+cmake_minimum_required (VERSION 2.8)
+project (mp4)
+
+add_library (mp4 STATIC 3gp.cpp atom_ac3.cpp atom_amr.cpp atom_avc1.cpp atom_avcC.cpp atom_chpl.cpp atom_colr.cpp atom_d263.cpp atom_dac3.cpp atom_damr.cpp atom_dref.cpp atom_elst.cpp atom_enca.cpp atom_encv.cpp atom_free.cpp atom_ftab.cpp atom_ftyp.cpp atom_gmin.cpp atom_hdlr.cpp atom_hinf.cpp atom_hnti.cpp atom_href.cpp atom_mdat.cpp atom_mdhd.cpp atom_meta.cpp atom_mp4s.cpp atom_mp4v.cpp atom_mvhd.cpp atom_nmhd.cpp atom_ohdr.cpp atom_pasp.cpp atom_root.cpp atom_rtp.cpp atom_s263.cpp atom_sdp.cpp atom_sdtp.cpp atom_smi.cpp atom_sound.cpp atom_standard.cpp atom_stbl.cpp atom_stdp.cpp atom_stsc.cpp atom_stsd.cpp atom_stsz.cpp atom_stz2.cpp atom_text.cpp atom_tfhd.cpp atom_tkhd.cpp atom_treftype.cpp atom_trun.cpp atom_tx3g.cpp atom_udta.cpp atom_url.cpp atom_urn.cpp atom_uuid.cpp atom_video.cpp atom_vmhd.cpp bmff/typebmff.cpp cmeta.cpp descriptors.cpp exception.cpp isma.cpp itmf/CoverArtBox.cpp itmf/generic.cpp itmf/Tags.cpp itmf/type.cpp libplatform/io/File.cpp libplatform/io/File_posix.cpp libplatform/io/FileSystem.cpp libplatform/io/FileSystem_posix.cpp libplatform/io/FileSystem_win32.cpp libplatform/io/File_win32.cpp libplatform/number/random_posix.cpp libplatform/number/random_win32.cpp libplatform/platform_win32.cpp libplatform/platform_win32.cpp libplatform/process/process_posix.cpp libplatform/process/process_win32.cpp libplatform/prog/option.cpp libplatform/sys/error.cpp libplatform/time/time.cpp libplatform/time/time_posix.cpp libplatform/time/time_win32.cpp log.cpp main.cpp mp4atom.cpp mp4container.cpp mp4.cpp mp4descriptor.cpp mp4file.cpp mp4file_io.cpp mp4info.cpp mp4property.cpp mp4track.cpp mp4util.cpp ocidescriptors.cpp odcommands.cpp qosqualifiers.cpp qtff/coding.cpp qtff/ColorParameterBox.cpp qtff/PictureAspectRatioBox.cpp rtphint.cpp text.cpp)
+
+include_directories(.)
+
+install(FILES mp4.h DESTINATION include)
+install(TARGETS mp4 DESTINATION lib)

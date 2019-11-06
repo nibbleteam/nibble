@@ -56,7 +56,7 @@ public:
     unique_ptr<MidiController> midi_controller;
 #endif
 public:
-    Kernel();
+    Kernel(const bool);
     ~Kernel();
 
     // Controles de power e botões de hardware

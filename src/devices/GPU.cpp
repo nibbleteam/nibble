@@ -11,28 +11,25 @@
 
 using namespace std;
 
-GPU::GPU(Memory& memory):
+GPU::GPU(Memory& memory, const bool fullscreen_startup):
     target_clip_start_x(0), target_clip_start_y(0),
     target_clip_end_x(GPU_VIDEO_WIDTH), target_clip_end_y(GPU_VIDEO_HEIGHT),
-    cycle(0),
-    colormap(NULL), screen_scale(GPU_DEFAULT_SCALING), screen_offset_x(0), screen_offset_y(0) {
+    is_fullscreen(fullscreen_startup),
+    cycle(0), h264(nullptr),
+    colormap(nullptr), screen_scale(GPU_DEFAULT_SCALING), screen_offset_x(0), screen_offset_y(0) {
 
     window = SDL_CreateWindow("nibble",
                               SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED,
                               GPU_VIDEO_WIDTH*GPU_DEFAULT_SCALING,
                               GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING,
-                              SDL_WINDOW_SHOWN | /* SDL_WINDOW_FULLSCREEN |*/ SDL_WINDOW_RESIZABLE );
+                              SDL_WINDOW_SHOWN | (is_fullscreen? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_RESIZABLE );
 
     renderer = SDL_CreateRenderer(window, -1, 0);
     //renderer = SDL_CreateSoftwareRenderer(SDL_GetWindowSurface(window));
 
     palette_memory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
     video_memory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
-
-    // TODO
-    // Não gera múltiplos keypresses se a tecla ficar apertada
-    // window.setKeyRepeatEnabled(false);
 
     // Não mostra o cursor
     SDL_ShowCursor(SDL_DISABLE);
@@ -129,11 +126,6 @@ void GPU::draw() {
     }
     cycle++;
 
-    // Grava a frame
-    if (colormap != NULL) {
-        capture_frame();
-    }
-
     // Atualiza a memória de vídeo
     void *data;
     int pitch;
@@ -144,7 +136,13 @@ void GPU::draw() {
                 palette_memory+(COLMAP2(video_memory[i])*4), 4);
     }
 
+    // Grava a frame
+    if (h264) {
+        h264->capture_frame((const uint8_t*)data);
+    }
+
     SDL_UnlockTexture(framebuffer);
+
 
     // Só limpa a tela se tivermos barras horizontais ou verticais
     if (screen_offset_x != 0 || screen_offset_y != 0) {
@@ -156,8 +154,17 @@ void GPU::draw() {
     SDL_RenderCopy(renderer, framebuffer, &framebuffer_src, &framebuffer_dst);
 
     // Mostra o resultado na janela
-    //SDL_UpdateWindowSurface(window);
     SDL_RenderPresent(renderer);
+}
+
+void GPU::fullscreen(const bool fullscreen) {
+    SDL_SetWindowFullscreen(window, fullscreen? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+
+    is_fullscreen = fullscreen;
+}
+
+void GPU::toggle_fullscreen() {
+    fullscreen(!is_fullscreen);
 }
 
 void GPU::resize() {
@@ -201,94 +208,99 @@ void GPU::transform_mouse(int16_t &x, int16_t &y) {
  */
 
 bool GPU::start_capturing(const string& path) {
-    int error;
+    // int error;
 
-    // Cria um colormap a partir da paleta
-    colormap = get_color_map();
+    // // Cria um colormap a partir da paleta
+    // colormap = get_color_map();
 
-    // Abre um GIF pra salvar a tela
-    gif = EGifOpenFileName(path.c_str(), false, &error);
-    // Versão nova do GIF
-    EGifSetGifVersion(gif, true);
-    // Coonfigurações da screen
-    error = EGifPutScreenDesc(gif,
-                              GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT,
-                              GPU_PALETTE_MEM_SIZE,
-                              0,
-                              colormap);
+    // // Abre um GIF pra salvar a tela
+    // gif = EGifOpenFileName(path.c_str(), false, &error);
+    // // Versão nova do GIF
+    // EGifSetGifVersion(gif, true);
+    // // Coonfigurações da screen
+    // error = EGifPutScreenDesc(gif,
+    //                           GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT,
+    //                           GPU_PALETTE_MEM_SIZE,
+    //                           0,
+    //                           colormap);
 
-    // Limpa a paleta que foi escrita
-    GifFreeMapObject(colormap);
+    // // Limpa a paleta que foi escrita
+    // GifFreeMapObject(colormap);
 
-    if (error != GIF_OK) {
-        cerr << GifErrorString(error) << endl;
-        return false;
-    }
+    // if (error != GIF_OK) {
+    //     cerr << GifErrorString(error) << endl;
+    //     return false;
+    // }
 
-    char loop[] {
-        0x01, 0x00, 0x00
-    };
+    // char loop[] {
+    //     0x01, 0x00, 0x00
+    // };
 
-    error = 0;
-    error |= EGifPutExtensionLeader(gif, APPLICATION_EXT_FUNC_CODE);
-    error |= EGifPutExtensionBlock(gif, 0x0b, "NETSCAPE2.0");
-    error |= EGifPutExtensionBlock(gif, 0x03, loop);
-    error |= EGifPutExtensionTrailer(gif);
+    // error = 0;
+    // error |= EGifPutExtensionLeader(gif, APPLICATION_EXT_FUNC_CODE);
+    // error |= EGifPutExtensionBlock(gif, 0x0b, "NETSCAPE2.0");
+    // error |= EGifPutExtensionBlock(gif, 0x03, loop);
+    // error |= EGifPutExtensionTrailer(gif);
 
-    if (error != GIF_OK) {
-        cerr << GifErrorString(error) << endl;
-        return false;
-    }
+    // if (error != GIF_OK) {
+    //     cerr << GifErrorString(error) << endl;
+    //     return false;
+    // }
+
+    h264 = new VideoEncoder(Path(path));
 
     return true;
 }
 
 bool GPU::stop_capturing() {
-    int error;
+    // int error;
 
-    EGifCloseFile(gif, &error);
+    // EGifCloseFile(gif, &error);
 
-    gif = NULL;
-    colormap = NULL;
+    // gif = nullptr;
+    // colormap = nullptr;
 
-    if (error != GIF_OK) {
-        return false;
-    }
+    // if (error != GIF_OK) {
+    //     return false;
+    // }
+
+    delete h264;
+    h264 = nullptr;
 
     return true;
 }
 
 bool GPU::capture_frame() {
-    int error;
-    char graphics[] {
-        0, 4&0xFF, 4>>8, 0
-    };
+    //int error;
+    //char graphics[] {
+    //    0, 4&0xFF, 4>>8, 0
+    //};
 
-    error = EGifPutExtension(
-        gif,
-        GRAPHICS_EXT_FUNC_CODE,
-        sizeof(graphics),
-        &graphics
-    );
+    //error = EGifPutExtension(
+    //    gif,
+    //    GRAPHICS_EXT_FUNC_CODE,
+    //    sizeof(graphics),
+    //    &graphics
+    //);
 
-    if (error != GIF_OK) {
-        cerr << GifErrorString(error) << endl;
-        return false;
-    }
+    //if (error != GIF_OK) {
+    //    cerr << GifErrorString(error) << endl;
+    //    return false;
+    //}
 
-    error = EGifPutImageDesc(gif, 0, 0, GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT, false, NULL);
-    if (error != GIF_OK) {
-        cerr << GifErrorString(error) << endl;
-        return false;
-    }
+    //error = EGifPutImageDesc(gif, 0, 0, GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT, false, NULL);
+    //if (error != GIF_OK) {
+    //    cerr << GifErrorString(error) << endl;
+    //    return false;
+    //}
 
-    error = EGifPutLine(gif, video_memory, GPU_VIDEO_MEM_SIZE);
+    //error = EGifPutLine(gif, video_memory, GPU_VIDEO_MEM_SIZE);
 
-    if (error != GIF_OK) {
-        cerr << GifErrorString(error) << endl;
-        return false;
-    }
-
+    //if (error != GIF_OK) {
+    //    cerr << GifErrorString(error) << endl;
+    //    return false;
+    //}
+    //
     return true;
 }
 
