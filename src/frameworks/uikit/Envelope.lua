@@ -9,7 +9,7 @@ function Point:new(x, y, direction, prev)
     base_x = x or 0, base_y = y or 0,
     orig_x = x or 0, orig_y = y or 0,
     offset_x = 0, offset_y = 0,
-    radius = 6,
+    radius = 12,
     color = 9,
     selected = false, hover = false,
     direction = direction or 'x',
@@ -24,7 +24,7 @@ function Point:draw(h)
   circ_fn(self.offset_x+self:get("x"),
           self.offset_y+self:get("y"),
           self.radius + (en and 2 or 0),
-          self.color)
+          self.color+1)
 
   local x1, x2, y1, y2 = 0, 0, h, 0
 
@@ -180,6 +180,14 @@ function Envelope:render(state)
     onmove = function(w, event)
       for _, point in ipairs(state.points) do
         point:mouse_move(event, self.click_start)
+      end
+
+      point = state.points[3]
+
+      if point:get("x") > w.w then
+        point.x -= point:get("x")-w.w
+
+        point.x = math.max(0, point.x)
       end
 
       return false

@@ -10,29 +10,35 @@ function Operator:new(props)
   })
 end
 
-function Operator:render(state)
-  local w, h = 100, 60
-  local p = 4
+function Operator:adsr()
+  return {
+    self.env:attack(),
+    self.env:decay(),
+    self.env:sustain(),
+    self.env:release(),
+  }
+end
 
-  local x = self.props.x or NOM.left+(NOM.width-w)/2
-  local y = self.props.y or NOM.top+(NOM.height-h)/2
+function Operator:render(state, props)
+  local w, h = props.w, props.h
+  local p = 6
 
   return {
     id = self.props.id,
-    x = x,
-    y = y,
+    x = props.x,
+    y = props.y,
     w = w,
     h = h,
-    radius = 2,
+    radius = 4,
 
-    background = 6,
+    background = 2,
 
     {Envelope,
       ref = function(env) self.env = env end,
       w = w-2*p,
       h = h-2*p,
-      x = x+p,
-      y = y+p},
+      x = NOM.left+p,
+      y = NOM.top+p},
   }
 end
 

@@ -10,11 +10,11 @@ function init()
   local files = list_directory(dir)
 
   for _, file in ipairs(files) do
-    local is_self = file:match("/%.%.")
-    local is_parent = file:match("/%.") 
+    local is_self = file:match("[\\/]%.%.")
+    local is_parent = file:match("[\\/]%.") 
 
     if not (is_self or is_parent) then
-      write_line(file:match("^%./(.*)"))
+      write_line(file:match("^%.[\\/](.*)"))
     end 
   end
 
