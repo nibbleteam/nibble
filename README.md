@@ -22,3 +22,4 @@ You can type the name of any software to start it.
         <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.gif" width="800" height="480"/>
 </p>
 
+Be sure to check out the [documentation](https://docs.nibble.world).
