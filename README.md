@@ -7,11 +7,8 @@ UX and design.
 
 # Getting Started
 
-First, you will need to download the emulator and SDK:
-
-- [Windows](https://github.com/nibbleteam/nibble/suites/294011958/artifacts/236752)
-- [macOS](https://github.com/nibbleteam/nibble/suites/294011963/artifacts/236748)
-- [Linux](https://github.com/nibbleteam/nibble/suites/294011960/artifacts/236751)
+First, you will need to download the emulator and SDK from the
+[releases](https://github.com/nibbleteam/nibble/releases) page.
 
 The macOS version probably needs some tinkering to run, because it's not notarized by Apple.
 
