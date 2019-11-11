@@ -943,8 +943,10 @@ SDL_Cursor* GPU::get_cursor(int16_t x, int16_t y,
     auto hash = hash_cursor(data, w, h);
 
     try {
+        auto cursor = cursors.at(hash);
+
         delete data;
-        return cursors.at(hash);
+        return cursor;
     } catch(out_of_range) {
         auto cursor = make_cursor(data, hash, w, h, hot_x, hot_y);
 
