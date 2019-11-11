@@ -919,7 +919,7 @@ SDL_Cursor* GPU::get_cursor(int16_t x, int16_t y,
 
     // TODO: zoom to match pixel size in the console
     // FIXME: problem if too big?
-    uint8_t data[w*h*4];
+    uint8_t *data = new uint8_t[w*h*4];
 
     // Copia o sprite em RGBA para data
     for (size_t i=0;ptr < ptr_final; ptr+=source_w) {
@@ -943,12 +943,14 @@ SDL_Cursor* GPU::get_cursor(int16_t x, int16_t y,
     auto hash = hash_cursor(data, w, h);
 
     try {
+        delete data;
         return cursors.at(hash);
     } catch(out_of_range) {
         auto cursor = make_cursor(data, hash, w, h, hot_x, hot_y);
 
         cursors[hash] = cursor;
 
+        delete data;
         return cursor;
     }
 }
