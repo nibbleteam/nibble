@@ -65,6 +65,10 @@ class GPU: public Device {
     SDL_Texture *framebuffer;
     
     SDL_Rect framebuffer_dst, framebuffer_src;
+
+    // Cursores do mouse
+    map<uint32_t, SDL_Cursor*> cursors;
+    map<uint32_t, SDL_Surface*> cursor_surfaces;
 protected:
     friend class Kernel;
 
@@ -88,8 +92,7 @@ public:
 
     // API
     void clear(uint8_t);
-    void line(int16_t, int16_t, int16_t, int16_t, uint8_t);
-    void rect(int16_t, int16_t, int16_t, int16_t, uint8_t);
+    void line(int16_t, int16_t, int16_t, int16_t, uint8_t); void rect(int16_t, int16_t, int16_t, int16_t, uint8_t);
     void tri(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
     void quad(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
     void circle(int16_t, int16_t, int16_t, uint8_t);
@@ -104,6 +107,9 @@ public:
 
     void clip(int16_t, int16_t, int16_t, int16_t);
 
+    void set_system_cursor(uint8_t);
+    void set_cursor(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
+
     // GIFs
     bool start_capturing(const string&);
     bool stop_capturing();
@@ -117,6 +123,12 @@ private:
     ColorMapObject* get_color_map();
 
     SDL_Surface* icon_to_surface(uint8_t* &);
+
+    SDL_Cursor* get_cursor(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
+    uint32_t hash_cursor(uint8_t*, int16_t, int16_t);
+    SDL_Cursor* make_cursor(uint8_t*, uint32_t, int16_t, int16_t, int16_t, int16_t);
+
+    void free_cursors();
 
     void paint_boot_animation();
 };

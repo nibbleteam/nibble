@@ -33,6 +33,8 @@ void gpu_api_tri(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
 void gpu_api_circle(int16_t, int16_t, int16_t, uint8_t);
 void gpu_api_quad(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
 
+void gpu_api_set_cursor(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
+
 LuaString* api_list_files(const char*, size_t*, int*);
 int api_create_directory(const char*);
 int api_touch_file(const char*);
@@ -118,6 +120,10 @@ end
 
 function hw.clip(x, y, w, h)
     ffi.C.gpu_api_clip(x, y, w, h)
+end
+
+function hw.set_cursor(x, y, w, h, hx, hy, pal)
+    ffi.C.gpu_api_set_cursor(x, y, w or 16, h or 16, hx or 0, hy or 0, pal or 0)
 end
 
 function hw.line(x1, y1, x2, y2, color)

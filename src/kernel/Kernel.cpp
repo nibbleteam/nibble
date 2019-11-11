@@ -307,6 +307,14 @@ void gpu_api_sprite(int16_t x, int16_t y,
     KernelSingleton.lock()->gpu->sprite(x, y, sx, sy, w, h, pal);
 }
 
+
+void gpu_api_set_cursor(int16_t x, int16_t y,
+                        int16_t w, int16_t h,
+                        int16_t hx, int16_t hy,
+                        uint8_t pal) {
+    KernelSingleton.lock()->gpu->set_cursor(x, y, w, h, hx, hy, pal);
+}
+
 void gpu_api_clip(int16_t x, int16_t y, int16_t w, int16_t h) {
     KernelSingleton.lock()->gpu->clip(x, y, w, h);
 }

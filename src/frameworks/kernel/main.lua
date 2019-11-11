@@ -423,6 +423,7 @@ function nib_api(entrypoint, proc)
         clip = hw.clip,
         print = hw.print,
         measure = hw.measure,
+        mouse_cursor = hw.set_cursor,
         start_recording = hw.start_capturing,
         stop_recording = hw.stop_capturing,
         get_pixel = gpu.get_pixel,

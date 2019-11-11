@@ -54,12 +54,15 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
 }
 
 GPU::~GPU() {
+    free_cursors();
+
     SDL_DestroyTexture(framebuffer);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 }
 
 void GPU::startup() {
+    // DB16
     uint8_t default_palette[] = {
         0x14, 0x0c, 0x1c, 0xFF,
         0x44, 0x24, 0x34, 0xFF,
@@ -190,6 +193,8 @@ void GPU::resize() {
     framebuffer_dst = SDL_Rect {int(screen_offset_x), int(screen_offset_y),
                                int(GPU_VIDEO_WIDTH*screen_scale),
                                int(GPU_VIDEO_HEIGHT*screen_scale)};
+
+    free_cursors();
 }
 
 void GPU::transform_mouse(int16_t &x, int16_t &y) {
@@ -870,4 +875,127 @@ SDL_Surface* GPU::icon_to_surface(uint8_t* &pixels) {
     return SDL_CreateRGBSurfaceFrom(img_data,
                                     img.width, img.height, 32, img.width*4,
                                     0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+}
+
+void GPU::set_system_cursor(uint8_t cursor) {
+    if (cursor == 0) {
+        SDL_ShowCursor(SDL_DISABLE);
+    } else {
+        // TODO: Create and use system cursors
+    }
+}
+
+void GPU::set_cursor(int16_t x, int16_t y,
+                     int16_t w, int16_t h,
+                     int16_t hot_x, int16_t hot_y,
+                     uint8_t pal) {
+    if (w == 0 || h == 0) {
+        SDL_ShowCursor(SDL_DISABLE);
+    } else {
+        SDL_SetCursor(get_cursor(x, y, w, h, hot_x, hot_y, pal));
+        SDL_ShowCursor(SDL_ENABLE);
+    }
+}
+
+SDL_Cursor* GPU::get_cursor(int16_t x, int16_t y,
+                            int16_t w, int16_t h,
+                            int16_t hot_x, int16_t hot_y,
+                            uint8_t pal) {
+    pal = pal&0x0F;
+
+    // Clamp sprite position
+    if (x < 0) {
+        w = max(w+x, 0);
+        x = 0;
+    }
+
+    if (y < 0) {
+        h = max(h+y, 0);
+        y = 0;
+    }
+
+    auto ptr = source+y*source_w+x;
+    const auto ptr_final = ptr+source_w*h;
+
+    // TODO: zoom to match pixel size in the console
+    // FIXME: problem if too big?
+    uint8_t data[w*h*4];
+
+    // Copia o sprite em RGBA para data
+    for (size_t i=0;ptr < ptr_final; ptr+=source_w) {
+        uint8_t *src_pixel;
+        uint8_t *src_pixel_final;
+
+        src_pixel = ptr;
+        src_pixel_final = src_pixel+w;
+
+        while (src_pixel < src_pixel_final) {
+            auto c = COLMAP1(((*src_pixel++) + (pal<<4)));
+
+            if (TRANSPARENT(c)) {
+                memcpy(data+(i+=4), "\0\0\0\0", 4);
+            } else {
+                memcpy(data+(i+=4), palette_memory+(COLMAP2(c)*4), 4);
+            }
+        }
+    }
+
+    auto hash = hash_cursor(data, w, h);
+
+    try {
+        return cursors.at(hash);
+    } catch(out_of_range) {
+        auto cursor = make_cursor(data, hash, w, h, hot_x, hot_y);
+
+        cursors[hash] = cursor;
+
+        return cursor;
+    }
+}
+
+uint32_t GPU::hash_cursor(uint8_t* data, int16_t w, int16_t h) {
+    int64_t hash_value = 0;
+    const size_t length = uint16_t(w)*uint16_t(h)*4; // *4 por cause que é RGBA
+
+    for (size_t i=0;i<length;i++) {
+        hash_value = data[i] + (hash_value << 6) + (hash_value << 16) - hash_value;
+    }
+
+    return hash_value;
+}
+
+SDL_Cursor* GPU::make_cursor(uint8_t* data, uint32_t hash,
+                             int16_t w, int16_t h,
+                             int16_t hot_x, int16_t hot_y) {
+    auto surface = SDL_CreateRGBSurfaceWithFormatFrom(data,
+                                                      w, h,
+                                                      32,
+                                                      4*w,
+                                                      SDL_PIXELFORMAT_RGBA32);
+    auto scaled = SDL_CreateRGBSurfaceWithFormat(0,
+                                                 w*screen_scale, h*screen_scale,
+                                                 32,
+                                                 SDL_PIXELFORMAT_RGBA32);
+
+    SDL_BlitScaled(surface, nullptr, scaled, nullptr);
+
+    SDL_FreeSurface(surface);
+
+    cursor_surfaces[hash] = scaled;
+
+    return SDL_CreateColorCursor(scaled, hot_x, hot_y);
+}
+
+
+void GPU::free_cursors() {
+    for (auto it=cursors.begin(); it != cursors.end(); it++) {
+        SDL_FreeCursor(it->second);
+    }
+
+    for (auto it=cursor_surfaces.begin(); it != cursor_surfaces.end(); it++) {
+        SDL_FreeSurface(it->second);
+    }
+
+    cursors.clear();
+    cursor_surfaces.clear();
 }

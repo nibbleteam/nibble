@@ -118,6 +118,9 @@ extern "C" {
     API int gpu_start_capturing(const char*);
     API int gpu_stop_capturing();
 
+    // Cursor
+    API void gpu_api_set_cursor(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
+
     // Áudio
     API void audio_enqueue_command(const uint64_t,
                                    const uint8_t,
