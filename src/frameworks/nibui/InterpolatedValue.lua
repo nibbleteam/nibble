@@ -12,8 +12,9 @@ function InterpolatedValue:new(v, w)
             from = {
                 v = v, t = 0
             },
-            easing = Easing.Linear
-        }
+            easing = Easing.Linear,
+        },
+        dirty = 0,
     }
     
     local mt = {
@@ -85,9 +86,14 @@ function InterpolatedValue:set(v, time, easing)
 
     -- Using easing
     self.interpolation.easing = easing
+
+    self.dirty = time
 end
 
 function InterpolatedValue:update(dt, w)
+    self.dirty -= dt
+
+    return self.dirty > 0
 end
 
 return InterpolatedValue
