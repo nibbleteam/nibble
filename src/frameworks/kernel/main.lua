@@ -95,19 +95,43 @@ function make_process(entrypoint, env)
 
     local sheet_ptr, sheet_w, sheet_h = hw.load_spritesheet(sheet)
 
+    local ex, ey, ew, eh
+
+    if executing_process then
+        ex, ey, ew, eh = executing_process.priv.x, executing_process.priv.y,
+                         executing_process.priv.width, executing_process.priv.height
+    else
+        ex, ey, ew, eh = 0, 0, 400, 240
+    end
+
+    local x = math.max(env.x or 0, ex)
+    local y = math.max(env.y or 0, ey)
+    local w = math.min(env.width or 400, ex+ew-ex)
+    local h = math.min(env.height or 240, ey+eh-ey)
+
+    print(x, y, w, h)
+
     proc.priv = {
         spritesheet = {
             ptr = sheet_ptr,
             w = sheet_w,
             h = sheet_h
         },
+        width = w, height = h,
+        x = x, y = y,
         message_queue = {},
         pid = pid_counter,
         parent = executing_process,
         entrypoint = entrypoint,
     }
 
-    proc.pub = nib_api(entrypoint, proc)
+    -- Define o tamanho da tela
+    env.width = w
+    env.height = h
+    env.x = x
+    env.y = y
+
+    proc.pub = nib_api(entrypoint, proc, env)
     proc.pub.env = env
     proc.pub.env.pid = proc.priv.pid
 
@@ -155,6 +179,9 @@ function exec_process(process, dt)
         end
 
         if process.pub.draw then
+            hw.clip(process.priv.x, process.priv.y,
+                    process.priv.width, process.priv.height)
+
             xpcall(process.pub.draw, function (err)
                 process.priv.ok = false
                 handle_process_error(err)
@@ -334,7 +361,7 @@ function stop_app(pid)
     end
 end
 
-function nib_api(entrypoint, proc)
+function nib_api(entrypoint, proc, env)
     local api = {
         -- Processos podem usar require limitado,
         require = function(module)
@@ -420,7 +447,14 @@ function nib_api(entrypoint, proc)
         circ = hw.circle,
         tri = hw.tri,
         quad = hw.quad,
-        clip = hw.clip,
+        clip = function (x, y, w, h)
+            x = math.max(x, proc.priv.x)
+            y = math.max(y, proc.priv.y)
+            w = math.min(w, proc.priv.x+proc.priv.width-x)
+            h = math.min(h, proc.priv.y+proc.priv.height-y)
+
+            hw.clip(x, y, w, h)
+        end,
         print = hw.print,
         measure = hw.measure,
         mouse_cursor = hw.set_cursor,

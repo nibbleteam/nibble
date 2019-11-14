@@ -43,7 +43,9 @@ end
 function run_app()
     -- Start the shell
     local tty = start_app("apps/system/terminal.nib", {})
-    start_app("apps/system/shell.nib", { tty = tty })
+    start_app("apps/system/shell.nib", {
+      tty = tty,
+    })
 
     -- Close the app
     stop_app(0)

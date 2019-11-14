@@ -6,12 +6,13 @@ function Widget:new(config, document, parent)
     local defaults = {
         -- Colors
         shadow_color = 0, border_color = 0, background = 0, color = 15,
-        -- Position and size
-        x = 0, y = 0, z = 0, w = 0, h = 0, radius = 0,
         cmap = {
             {15, 15},
             {7, 7},
         },
+        -- Position and size
+        border_size = 0,
+        x = 0, y = 0, z = 0, w = 0, h = 0, radius = 0,
         -- Content
         content = '', text_align = 'center', vertical_align = 'middle',
         text_palette = 0,
@@ -189,6 +190,7 @@ function Widget:draw()
         local content = self.content
         local shadow_color = math.floor(self.shadow_color)
         local border_color = math.floor(self.border_color)
+        local border_size = math.floor(self.border_size)
         local z = math.floor(self.z)
 
         clip(x, y, w, h)
@@ -205,27 +207,35 @@ function Widget:draw()
           end
         end
 
-        rect(x+r-1, y-1, w-r*2+2, h+2, border_color)
-        rect(x-1, y+r-1, w+2, h-r*2+2, border_color)
+        fill_rect(x+r, y, w-r*2, h, border_color)
+        fill_rect(x, y+r, w, h-r*2, border_color)
 
         if r ~= 0 then
-            fill_circ(x+r, y+r, r+1, border_color)
-            fill_circ(x+w-r-1, y+r, r+1, border_color)
-            fill_circ(x+r, y+h-r-1, r+1, border_color)
-            fill_circ(x+w-r-1, y+h-r-1, r+1, border_color)
+            fill_circ(x+r, y+r, r, border_color)
+            fill_circ(x+w-r-1, y+r, r, border_color)
+            fill_circ(x+r, y+h-r-1, r, border_color)
+            fill_circ(x+w-r-1, y+h-r-1, r, border_color)
         end
 
         if type(self.background) ~= 'table' then
             local background = math.floor(self.background)
 
-            fill_rect(x+r, y, w-r*2, h, background)
-            fill_rect(x, y+r, w, h-r*2, background)
+            do
+                local w = w-border_size*1.5
+                local h = h-border_size*1.5
+                local x = x+border_size
+                local y = y+border_size
+                local r = r-border_size/2
 
-            if r ~= 0 then
-                fill_circ(x+r, y+r, r, background)
-                fill_circ(x+w-r-1, y+r, r, background)
-                fill_circ(x+r, y+h-r-1, r, background)
-                fill_circ(x+w-r-1, y+h-r-1, r, background)
+                fill_rect(x+r, y, w-r*2, h, background)
+                fill_rect(x, y+r, w, h-r*2, background)
+
+                if r ~= 0 then
+                    fill_circ(x+r, y+r, r, background)
+                    fill_circ(x+w-r-1, y+r, r, background)
+                    fill_circ(x+r, y+h-r-1, r, background)
+                    fill_circ(x+w-r-1, y+h-r-1, r, background)
+                end
             end
         else
             if #self.background == 2 then
