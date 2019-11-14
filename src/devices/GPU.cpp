@@ -846,7 +846,20 @@ void GPU::clear(uint8_t color) {
     if (TRANSPARENT(color))
         return;
 
-    memset(video_memory, COLMAP1(color), GPU_VIDEO_MEM_SIZE);
+    // A `target` atual é uma área contínua de memória?
+    if (target_clip_end_x-target_clip_start_x == target_w) {
+        const auto ptr = target + target_clip_start_y*target_w + target_clip_start_x;
+        const auto len = (target_clip_end_x-target_clip_start_x)*(target_clip_end_y-target_clip_start_y);
+
+        // Seta tudo com um só memset
+        memset(ptr, COLMAP1(color), len);
+    } else {
+        const auto w = target_clip_end_x-target_clip_start_x;
+        const auto h = target_clip_end_y-target_clip_start_y;
+
+        // Usa o `rect_fill`, que é mais lento
+        rect_fill(target_clip_start_x, target_clip_start_x, w, h, color);
+    }
 }
 
 SDL_Surface* GPU::icon_to_surface(uint8_t* &pixels) {
