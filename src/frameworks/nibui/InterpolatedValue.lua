@@ -28,6 +28,10 @@ function InterpolatedValue:new(v, w)
                     -- Position
                     local p = et/t
 
+                    if t == 0 then
+                        return self:get(self.interpolation.to.v, w)
+                    end
+
                     if p ~= p then
                         p = 0
                     end
@@ -91,9 +95,11 @@ function InterpolatedValue:set(v, time, easing)
 end
 
 function InterpolatedValue:update(dt, w)
+    local dirty = self.dirty
+
     self.dirty -= dt
 
-    return self.dirty > 0
+    return dirty >= 0
 end
 
 return InterpolatedValue

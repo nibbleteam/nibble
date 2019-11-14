@@ -849,7 +849,7 @@ void GPU::clear(uint8_t color) {
     // A `target` atual é uma área contínua de memória?
     if (target_clip_end_x-target_clip_start_x == target_w) {
         const auto ptr = target + target_clip_start_y*target_w + target_clip_start_x;
-        const auto len = (target_clip_end_x-target_clip_start_x)*(target_clip_end_y-target_clip_start_y);
+        const auto len = (target_clip_end_y-target_clip_start_y)*target_w;
 
         // Seta tudo com um só memset
         memset(ptr, COLMAP1(color), len);
