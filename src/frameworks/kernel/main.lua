@@ -109,8 +109,6 @@ function make_process(entrypoint, env)
     local w = math.min(env.width or 400, ex+ew-ex)
     local h = math.min(env.height or 240, ey+eh-ey)
 
-    print(x, y, w, h)
-
     proc.priv = {
         spritesheet = {
             ptr = sheet_ptr,
