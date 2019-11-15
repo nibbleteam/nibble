@@ -13,32 +13,32 @@ local iconGap = 0
 local iconJump = 2
 
 local iconMap = {
-    8,
-    9,
-    6,
-    7,
+    ["music.nib"] = 6,
+    ["code.nib"] = 7,
+    ["sprite.nib"] = 8,
+    ["map.nib"] = 9,
 }
+local editorSearchPath = "apps/system/editors/"
 
 -- Get all editors
-local editorPaths = list_directory("apps/system/editors")
+local editorPaths = list_directory(editorSearchPath)
 local editorButtons = {}
 
 -- Prepare buttons for editors
-for k=1,#editorPaths do
+for k,v in pairs(editorPaths) do
     if type(k) == "number" then
-        if not (k < 3) then -- Skip . and ..
-            editorButtons[#editorButtons+1] = {
-                x = NOM.left+(iconWidth*(k-3))+(iconGap*(k-2)), y = NOM.top+iconJump-1,
+        if (v ~= (editorSearchPath .. "..")) and (v ~= (editorSearchPath .. ".")) then
+            insert(editorButtons,{
+                x = NOM.left+(iconWidth*(k-2))+(iconGap*(k-2)), y = NOM.top+iconJump-1,
                 w = iconWidth, h = iconHeight,
-                background = { 2, iconMap[k-2] },
+                background = { 2, iconMap[v:sub(editorSearchPath:len()+1)] },
                 id = editorPaths[k],
-
                 pid = nil,
 
                 onclick = function(self)
                     self.parent:select(self.id, self)
                 end
-            }
+            })
         end
     end
 end
@@ -113,7 +113,7 @@ local ui = NOM:new({
                         width=env.width,
                         height=env.height-taskbarHeight,
 
-                        params = {}
+                        params = params
                     }, true)
 
                     self.running = widget.pid
@@ -162,7 +162,7 @@ local ui = NOM:new({
                         width=env.width,
                         height=env.height-taskbarHeight,
 
-                        params = {}
+                        params = params
                     }, true)
 
                     taskbar.running = widget.pid
