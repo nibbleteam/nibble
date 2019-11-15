@@ -21,12 +21,34 @@ local toolbar_width = 16+2*spacing
 
 local palette_selector_height = 80+2*spacing
 
+local function random_data(length)
+  local data = {}
+
+  for i=0,length-1 do
+    data[i] = math.random(16)
+  end
+
+  return data
+end
+
+local function zero_data(length)
+  local data = {}
+
+  for i=0,length-1 do
+    data[i] = 0
+  end
+
+  return data
+end
+
 function Sprite:new(props)
   return new(Sprite, {
                props = props,
                state = {
                  selected_color = 16,
                  selected_palette = 1,
+                 sprite = { w = 16, h = 16, data = zero_data(15*16) },
+                 zoom = 8,
                }
   })
 end
@@ -55,6 +77,7 @@ function Sprite:render(state, props)
       spacing = spacing,
 
       selected = state.selected_color,
+      palette = state.selected_palette,
 
       onchange = function(color)
         self:set_state({
@@ -99,7 +122,11 @@ function Sprite:render(state, props)
       background = 7,
 
       -- Canvas
-      {Canvas, color = state.selected_color, palette = 0}
+      {Canvas,
+       color = state.selected_color,
+       palette = state.selected_palette,
+       sprite = state.sprite,
+       scale = state.zoom}
     },
 
     -- Toolbar
@@ -137,6 +164,17 @@ end
 
 local sprite_editor = Sprite:new({})
 local nom = sprite_editor:nom():use('cursor')
+
+nom.cursor["pencil"] = {
+  x = 56, y = 80,
+  w = 8, h = 8,
+  hx = 0, hy = 8,
+}
+
+nom.cursor["hand"] = {
+  x = 64, y = 80,
+  w = 8, h = 8,
+}
 
 function draw()
   nom:draw()

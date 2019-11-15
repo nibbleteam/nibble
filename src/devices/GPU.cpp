@@ -984,13 +984,15 @@ uint32_t GPU::hash_cursor(uint8_t* data, int16_t w, int16_t h) {
 SDL_Cursor* GPU::make_cursor(uint8_t* data, uint32_t hash,
                              int16_t w, int16_t h,
                              int16_t hot_x, int16_t hot_y) {
+    int scale = ceil(screen_scale);
+
     auto surface = SDL_CreateRGBSurfaceWithFormatFrom(data,
                                                       w, h,
                                                       32,
                                                       4*w,
                                                       SDL_PIXELFORMAT_RGBA32);
     auto scaled = SDL_CreateRGBSurfaceWithFormat(0,
-                                                 w*ceil(screen_scale), h*ceil(screen_scale),
+                                                 w*scale, h*scale,
                                                  32,
                                                  SDL_PIXELFORMAT_RGBA32);
 
@@ -1000,7 +1002,7 @@ SDL_Cursor* GPU::make_cursor(uint8_t* data, uint32_t hash,
 
     cursor_surfaces[hash] = scaled;
 
-    return SDL_CreateColorCursor(scaled, hot_x, hot_y);
+    return SDL_CreateColorCursor(scaled, min(w*scale-1, hot_x*scale), min(h*scale-1, hot_y*scale));
 }
 
 

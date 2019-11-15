@@ -167,18 +167,20 @@ local function merge_boxes(a, b)
     return { start[1], start[2], finish[1]-start[1], finish[2]-start[2] }
 end
 
-function Widget:clip_box()
+function Widget:clip_box(b)
+    b = b or 0
+
     local clip_to = math.abs(math.floor(self.clip_to))
 
     local parent = get_parent(self, clip_to)
 
     if parent ~= self and parent ~= nil and parent.clip_box then
         local parent_box = parent:clip_box()
-        local box = { self.x, self.y, self.w, self.h }
+        local box = { self.x+b, self.y+b, self.w-b*2, self.h-b*2 }
 
         return merge_boxes(parent_box, box)
     else
-        return { self.x, self.y, self.w, self.h }
+        return { self.x+b, self.y+b, self.w-b*2, self.h-b*2 }
     end
 end
 

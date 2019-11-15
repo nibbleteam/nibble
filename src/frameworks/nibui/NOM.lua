@@ -203,7 +203,7 @@ function NOM:set_cursor(state)
 
     local c = self.cursor[self.cursor.state]
 
-    mouse_cursor(c.x, c.y, c.w, c.h)
+    mouse_cursor(c.x, c.y, c.w, c.h, c.hx, c.hy)
 end
 
 function NOM:update_mouse()
