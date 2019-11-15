@@ -120,10 +120,10 @@ function Envelope:new(props)
   local p1 = Point:new(0, 0, 'xy', p0)
   local p2 = Point:new(0, 0, 'x', p1)
 
-  push(points, p0)
+  push(points, p2)
   push(points, p1)
-  push(points, p2)  
-  
+  push(points, p0)
+
   return envelope
 end
 

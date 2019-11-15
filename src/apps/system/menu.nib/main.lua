@@ -65,7 +65,10 @@ function init()
     menu = Menu:new({ time = get_time() })
     nom = menu:nom():use('cursor')
 
-    pause_app(env.app.pid)
+    -- Pausa todas as apps que eestão rodando
+    for _, pid in ipairs(env.running) do
+        pause_app(pid)
+    end
 end
 
 function draw()
@@ -80,6 +83,10 @@ function update(dt)
     nom:update(dt)
 
     if button_down(BLACK) then
+        for _, pid in ipairs(env.running) do
+            resume_app(pid)
+        end
+
         stop_app(env.app.pid)
         stop_app(0)
 
@@ -87,7 +94,10 @@ function update(dt)
     end
 
     if button_down(WHITE) then
-        resume_app(env.app.pid)
+        for _, pid in ipairs(env.running) do
+            resume_app(pid)
+        end
+
         stop_app(0)
 
         return

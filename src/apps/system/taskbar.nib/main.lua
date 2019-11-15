@@ -101,7 +101,7 @@ local ui = NOM:new({
                         x=0,y=0,
                         width=env.width,
                         height=env.height-taskbarHeight
-                    })
+                    }, true)
 
                     self.running = widget.pid
                 end

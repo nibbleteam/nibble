@@ -54,8 +54,9 @@ function menu()
             pid = pid_counter,
             app = {
                 env = executing_process.pub.env,
-                pid = executing_process.priv.pid
+                pid = executing_process.priv.pid,
             },
+            running = get_running_pids()
         })
     end
 end
@@ -63,7 +64,18 @@ end
 --
 -- Gerenciamento de processos
 --
---
+
+function get_running_pids()
+    local pids = {}
+
+    for _, proc in pairs(processes) do
+        if proc.priv.running then
+            table.insert(pids, proc.priv.pid)
+        end
+    end
+
+    return pids
+end
 
 function get_running_process(entrypoint)
     for _, proc in pairs(processes) do
@@ -84,11 +96,9 @@ function nib_open_asset(entrypoint, asset, kind)
     return io.open(path, "r+")
 end
 
--- Cria um processo, composto de um conjunto
--- de infromações acessíveis apenas ao kernel
--- e um conjunto de informações públicas ao código
--- do processo
-function make_process(entrypoint, env)
+-- Cria um processo, composto de um conjunto de infromações acessíveis apenas ao
+-- kernel e um conjunto de informações públicas ao código do processo
+function make_process(entrypoint, env, group)
     local proc = {}
 
     local sheet = entrypoint..'/assets/sheet.png'
@@ -121,7 +131,15 @@ function make_process(entrypoint, env)
         pid = pid_counter,
         parent = executing_process,
         entrypoint = entrypoint,
+        children = {},
+        group = group or {},
     }
+
+    table.insert(proc.priv.group, pid_counter)
+
+    if executing_process then
+        table.insert(executing_process.priv.children, proc)
+    end
 
     -- Define o tamanho da tela
     env.width = w
@@ -307,12 +325,12 @@ function handle_process_error(err)
     print(err)
     print(debug.traceback())
 
-    stop_app(executing_process.priv.pid)
+    pause_app(executing_process.priv.pid)
 
     start_app('apps/system/debug.nib', {
         error = err,
         traceback = debug.traceback(),
-    })
+    }, true)
 end
 
 function is_privileged(entrypoint)
@@ -322,9 +340,11 @@ function is_privileged(entrypoint)
     return entrypoint:sub(1, #privileged_path) == privileged_path
 end
 
-function start_app(app, env)
+function start_app(app, env, grouped)
+    local parent_group = executing_process and executing_process.priv.group
+
     pid_counter += 1
-    processes[pid_counter] = make_process(app, env)
+    processes[pid_counter] = make_process(app, env, grouped and parent_group)
 
     if processes[pid_counter].priv.ok then
         return pid_counter, ''
@@ -342,19 +362,30 @@ function stop_app(pid)
         end
     end
 
+    local kill_group = function(process)
+        local group = process.priv.group
+
+        for _, pid in ipairs(group) do
+            local process = processes[pid]
+
+            send_stopped(process)
+
+            if process then
+                -- TODO: limpar a memória alocada pelo processo
+                processes[pid] = nil
+            end
+        end
+    end
+
     if pid == 0 then
         send_stopped(executing_process)
 
-        -- TODO: limpar a memória alocada pelo processo
-        processes[executing_process.priv.pid] = nil
+        kill_group(executing_process)
     else
         local process = processes[pid]
 
-        send_stopped(process)
-
-        if process and process.priv.parent == executing_process then
-            -- TODO: limpar a memória alocada pelo processo
-            processes[pid] = nil
+        if process then
+            kill_group(process)
         end
     end
 end
@@ -369,12 +400,13 @@ function nib_api(entrypoint, proc, env)
         terminal_print = print,
         terminal_pretty = pprint,
         -- Syscalls
-        start_app = function(app, env)
-            return start_app(app, env)
+        start_app = function(app, env, grouped)
+            return start_app(app, env, grouped)
         end,
         stop_app = function(pid)
             return stop_app(pid)
         end,
+        -- TODO: act on children and self and if isn't graphical, all parents until one is
         pause_app = function (pid)
             local process = processes[pid]
 
@@ -425,10 +457,11 @@ function nib_api(entrypoint, proc, env)
         ipairs = ipairs, next = next, type = type,
         setmetatable = setmetatable, pairs = pairs, rawget = rawget,
         tonumber = tonumber, tostring = tostring,
-        push = function (t, el) table.insert(t, 1, el) end,
+        push = table.insert,
         pop = table.remove,
         remove = table.remove,
         insert = table.insert,
+        shift = function(tbl) return table.remove(tbl, 1) end,
         sort = table.sort,
         unwrap = unpack,
         from_ascii = string.char,
