@@ -1,3 +1,10 @@
+env.menu = {
+    'Nibble Edit',
+    'V0.0.1',
+    '',
+    'by Uberoverlord'
+}
+
 local NOM = require "nibui.NOM"
 local Widget = require "nibui.Widget"
 
