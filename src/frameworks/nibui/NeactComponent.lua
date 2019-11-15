@@ -1,3 +1,4 @@
+local NOM = require 'nibui.NOM'
 local Widget = require 'nibui.Widget'
 
 local NeactComponent = {
@@ -23,7 +24,7 @@ function NeactComponent:set_state(state, time, easing)
     self.state[k] = v
   end
 
-  local desc = self:_render_to_description(self._root, self._id)
+  local desc = self:_render_to_description(self._root, self._id or {})
 
   desc.neact_generated_by = nil
 

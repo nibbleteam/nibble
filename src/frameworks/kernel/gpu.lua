@@ -59,5 +59,12 @@ function gpu.get_sheet_pixel(sheet_location, sheet_w, sheet_h, x, y)
     return hw.read(y*sheet_w+x+sheet_location, 1):byte()
 end
 
+function gpu.put_sheet_pixel(sheet_location, sheet_w, sheet_h, x, y, color)
+    x = math.abs(math.floor(x))%sheet_w
+    y = math.abs(math.floor(y))%sheet_h
+
+    return hw.write(y*sheet_w+x+sheet_location, string.char(color%128))
+end
+
 return gpu
 

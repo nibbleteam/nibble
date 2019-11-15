@@ -7,6 +7,7 @@ local Sprite = Neact.Component:new()
 
 local Palette = require 'Palette'
 local PaletteSelector = require 'PaletteSelector'
+local Canvas = require 'Canvas'
 
 local spacing = 2
 
@@ -20,13 +21,11 @@ local toolbar_width = 16+2*spacing
 
 local palette_selector_height = 80+2*spacing
 
-local sprite_w, sprite_h = 128, 128
-
 function Sprite:new(props)
   return new(Sprite, {
                props = props,
                state = {
-                 selected_color = 1,
+                 selected_color = 16,
                  selected_palette = 1,
                }
   })
@@ -100,36 +99,7 @@ function Sprite:render(state, props)
       background = 7,
 
       -- Canvas
-      {
-        id = "canvas",
-
-        x = NOM.left+(NOM.width-sprite_w)/2, y = NOM.top+(NOM.height-sprite_h)/2,
-        w = sprite_w+2, h = sprite_h+2,
-
-        background = 8,
-        border_size = 1,
-        border_color = 1,
-
-        draw = function(self)
-          if self.dirty then
-            Widget.draw(self)
-
-            local x, y, w, h = self.x+1, self.y+1, self.w-2, self.h-2
-
-            clip(x, y, w, h)
-
-            local side = 8
-            local colors = { 10, 8 }
-
-            -- Draw a checkers pattern
-            for iy=y,y+h,side do
-              for ix=x,x+w,side do
-                fill_rect(ix, iy, side, side, colors[math.floor(ix/side+iy/side) % 2 + 1])
-              end
-            end
-          end
-        end,
-      }
+      {Canvas, color = state.selected_color, palette = 0}
     },
 
     -- Toolbar

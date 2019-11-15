@@ -503,6 +503,10 @@ function nib_api(entrypoint, proc, env)
             local sheet = executing_process.priv.spritesheet
             return gpu.get_sheet_pixel(sheet.ptr, sheet.w, sheet.h, x, y)
         end,
+        put_sheet_pixel = function(x, y, color)
+            local sheet = executing_process.priv.spritesheet
+            return gpu.put_sheet_pixel(sheet.ptr, sheet.w, sheet.h, x, y, color)
+        end,
         open_asset = function(asset, kind)
             return nib_open_asset(entrypoint, asset, kind)
         end,
