@@ -2,8 +2,8 @@ local iv = require('nibui.InterpolatedValue')
 local Widget = require('nibui.Widget')
 local DynamicValue = require('nibui.DynamicValue')
 
-local DEFAULT_W = env.width
-local DEFAULT_H = env.height
+local DEFAULT_W = 320
+local DEFAULT_H = 240
 
 local NOM = {}
 
@@ -39,6 +39,19 @@ NOM.parent = {
 
 setmetatable(NOM.parent, NOM.parent)
 
+function NOM.map(array, fn)
+  local mapped_array = {}
+  local count = 1
+
+  for i, el in pairs(array) do
+    push(mapped_array, fn(el, i, count))
+
+    count = count+1
+  end
+
+  return { mapped_array }
+end
+
 function NOM.self(prop)
     return DynamicValue:new('dynamic', function (widget)
         return widget[prop]
@@ -56,7 +69,19 @@ function NOM.bottom_of(id)
         if element then
             return element.y+element.h
         else
-            terminal_print('bottom_of: could not find ', id)
+            terminal_print('bottom_of: could not find ', element)
+        end
+    end)
+end
+
+function NOM.left_of(id)
+    return DynamicValue:new('dynamic', function (widget)
+        local element = widget.parent:find(id)
+
+        if element then
+            return element.x
+        else
+            terminal_print('left_of: could not find ', element)
         end
     end)
 end
@@ -77,7 +102,7 @@ function NOM:make_document(desc, parent)
     local widget = Widget:new(widget_desc, self, parent)
 
     for k, v in pairs(desc) do
-        -- Only iterate over unamed properties 
+        -- Only iterate over unamed properties
         -- we don't use ipairs to avoid stopping
         -- at nil
         if type(k) == "number" then
@@ -98,7 +123,7 @@ function NOM:new(desc)
             --offset = { x = -6, y = -8 },
             offset = { x = -1, y = 0 },
             default = {
-                x = 48, y = 80,
+                x = 56, y = 80,
                 w = 8, h = 8
             },
             pointer = {
@@ -113,7 +138,7 @@ function NOM:new(desc)
     instanceof(instance, NOM)
 
     instance.root = instance:make_document(desc, {
-        x = env.x, y = env.y,
+        x = 0, y = 0,
         w = DEFAULT_W, h = DEFAULT_H,
     })
 
@@ -128,7 +153,7 @@ end
 
 function NOM:draw()
     self.root:draw()
-    clip(env.x, env.y, env.width, env.height)
+    clip(0, 0, 320, 240)
 
     if self.features.cursor then
         self:draw_cursor()
@@ -167,33 +192,25 @@ function NOM:find(selector, node)
 end
 
 function NOM:draw_cursor()
-    -- local c = self.cursor[self.cursor.state]
-
-    --custom_sprite(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
-    --              c.x, c.y, c.w, c.h)
-end
-
-function NOM:set_cursor(state)
-    self.cursor.state = state
-
     local c = self.cursor[self.cursor.state]
 
-    mouse_cursor(c.x, c.y, c.w, c.h)
+    custom_sprite(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
+         c.x, c.y, c.w, c.h)
 end
 
 function NOM:update_mouse()
     local x, y = mouse_position()
     local drag = false
 
-    if mouse_button_press(MOUSE_LEFT) then
+    if mouse_button_press(MOUSE_LEFT) or mouse_button_press(MOUSE_RIGHT) then
         self:click({ x = x, y = y }, true)
     end
 
-    if mouse_button_down(MOUSE_LEFT) then
+    if mouse_button_down(MOUSE_LEFT) or mouse_button_down(MOUSE_RIGHT) then
         drag = true
     end
 
-    if mouse_button_release(MOUSE_LEFT) then
+    if mouse_button_release(MOUSE_LEFT) or mouse_button_release(MOUSE_RIGHT) then
         self:click({ x = x, y = y })
     end
 

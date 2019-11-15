@@ -2,23 +2,36 @@ local DynamicValue = require('nibui.DynamicValue')
 
 local Widget = {}
 
+local iparent = {
+    __index = function (self, prop)
+        return DynamicValue:new('dynamic', function (widget)
+            return widget.parent[prop]
+        end)
+    end
+}
+
+setmetatable(iparent, iparent)
+
 function Widget:new(config, document, parent)
     local defaults = {
         -- Colors
         shadow_color = 0, border_color = 0, background = 0, color = 15,
+        -- Position and size
+        x = iparent.x, y = iparent.y,
+        z = 0,
+        w = iparent.w, h = iparent.h, radius = 0,
         cmap = {
             {15, 15},
             {7, 7},
         },
-        -- Position and size
-        border_size = 0,
-        x = 0, y = 0, z = 0, w = 0, h = 0, radius = 0,
         -- Content
         content = '', text_align = 'center', vertical_align = 'middle',
         text_palette = 0,
         palette = 0,
         -- Padding
         padding_top = 0, padding_left = 0, padding_bottom = 0, padding_right = 0,
+        -- Clipping box:
+        clip_to = 1,
     }
 
     local instance = {
@@ -26,7 +39,7 @@ function Widget:new(config, document, parent)
         -- Mouse
         mouse = { inside = false },
         -- Tree
-        children = {}, parent = nil, document = document, parent = parent,
+        children = {}, document = document, parent = parent,
         -- Methods
         onpress = function() end,
         onclick = function() end,
@@ -52,7 +65,11 @@ function Widget:new(config, document, parent)
             if type(defaults[k]) == 'number' then
                 instance.props[k] = DynamicValue:new('interpolated', defaults[k], instance)
             else
+              if type(defaults[k]) == 'table' and defaults[k].isdynamicvalue then
+                instance.props[k] = defaults[k]
+              else
                 instance.props[k] = DynamicValue:new('static', defaults[k])
+              end
             end
         end
     end
@@ -61,6 +78,10 @@ function Widget:new(config, document, parent)
 
     if config.ref then
         config.ref(instance)
+    end
+
+    if config.neact_generated_by then
+      config.neact_generated_by._widget = instance
     end
 
     return instance
@@ -120,9 +141,43 @@ function Widget:update(dt)
     for _, child in ipairs(self.children) do
         child:update(dt)
     end
+end
 
-    if self.onupdate then
-        self:onupdate()
+local function get_parent(w, level)
+    if level == 0 or not w then
+        return w
+    else
+        return get_parent(w.parent, level-1)
+    end
+end
+
+local function clip_point(p, box)
+    return {
+        math.min(math.max(p[1], box[1]), box[1]+box[3]),
+        math.min(math.max(p[2], box[2]), box[2]+box[4]),
+    }
+end
+
+-- Clip b using a
+local function merge_boxes(a, b)
+    local start = clip_point({ b[1], b[2] }, a)
+    local finish = clip_point({ b[1]+b[3], b[2]+b[4] }, a)
+
+    return { start[1], start[2], finish[1]-start[1], finish[2]-start[2] }
+end
+
+function Widget:clip_box()
+    local clip_to = math.abs(math.floor(self.clip_to))
+
+    local parent = get_parent(self, clip_to)
+
+    if parent ~= self and parent ~= nil and parent.clip_box then
+        local parent_box = parent:clip_box()
+        local box = { self.x, self.y, self.w, self.h }
+
+        return merge_boxes(parent_box, box)
+    else
+        return { self.x, self.y, self.w, self.h }
     end
 end
 
@@ -190,10 +245,9 @@ function Widget:draw()
         local content = self.content
         local shadow_color = math.floor(self.shadow_color)
         local border_color = math.floor(self.border_color)
-        local border_size = math.floor(self.border_size)
         local z = math.floor(self.z)
 
-        clip(x, y, w, h)
+        clip(unwrap(self:clip_box()))
 
         if z ~= 0 then
           fill_rect(x+r, y+z, w-r*2, h, shadow_color)
@@ -207,35 +261,27 @@ function Widget:draw()
           end
         end
 
-        fill_rect(x+r, y, w-r*2, h, border_color)
-        fill_rect(x, y+r, w, h-r*2, border_color)
+        rect(x+r-1, y-1, w-r*2+2, h+2, border_color)
+        rect(x-1, y+r-1, w+2, h-r*2+2, border_color)
 
         if r ~= 0 then
-            fill_circ(x+r, y+r, r, border_color)
-            fill_circ(x+w-r-1, y+r, r, border_color)
-            fill_circ(x+r, y+h-r-1, r, border_color)
-            fill_circ(x+w-r-1, y+h-r-1, r, border_color)
+            fill_circ(x+r, y+r, r+1, border_color)
+            fill_circ(x+w-r-1, y+r, r+1, border_color)
+            fill_circ(x+r, y+h-r-1, r+1, border_color)
+            fill_circ(x+w-r-1, y+h-r-1, r+1, border_color)
         end
 
         if type(self.background) ~= 'table' then
             local background = math.floor(self.background)
 
-            do
-                local w = w-border_size*2
-                local h = h-border_size*2
-                local x = x+border_size
-                local y = y+border_size
-                local r = math.max(r-border_size, 0)
+            fill_rect(x+r, y, w-r*2, h, background)
+            fill_rect(x, y+r, w, h-r*2, background)
 
-                fill_rect(x+r, y, w-r*2, h, background)
-                fill_rect(x, y+r, w, h-r*2, background)
-
-                if r ~= 0 then
-                    fill_circ(x+r, y+r, r, background)
-                    fill_circ(x+w-r-1, y+r, r, background)
-                    fill_circ(x+r, y+h-r-1, r, background)
-                    fill_circ(x+w-r-1, y+h-r-1, r, background)
-                end
+            if r ~= 0 then
+                fill_circ(x+r, y+r, r, background)
+                fill_circ(x+w-r-1, y+r, r, background)
+                fill_circ(x+r, y+h-r-1, r, background)
+                fill_circ(x+w-r-1, y+h-r-1, r, background)
             end
         else
             if #self.background == 2 then
@@ -257,11 +303,11 @@ function Widget:draw()
         local tx, ty = 0, 0
 
         if self.text_align == 'left' then
-            tx = self.padding_left
+            tx = x+self.padding_left
         elseif self.text_align == 'center' then
             tx = x+w/2-measure(content)/2
         elseif self.text_align == 'right' then
-            tx = w-measure(content)-self.padding_right
+            tx = x+w-measure(content)-self.padding_right
         end
 
         if self.vertical_align == 'top' then
@@ -345,10 +391,6 @@ function Widget:move(event, offset, left)
                     return true
                 end
             end
-
-            local c = self.document.cursor[self.document.cursor.state]
-
-            mouse_cursor(c.x, c.y, c.w, c.h)
         end
 
         if self.onmove then
@@ -406,9 +448,9 @@ function Widget:mouse_sprite_in_bounds(e, offset)
     e.y += offset.y
 
     return self:in_point(e.x, e.y) or
-           self:in_point(e.x+8, e.y) or
-           self:in_point(e.x+8, e.y+8) or
-           self:in_point(e.x, e.y+8)
+           self:in_point(e.x+16, e.y) or
+           self:in_point(e.x+16, e.y+16) or
+           self:in_point(e.x, e.y+16)
 end
 
 function Widget:in_bounds(e)
