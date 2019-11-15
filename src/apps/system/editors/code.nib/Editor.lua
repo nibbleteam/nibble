@@ -46,7 +46,7 @@ function Editor:new(text)
                cursor = Cursor:new(first_line, 1),
                view = {
                  start = first_line,
-                 height = 24,
+                 height = math.floor((env.height-2)/10),
                  start_x = 0,
                },
                first = first_line,

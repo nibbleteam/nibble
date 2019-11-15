@@ -130,9 +130,11 @@ function NOM:new(desc)
                 x = 56, y = 80,
                 w = 8, h = 8
             },
-            state = 'default'
+            state = 'default',
+            dirty = true
         },
-        mouse = { x = 0, y = 0 }
+        mouse = { x = 0, y = 0 },
+        event_queue = {}
     }
 
     instanceof(instance, NOM)
@@ -169,6 +171,17 @@ function NOM:update(dt)
     self.root:update(dt)
 
     self:update_mouse()
+
+    -- Fire all queued events
+    self:do_fire()
+
+    if self.cursor.dirty then
+        self.cursor.dirty = false
+
+        local c = self.cursor[self.cursor.state]
+
+        mouse_cursor(c.x, c.y, c.w, c.h, c.hx, c.hy)
+    end
 end
 
 function NOM:find(selector, node)
@@ -200,10 +213,7 @@ end
 
 function NOM:set_cursor(state)
     self.cursor.state = state
-
-    local c = self.cursor[self.cursor.state]
-
-    mouse_cursor(c.x, c.y, c.w, c.h, c.hx, c.hy)
+    self.cursor.dirty = true
 end
 
 function NOM:update_mouse()
@@ -226,6 +236,29 @@ function NOM:update_mouse()
         self:move({ x = x, y = y, drag = drag }, self.cursor.offset)
         self.mouse.x, self.mouse.y = x, y
     end
+end
+
+function NOM:fire(fn, priority)
+    push(self.event_queue, {
+             fn = fn,
+             priority = priority
+    })
+end
+
+function NOM:do_fire()
+    sort(self.event_queue, function (a, b)
+             return a.priority > b.priority
+    end)
+
+    local event
+
+    repeat
+        event = shift(self.event_queue)
+
+        if event then
+            event.fn()
+        end
+    until not event
 end
 
 function NOM:click(event, press)

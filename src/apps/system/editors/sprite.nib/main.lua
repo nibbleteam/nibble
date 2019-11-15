@@ -61,14 +61,9 @@ function Sprite:render(state, props)
 
     -- Palette
     {
-      x = NOM.left+spacing, y = NOM.top+spacing,
-      w = palette_width-spacing, h = title_h,
-      content = "COL",
-    },
-    {
       Palette,
 
-      x = NOM.left+spacing, y = NOM.top+spacing+title_h,
+      x = NOM.left+spacing, y = NOM.top+spacing,
       w = palette_width-2*spacing, h = palette_height,
 
       border_color = palette_border_color,
@@ -88,14 +83,9 @@ function Sprite:render(state, props)
 
     -- Palette Selector
     {
-      x = NOM.left+spacing, y = NOM.top+palette_height+2*spacing+title_h,
-      w = palette_width-spacing, h = title_h,
-      content = "PAL",
-    },
-    {
       PaletteSelector,
      
-      x = NOM.left+spacing, y = NOM.top+palette_height+2*spacing+2*title_h,
+      x = NOM.left+spacing, y = NOM.bottom-palette_selector_height-spacing,
       w = palette_width-2*spacing, h = palette_selector_height,
 
       spacing = spacing,

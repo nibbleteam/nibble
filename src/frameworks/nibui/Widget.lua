@@ -399,9 +399,11 @@ function Widget:move(event, offset, left)
             self.mouse.inside = true
 
             if self.onenter then
-                if self:onenter(event) then
-                    return true
-                end
+                self.document:fire(function()
+                    if self:onenter(event) then
+                        return true
+                    end
+                end, 0)
             end
 
             local c = self.document.cursor[self.document.cursor.state]
@@ -425,7 +427,9 @@ function Widget:move(event, offset, left)
 
         return true
     else
-        self:leave(event)
+        self.document:fire(function()
+            self:leave(event)
+        end, 1)
     end
 end
 
