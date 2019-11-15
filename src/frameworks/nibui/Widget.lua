@@ -17,6 +17,7 @@ function Widget:new(config, document, parent)
         -- Colors
         shadow_color = 0, border_color = 0, background = 0, color = 15,
         -- Position and size
+        border_size = 0,
         x = iparent.x, y = iparent.y,
         z = 0,
         w = iparent.w, h = iparent.h, radius = 0,
@@ -245,6 +246,7 @@ function Widget:draw()
         local content = self.content
         local shadow_color = math.floor(self.shadow_color)
         local border_color = math.floor(self.border_color)
+        local border_size = math.floor(self.border_size)
         local z = math.floor(self.z)
 
         clip(unwrap(self:clip_box()))
@@ -261,27 +263,35 @@ function Widget:draw()
           end
         end
 
-        rect(x+r-1, y-1, w-r*2+2, h+2, border_color)
-        rect(x-1, y+r-1, w+2, h-r*2+2, border_color)
+        fill_rect(x+r, y, w-r*2, h, border_color)
+        fill_rect(x, y+r, w, h-r*2, border_color)
 
         if r ~= 0 then
-            fill_circ(x+r, y+r, r+1, border_color)
-            fill_circ(x+w-r-1, y+r, r+1, border_color)
-            fill_circ(x+r, y+h-r-1, r+1, border_color)
-            fill_circ(x+w-r-1, y+h-r-1, r+1, border_color)
+            fill_circ(x+r, y+r, r, border_color)
+            fill_circ(x+w-r-1, y+r, r, border_color)
+            fill_circ(x+r, y+h-r-1, r, border_color)
+            fill_circ(x+w-r-1, y+h-r-1, r, border_color)
         end
 
         if type(self.background) ~= 'table' then
             local background = math.floor(self.background)
 
-            fill_rect(x+r, y, w-r*2, h, background)
-            fill_rect(x, y+r, w, h-r*2, background)
+            do
+                local w = w-border_size*2
+                local h = h-border_size*2
+                local x = x+border_size
+                local y = y+border_size
+                local r = math.max(r-border_size, 0)
 
-            if r ~= 0 then
-                fill_circ(x+r, y+r, r, background)
-                fill_circ(x+w-r-1, y+r, r, background)
-                fill_circ(x+r, y+h-r-1, r, background)
-                fill_circ(x+w-r-1, y+h-r-1, r, background)
+                fill_rect(x+r, y, w-r*2, h, background)
+                fill_rect(x, y+r, w, h-r*2, background)
+
+                if r ~= 0 then
+                    fill_circ(x+r, y+r, r, background)
+                    fill_circ(x+w-r-1, y+r, r, background)
+                    fill_circ(x+r, y+h-r-1, r, background)
+                    fill_circ(x+w-r-1, y+h-r-1, r, background)
+                end
             end
         else
             if #self.background == 2 then
@@ -391,6 +401,10 @@ function Widget:move(event, offset, left)
                     return true
                 end
             end
+
+            local c = self.document.cursor[self.document.cursor.state]
+
+            mouse_cursor(c.x, c.y, c.w, c.h)
         end
 
         if self.onmove then
@@ -448,9 +462,9 @@ function Widget:mouse_sprite_in_bounds(e, offset)
     e.y += offset.y
 
     return self:in_point(e.x, e.y) or
-           self:in_point(e.x+16, e.y) or
-           self:in_point(e.x+16, e.y+16) or
-           self:in_point(e.x, e.y+16)
+           self:in_point(e.x+8, e.y) or
+           self:in_point(e.x+8, e.y+8) or
+           self:in_point(e.x, e.y+8)
 end
 
 function Widget:in_bounds(e)
