@@ -2,8 +2,8 @@ local iv = require('nibui.InterpolatedValue')
 local Widget = require('nibui.Widget')
 local DynamicValue = require('nibui.DynamicValue')
 
-local DEFAULT_W = 400
-local DEFAULT_H = 240
+local DEFAULT_W = env.width
+local DEFAULT_H = env.height
 
 local NOM = {}
 
@@ -98,7 +98,7 @@ function NOM:new(desc)
             --offset = { x = -6, y = -8 },
             offset = { x = -1, y = 0 },
             default = {
-                x = 56, y = 80,
+                x = 48, y = 80,
                 w = 8, h = 8
             },
             pointer = {
@@ -113,7 +113,7 @@ function NOM:new(desc)
     instanceof(instance, NOM)
 
     instance.root = instance:make_document(desc, {
-        x = 0, y = 0,
+        x = env.x, y = env.y,
         w = DEFAULT_W, h = DEFAULT_H,
     })
 
@@ -128,7 +128,7 @@ end
 
 function NOM:draw()
     self.root:draw()
-    clip(0, 0, 400, 240)
+    clip(env.x, env.y, env.width, env.height)
 
     if self.features.cursor then
         self:draw_cursor()
@@ -167,12 +167,17 @@ function NOM:find(selector, node)
 end
 
 function NOM:draw_cursor()
+    -- local c = self.cursor[self.cursor.state]
+
+    --custom_sprite(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
+    --              c.x, c.y, c.w, c.h)
+end
+
+function NOM:set_cursor(state)
+    self.cursor.state = state
+
     local c = self.cursor[self.cursor.state]
 
-    -- custom_sprite(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
-    --               c.x, c.y, c.w, c.h)
-
-    terminal_print(c.x, c.y, c.w, c.h)
     mouse_cursor(c.x, c.y, c.w, c.h)
 end
 

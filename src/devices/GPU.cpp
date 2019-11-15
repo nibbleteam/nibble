@@ -930,8 +930,6 @@ SDL_Cursor* GPU::get_cursor(int16_t x, int16_t y,
     auto ptr = source+y*source_w+x;
     const auto ptr_final = ptr+source_w*h;
 
-    // TODO: zoom to match pixel size in the console
-    // FIXME: problem if too big?
     uint8_t *data = new uint8_t[w*h*4];
 
     // Copia o sprite em RGBA para data
@@ -946,10 +944,12 @@ SDL_Cursor* GPU::get_cursor(int16_t x, int16_t y,
             auto c = COLMAP1(((*src_pixel++) + (pal<<4)));
 
             if (TRANSPARENT(c)) {
-                memcpy(data+(i+=4), "\0\0\0\0", 4);
+                memcpy(data+i, "\0\0\0\0", 4);
             } else {
-                memcpy(data+(i+=4), palette_memory+(COLMAP2(c)*4), 4);
+                memcpy(data+i, palette_memory+(COLMAP2(c)*4), 4);
             }
+
+            i += 4;
         }
     }
 
@@ -990,7 +990,7 @@ SDL_Cursor* GPU::make_cursor(uint8_t* data, uint32_t hash,
                                                       4*w,
                                                       SDL_PIXELFORMAT_RGBA32);
     auto scaled = SDL_CreateRGBSurfaceWithFormat(0,
-                                                 w*screen_scale, h*screen_scale,
+                                                 w*ceil(screen_scale), h*ceil(screen_scale),
                                                  32,
                                                  SDL_PIXELFORMAT_RGBA32);
 

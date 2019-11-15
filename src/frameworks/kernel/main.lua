@@ -353,7 +353,7 @@ function start_app(app, env, grouped)
     end
 end
 
-function stop_app(pid)
+function stop_app(pid, disable_grouping)
     local send_stopped = function(proc)
         if proc and proc.priv.parent then
             local parent = proc.priv.parent
@@ -363,23 +363,29 @@ function stop_app(pid)
     end
 
     local kill_group = function(process)
-        local group = process.priv.group
-
-        for _, pid in ipairs(group) do
-            local process = processes[pid]
-
+        if disable_grouping then
             send_stopped(process)
 
             if process then
-                -- TODO: limpar a memória alocada pelo processo
                 processes[pid] = nil
+            end
+        else
+            local group = process.priv.group
+
+            for _, pid in ipairs(group) do
+                local process = processes[pid]
+
+                send_stopped(process)
+
+                if process then
+                    -- TODO: limpar a memória alocada pelo processo
+                    processes[pid] = nil
+                end
             end
         end
     end
 
     if pid == 0 then
-        send_stopped(executing_process)
-
         kill_group(executing_process)
     else
         local process = processes[pid]
@@ -403,8 +409,8 @@ function nib_api(entrypoint, proc, env)
         start_app = function(app, env, grouped)
             return start_app(app, env, grouped)
         end,
-        stop_app = function(pid)
-            return stop_app(pid)
+        stop_app = function(pid, disable_grouping)
+            return stop_app(pid, disable_grouping)
         end,
         -- TODO: act on children and self and if isn't graphical, all parents until one is
         pause_app = function (pid)

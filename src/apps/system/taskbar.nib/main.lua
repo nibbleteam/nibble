@@ -5,11 +5,12 @@ local Widget = require "nibui.Widget"
 local taskbarHeight = 17
 local taskbarBackgroundColor = 3
 local taskbarHighlightColor = 7
+local taskbarSilhouetteColor = 1
 
 local iconWidth = 16
 local iconHeight = 16
-local iconGap = 2
-local iconJump = 1
+local iconGap = 0
+local iconJump = 2
 
 local iconMap = {
     8,
@@ -27,7 +28,7 @@ for k=1,#editorPaths do
     if type(k) == "number" then
         if not (k < 3) then -- Skip . and ..
             editorButtons[#editorButtons+1] = {
-                x = NOM.left+(iconWidth*(k-3))+(iconGap*(k-2)), y = NOM.top,
+                x = NOM.left+(iconWidth*(k-3))+(iconGap*(k-2)), y = NOM.top+iconJump-1,
                 w = iconWidth, h = iconHeight,
                 background = { 2, iconMap[k-2] },
                 id = editorPaths[k],
@@ -120,9 +121,6 @@ local ui = NOM:new({
 
                 -- Mark as selected
                 self.selected = id
-
-                -- Redraw
-                widget:set_dirty()
             end
         end,
 
@@ -132,6 +130,44 @@ local ui = NOM:new({
             w = NOM.width, h = 1,
 
             background = taskbarHighlightColor
+        },
+        -- A little silhouette line
+        {
+            x = NOM.left, y = NOM.top+1,
+            w = NOM.width, h = 1,
+
+            background = taskbarSilhouetteColor
+        },
+
+        -- A "reload" button
+        {
+            x = NOM.right-16, y = NOM.bottom-taskbarHeight,
+            w = 16, h = 16,
+
+            background = 9,
+
+            content = "R",
+
+            onclick = function(self)
+                local taskbar = self.parent:find("taskbar")
+
+                if taskbar.selected then
+                    local widget = self.parent:find(taskbar.selected)
+
+                    -- Disable grouping so we don't kill ourselves too
+                    stop_app(widget.pid, true)
+
+                    widget.pid = start_app(taskbar.selected, {
+                        x=0,y=0,
+                        width=env.width,
+                        height=env.height-taskbarHeight,
+
+                        params = {}
+                    }, true)
+
+                    taskbar.running = widget.pid
+                end
+            end
         },
 
         unwrap(editorButtons)

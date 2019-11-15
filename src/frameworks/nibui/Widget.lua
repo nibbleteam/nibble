@@ -221,11 +221,11 @@ function Widget:draw()
             local background = math.floor(self.background)
 
             do
-                local w = w-border_size*1.5
-                local h = h-border_size*1.5
+                local w = w-border_size*2
+                local h = h-border_size*2
                 local x = x+border_size
                 local y = y+border_size
-                local r = r-border_size/2
+                local r = math.max(r-border_size, 0)
 
                 fill_rect(x+r, y, w-r*2, h, background)
                 fill_rect(x, y+r, w, h-r*2, background)
@@ -345,6 +345,10 @@ function Widget:move(event, offset, left)
                     return true
                 end
             end
+
+            local c = self.document.cursor[self.document.cursor.state]
+
+            mouse_cursor(c.x, c.y, c.w, c.h)
         end
 
         if self.onmove then
