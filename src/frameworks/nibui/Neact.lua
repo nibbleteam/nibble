@@ -28,6 +28,8 @@ function Neact.component_to_instance(component_id, component, props)
         else
             local instance = component:new(props)
 
+            instance._id = component_id
+
             if props.ref then
                 props.ref(instance)
             end
