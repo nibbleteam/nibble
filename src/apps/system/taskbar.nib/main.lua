@@ -2,12 +2,21 @@ local NOM = require "nibui.NOM"
 local Widget = require "nibui.Widget"
 
 -- Constants
-local taskbarHeight = 18
+local taskbarHeight = 17
+local taskbarBackgroundColor = 3
+local taskbarHighlightColor = 7
 
 local iconWidth = 16
 local iconHeight = 16
-local iconGap = 0
+local iconGap = 2
 local iconJump = 1
+
+local iconMap = {
+    8,
+    9,
+    6,
+    7,
+}
 
 -- Get all editors
 local editorPaths = list_directory("apps/system/editors")
@@ -18,9 +27,9 @@ for k=1,#editorPaths do
     if type(k) == "number" then
         if not (k < 3) then -- Skip . and ..
             editorButtons[#editorButtons+1] = {
-                x = NOM.left+(iconWidth*(k-3))+(iconGap*(k-2)), y = NOM.top+iconJump,
+                x = NOM.left+(iconWidth*(k-3))+(iconGap*(k-2)), y = NOM.top,
                 w = iconWidth, h = iconHeight,
-                background = { 2, 3+k },
+                background = { 2, iconMap[k-2] },
                 id = editorPaths[k],
 
                 pid = nil,
@@ -49,11 +58,12 @@ local ui = NOM:new({
                 Widget.draw(self)
 
                 local side = 16
+                local colors = { 16, 1 }
 
                 -- Draw a checkers pattern
                 for y=self.y,self.h,side do
                     for x=self.x,self.w,side do
-                        fill_rect(x, y, side, side, (x/side+y/side) % 2 + 1)
+                        fill_rect(x, y, side, side, colors[(x/side+y/side) % 2 + 1])
                     end
                 end
             end
@@ -66,7 +76,7 @@ local ui = NOM:new({
 
         x = NOM.left,  y = NOM.bottom-taskbarHeight,
         w = NOM.width, h = taskbarHeight,
-        background = 3,
+        background = taskbarBackgroundColor,
 
         selected = nil,
         running = nil,
@@ -100,7 +110,9 @@ local ui = NOM:new({
                     widget.pid = start_app(id,{
                         x=0,y=0,
                         width=env.width,
-                        height=env.height-taskbarHeight
+                        height=env.height-taskbarHeight,
+
+                        params = {}
                     }, true)
 
                     self.running = widget.pid
@@ -113,6 +125,14 @@ local ui = NOM:new({
                 widget:set_dirty()
             end
         end,
+
+        -- A little highlight line
+        {
+            x = NOM.left, y = NOM.top,
+            w = NOM.width, h = 1,
+
+            background = taskbarHighlightColor
+        },
 
         unwrap(editorButtons)
     }

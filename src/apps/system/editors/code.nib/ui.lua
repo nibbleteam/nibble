@@ -2,7 +2,7 @@ local NOM = require 'nibui.NOM'
 
 local Editor = require 'Editor'
 
-local editor_margin = 0
+local editor_margin = 1
 
 local AUTOPRESS_TIME = 0.01
 local AUTOPRESS_WAIT = 0.25

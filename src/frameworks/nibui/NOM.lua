@@ -169,8 +169,11 @@ end
 function NOM:draw_cursor()
     local c = self.cursor[self.cursor.state]
 
-    custom_sprite(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
-         c.x, c.y, c.w, c.h)
+    -- custom_sprite(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
+    --               c.x, c.y, c.w, c.h)
+
+    terminal_print(c.x, c.y, c.w, c.h)
+    mouse_cursor(c.x, c.y, c.w, c.h)
 end
 
 function NOM:update_mouse()

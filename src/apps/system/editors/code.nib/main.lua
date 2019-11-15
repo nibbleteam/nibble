@@ -81,17 +81,24 @@ function init()
 
         if code then
             nom = NOM:new({
-                w = 400,
-                h = 240,
-                x = 0, y = 0,
+                w = env.width,
+                h = env.height,
+                x = env.x, y = env.y,
                 background = 11,
                 NOM.require("ui", { code = code, filename = opened_file }),
-            })
+            }):use("cursor")
         else
             print_available_apps_and_exit(true)
         end
     else
-        print_available_apps_and_exit()
+        -- print_available_apps_and_exit()
+        nom = NOM:new({
+            w = env.width,
+            h = env.height,
+            x = env.x, y = env.y,
+            background = 11,
+            NOM.require("ui", { code = "", filename = "unamed.lua" }),
+        }):use("cursor")
     end
 end
 
