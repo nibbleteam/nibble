@@ -134,8 +134,7 @@ void Kernel::loop() {
 
                 // Teclado
                 case SDL_TEXTINPUT: {
-                    // TODO: Enviar toda a string (em utf-8)
-                    keyboard->input(event.text.text[0]);
+                    keyboard->input(event.text.text);
                 } break;
 
                 case SDL_KEYDOWN: {
@@ -151,20 +150,23 @@ void Kernel::loop() {
                     } else if (event.key.keysym.sym == SDLK_ESCAPE) {
                         menu();
                     } else if (event.key.keysym.sym == SDLK_RETURN) {
-                        keyboard->input(13);
+                        keyboard->input("\x0d");
                     } else if (event.key.keysym.sym == SDLK_BACKSPACE) {
-                        keyboard->input(8);
+                        keyboard->input("\x08");
                     } else if (event.key.keysym.sym == SDLK_DELETE) {
-                        keyboard->input(127);
+                        keyboard->input("\x7f");
                     } else if (event.key.keysym.sym == SDLK_TAB) {
-                        keyboard->input(9);
+                        keyboard->input("\x09");
                     } else {
                         controller->kbd_pressed(event);
                     }
+
+                    keyboard->event(event);
                 } break;
 
                 case SDL_KEYUP: {
                     controller->kbd_released(event);
+                    keyboard->event(event);
                 } break;
 
                 case SDL_JOYBUTTONDOWN: {

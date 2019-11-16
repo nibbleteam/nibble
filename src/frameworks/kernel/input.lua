@@ -7,10 +7,11 @@ local input = {}
 --input.KEYBOARD          = 78418
 --input.MOUSE             = 78450
 -- 400x240
-input.MIDI_CONTROLLER   = 97656
+input.MIDI_CONTROLLER   = 97688
 input.CONTROLLER        = 97608
 input.KEYBOARD          = 97618
-input.MOUSE             = 97650
+input.KEYBOARD_EVENTS   = 97650
+input.MOUSE             = 97682
 
 input.STUP       = 0
 input.STPRESSED  = 1
@@ -28,8 +29,13 @@ input.BLUE  = 5
 input.BLACK = 6
 input.WHITE = 7
 
-input.MOUSE_LEFT = 0
+input.MOUSE_LEFT  = 0
 input.MOUSE_RIGHT = 1
+
+input.SHIFT = 1
+input.CTRL  = 2
+input.ALT   = 3
+input.GUI   = 4
 
 function input.bt(b)
   assert(b, "bt() needs a button")
@@ -84,6 +90,30 @@ function input.read_keys()
     end
 
     return hw.read(input.KEYBOARD+1, amount)
+end
+
+function input.read_key_events()
+  local events = {}
+  local i = 0
+
+  while i < 32 do
+    local kind = hw.read8(input.KEYBOARD_EVENTS+i)
+
+    if kind == 0 then
+      break
+    end
+
+    local key = hw.read8(input.KEYBOARD_EVENTS+i+1)
+    local mods = hw.read8(input.KEYBOARD_EVENTS+i+2)
+
+    table.insert(events, {
+                   kind, key, mods
+    })
+
+    i += 3
+  end
+
+  return events
 end
 
 function input.read_midi()

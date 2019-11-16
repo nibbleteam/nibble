@@ -49,6 +49,8 @@ function Widget:new(config, document, parent)
         onmove = function() end,
         -- Redraw
         dirty = true,
+        -- Hash of all properties
+        hash = 0,
     }
 
     for k, _ in zip(config, defaults) do
@@ -124,6 +126,40 @@ function Widget:__newindex(k, v)
     self:set_dirty()
 end
 
+-- TODO: better hash?
+function Widget:update_hash(print_out)
+    local hash = 5381
+
+    for name, prop in pairs(self.props) do
+        local value = self[name]
+
+        if print_out then
+            terminal_print("Hashing in", name, value)
+        end
+
+        if type(value) == "number" then
+            hash = bit.bxor(bit.lshift(hash, 5), hash) + math.floor(value*255)
+        elseif type(value) == "string" then
+            for i=1,#value do
+                local c = value:sub(i, i)
+
+                hash = bit.bxor(bit.lshift(hash, 5), hash) + c:byte()
+            end
+        elseif type(value) == "table" then
+            -- Do not handle nested tables
+            for k, v in pairs(value) do
+                if type(v) == "number" then
+                    hash = bit.bxor(bit.lshift(hash, 5), hash) + math.floor(v*255)
+                end
+
+                -- TODO: handle strings
+            end
+        end
+    end
+
+    self.hash = math.floor(hash)
+end
+
 function Widget:update(dt)
     -- Atualiza interpolated values
     for name, prop in pairs(self.props) do
@@ -137,6 +173,8 @@ function Widget:update(dt)
             end
         end
     end
+
+    self:update_hash()
 
     -- Atualiza filhos
     for _, child in ipairs(self.children) do
@@ -176,7 +214,13 @@ function Widget:clip_box(b)
 
     if parent ~= self and parent ~= nil and parent.clip_box then
         local parent_box = parent:clip_box()
-        local box = { self.x+b, self.y+b, self.w-b*2, self.h-b*2 }
+
+        parent_box[1] += b
+        parent_box[2] += b
+        parent_box[3] -= 2*b
+        parent_box[4] -= 2*b
+
+        local box = { self.x, self.y, self.w, self.h }
 
         return merge_boxes(parent_box, box)
     else
@@ -351,10 +395,12 @@ end
 
 function Widget:click(event, press)
     if self:in_bounds(event) then
+        local consumed = nil
+
         for i=#self.children,1,-1 do
             local child = self.children[i]
 
-            local consumed = child:click(event, press)
+            consumed = child:click(event, press)
 
             if consumed then
                 if consumed == 1 then
@@ -372,6 +418,10 @@ function Widget:click(event, press)
                 end
             end
         else
+            if not consumed then
+                self.document.focused_widget = self
+            end
+
             if self.onclick then
                 if self:onclick(event) then
                     return 1
@@ -381,6 +431,8 @@ function Widget:click(event, press)
 
         return 0
     end
+
+    return nil
 end
 
 function Widget:move(event, offset, left)
@@ -445,6 +497,44 @@ function Widget:leave(event)
 
         for _, child in ipairs(self.children) do
             child:leave(event)
+        end
+    end
+end
+
+function Widget:keyboard_event(event)
+    if event[1] == 1 then
+        local bubble = true
+
+        if self.onkeydown then
+            if self:onkeydown(event[2], event[3]) then
+                bubble = false
+            end
+        end
+
+        if bubble and self.parent.keyboard_event then
+            self.parent:keyboard_event(event)
+        end
+    elseif event[1] == 2 then
+        local bubble = true
+
+        if self.onkeyup then
+            if not self:onkeyup(event[2], event[3]) then
+                bubble = false
+            end
+        end
+
+        if bubble and self.parent.keyboard_event then
+            self.parent:keyboard_event(event)
+        end
+    end
+end
+
+function Widget:text_input(input)
+    if self.ontext then
+        if not self:ontext(input) then
+            if self.parent.text_input then
+                self.parent:text_input(input)
+            end
         end
     end
 end

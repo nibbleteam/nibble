@@ -11,7 +11,7 @@
 #ifndef SPECS_H
 #define SPECS_H
 
-#define VERSION_STRING          "0.1.0"
+#define VERSION_STRING          "0.2.0"
 
 /*
  * GPU
@@ -92,7 +92,7 @@
 
 #define KEYBOARD_QUEUE_SIZE     32
 
-#define KEYBOARD_MEM_SIZE       (KEYBOARD_QUEUE_SIZE)
+#define KEYBOARD_MEM_SIZE       (2*KEYBOARD_QUEUE_SIZE)
 
 /*
  * Teclado MIDI

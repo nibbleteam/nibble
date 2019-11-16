@@ -9,7 +9,7 @@ local NOM = require "nibui.NOM"
 local Widget = require "nibui.Widget"
 
 -- Constants
-local taskbar_height = 17
+local taskbar_height = 18
 local taskbar_background_color = 3
 local taskbar_highlight_color = 7
 local taskbar_silhouette_color = 1
@@ -73,12 +73,10 @@ for _, path in ipairs(editor_paths) do
       end,
 
       onenter = function(self)
-        terminal_print("Enter", self.id)
         self.document:set_cursor("pointer")
       end,
 
       onleave = function(self)
-        terminal_print("Leave", self.id)
         self.document:set_cursor("default")
       end,
     })
@@ -184,35 +182,35 @@ local ui = NOM:new({
     },
 
     -- A "reload" button
-    {
-      x = NOM.right-16, y = NOM.bottom-taskbar_height,
-      w = 16, h = 16,
+    -- {
+    --   x = NOM.right-16, y = NOM.bottom-taskbar_height+8,
+    --   w = 16, h = 16,
 
-      background = 9,
+    --   background = 9,
 
-      content = "R",
+    --   content = "R",
 
-      onclick = function(self)
-        local taskbar = self.parent:find("taskbar")
+    --   onclick = function(self)
+    --     local taskbar = self.parent:find("taskbar")
 
-        if taskbar.selected then
-          local widget = self.parent:find(taskbar.selected)
+    --     if taskbar.selected then
+    --       local widget = self.parent:find(taskbar.selected)
 
-          -- Disable grouping so we don't kill ourselves too
-          stop_app(widget.pid, true)
+    --       -- Disable grouping so we don't kill ourselves too
+    --       stop_app(widget.pid, true)
 
-          widget.pid = start_app(taskbar.selected, {
-            x=0,y=0,
-            width=env.width,
-            height=env.height-taskbar_height,
+    --       widget.pid = start_app(taskbar.selected, {
+    --         x=0,y=0,
+    --         width=env.width,
+    --         height=env.height-taskbar_height,
 
-            params = env.params
-          }, true)
+    --         params = env.params
+    --       }, true)
 
-          taskbar.running = widget.pid
-        end
-      end
-    },
+    --       taskbar.running = widget.pid
+    --     end
+    --   end
+    -- },
 
     unwrap(editor_buttons)
   }

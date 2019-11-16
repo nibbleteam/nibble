@@ -532,6 +532,10 @@ function nib_api(entrypoint, proc, env)
         WHITE = input.WHITE,
         MOUSE_LEFT = input.MOUSE_LEFT,
         MOUSE_RIGHT = input.MOUSE_RIGHT,
+        SHIFT = input.SHIFT,
+        CTRL = input.CTRL,
+        ALT = input.ALT,
+        GUI = input.GUI,
         button_down = input.button_down,
         button_up = input.button_up,
         button_press = input.button_press,
@@ -542,6 +546,7 @@ function nib_api(entrypoint, proc, env)
         mouse_button_release = input.mouse_button_release,
         mouse_position = input.mouse_position,
         read_keys = input.read_keys,
+        read_key_events = input.read_key_events,
         read_midi = input.read_midi,
         -- Audio
         encode = audio.encode,

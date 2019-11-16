@@ -49,7 +49,7 @@ function NOM.map(array, fn)
     count = count+1
   end
 
-  return { mapped_array }
+  return unwrap(mapped_array)
 end
 
 function NOM.self(prop)
@@ -134,7 +134,8 @@ function NOM:new(desc)
             dirty = true
         },
         mouse = { x = 0, y = 0 },
-        event_queue = {}
+        event_queue = {},
+        focused_widget = nil,
     }
 
     instanceof(instance, NOM)
@@ -175,12 +176,21 @@ function NOM:update(dt)
     -- Fire all queued events
     self:do_fire()
 
+    -- Update the cursor if needed
     if self.cursor.dirty then
         self.cursor.dirty = false
 
         local c = self.cursor[self.cursor.state]
 
         mouse_cursor(c.x, c.y, c.w, c.h, c.hx, c.hy)
+    end
+
+    -- Read keyboard events
+    if self.focused_widget then
+        local events = read_key_events()
+        local input = read_keys()
+
+        self:handle_keys(input, events)
     end
 end
 
@@ -205,6 +215,8 @@ function NOM:find(selector, node)
 end
 
 function NOM:draw_cursor()
+    -- Deprecated in favor of native cursors
+
     -- local c = self.cursor[self.cursor.state]
 
     -- custom_sprite(self.mouse.x+self.cursor.offset.x, self.mouse.y+self.cursor.offset.y,
@@ -267,6 +279,18 @@ end
 
 function NOM:move(event, offset)
     self.root:move(event, offset)
+end
+
+function NOM:handle_keys(input, events)
+    if #events > 0 then
+        for _, evt in ipairs(events) do
+            self.focused_widget:keyboard_event(evt)
+        end
+    end
+
+    if #input > 0 then
+        self.focused_widget:text_input(input)
+    end
 end
 
 return NOM

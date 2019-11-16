@@ -6,15 +6,20 @@
 #include <kernel/Memory.hpp>
 #include <kernel/Device.hpp>
 
+#include <SDL.h>
+
 using namespace std;
 
 class Keyboard : public Device {
-    queue<char> char_queue;
+    queue<string> char_queue;
+    queue<SDL_Event> key_queue;
     uint8_t *mem;
+    uint8_t *events;
 public:
     Keyboard(Memory&);
 
-    void input(const unsigned int);
+    void event(const SDL_Event&);
+    void input(const char*);
     void update();
 };
 

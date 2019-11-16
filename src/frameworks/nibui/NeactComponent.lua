@@ -15,6 +15,57 @@ local function update_parent_refs(widget, parent)
   return widget
 end
 
+local function update_widget(widget, new_widget, time, easing)
+  -- Calculates the new widget hash from its properties
+  new_widget:update_hash()
+
+  -- Always update functions since no state is kept in them
+  -- FIXME: someone may dynamically update functions?
+  for k, v in pairs(new_widget) do
+    if type(v) == "function" then
+      widget[k] = new_widget[k]
+    end
+  end
+
+  for k, v in pairs(new_widget.props) do
+    if type(v) == "function" then
+      widget.props[k] = new_widget.props[k]
+    end
+  end
+
+  -- Only update if something has changed
+  if widget.hash ~= new_widget.hash then
+    -- Update the current widget props with the new widget props
+    -- without destroying the current widget
+    for k, v in pairs(new_widget.props) do
+      if widget.props[k].isdynamicvalue and
+        widget.props[k].kind == "interpolated" then
+        widget[k] = { new_widget[k], time, easing }
+
+        -- Avoid flickering
+        widget.props[k].cache = nil
+      else
+        widget.props[k] = new_widget.props[k]
+      end
+    end
+
+    widget:set_dirty()
+  end
+
+  local children = new_widget.children
+
+  for i, child in ipairs(children) do
+    if widget.children[i] then
+      update_widget(widget.children[i], child, time, easing)
+    else
+      child.parent = widget
+      widget.children[i] = child
+    end
+  end
+
+  widget.children[#children+1] = nil
+end
+
 function NeactComponent:new()
   return new(NeactComponent, { state = {}, props = {}})
 end
@@ -24,31 +75,17 @@ function NeactComponent:set_state(state, time, easing)
     self.state[k] = v
   end
 
+  -- Render a new NOM description
   local desc = self:_render_to_description(self._root, self._id or {})
 
   desc.neact_generated_by = nil
 
+  -- Build a new NOM widget from the scription,
+  -- with the same parent as the previous widget
   local widget = self._root._nom:make_document(desc, self._widget.parent)
 
-  for k, v in pairs(widget.props) do
-    if self._widget.props[k].isdynamicvalue and
-       self._widget.props[k].kind == "interpolated" then
-      self._widget[k] = { widget[k], time, easing }
-    else
-      self._widget.props[k] = widget.props[k]
-    end
-  end
-
-  local children = widget.children
-
-  for i, child in ipairs(children) do
-    child.parent = self._widget
-    self._widget.children[i] = child
-  end
-
-  self._widget.children[#children+1] = nil
-
-  self._widget:set_dirty()
+  -- Update the current widget with the new one
+  update_widget(self._widget, widget, time, easing)
 end
 
 function NeactComponent:_render_table_to_description(root, id, description)

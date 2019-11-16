@@ -8,6 +8,12 @@ local Sprite = Neact.Component:new()
 local Palette = require 'Palette'
 local PaletteSelector = require 'PaletteSelector'
 local Canvas = require 'Canvas'
+local Bitmap = require 'Bitmap'
+
+local PencilTool = require 'PencilTool'
+local LineTool = require 'LineTool'
+local FillTool = require 'FillTool'
+local EraserTool = require 'EraserTool'
 
 local spacing = 2
 
@@ -20,6 +26,15 @@ local palette_border_color = 16
 local toolbar_width = 16+2*spacing
 
 local palette_selector_height = 80+2*spacing
+
+local max_zoom = 8
+
+local tools = {
+  { 6, PencilTool:new(), 98 },
+  { 7, LineTool:new(), 108 },
+  { 8, FillTool:new(), 102 },
+  { 9, EraserTool:new(), 101 }
+}
 
 local function random_data(length)
   local data = {}
@@ -41,15 +56,36 @@ local function zero_data(length)
   return data
 end
 
+local spr_w, spr_h = 64, 64
+
 function Sprite:new(props)
   return new(Sprite, {
                props = props,
                state = {
                  selected_color = 16,
                  selected_palette = 1,
-                 sprite = { w = 16, h = 16, data = zero_data(15*16) },
-                 zoom = 8,
-               }
+                 sprite = Bitmap:new(spr_w, spr_h, zero_data(spr_w*spr_h)),
+                 preview = Bitmap:new(spr_w, spr_h, {}),
+                 zoom = 1,
+                 dragging = false,
+                 picker = false,
+
+                 -- The first tool in the tools array
+                 tool = tools[1][2],
+
+                 canvas_offset_x = 0,
+                 canvas_offset_y = 0,
+               },
+
+               -- Canvas offset at the start of the drag
+               drag_start_x = nil,
+               drag_start_y = nil,
+
+               -- Mouse at the start of the drag
+               mouse_start_x = 0,
+               mouse_start_y = 0,
+
+               prev_cursor = nil,
   })
 end
 
@@ -58,6 +94,78 @@ function Sprite:render(state, props)
     x = NOM.left, y = NOM.top,
     w = NOM.width, h = NOM.height,
     background = 14,
+
+    onkeydown = function(w, key, mods)
+      if key == 32 then
+        self:set_state({
+            dragging = true
+        })
+
+        if not (self.drag_start_x or self.drag_start_y) then
+          self.drag_start_x = state.canvas_offset_x
+          self.drag_start_y = state.canvas_offset_y
+
+          self.mouse_start_x, self.mouse_start_y = mouse_position()
+
+          self.prev_cursor = w.document.cursor.state
+          w.document:set_cursor("hand")
+        end
+      end
+
+      if key == 226 then
+        if not state.picker then
+          self:set_state({
+              picker = true
+          })
+
+          self.prev_cursor = w.document.cursor.state
+          w.document:set_cursor("picker")
+        end
+      end
+
+      local zoom_levels = { 49, 50, 51, 52, 53, 54, 55, 56 }
+
+      for zoom, zoom_key in ipairs(zoom_levels) do
+        if key == zoom_key then
+          self:set_state({
+              zoom = zoom
+          })
+        end
+      end
+
+      for _, tool in ipairs(tools) do
+        if key == tool[3] then
+          self:set_state({
+              tool = tool[2]
+          })
+        end
+      end
+
+      -- terminal_print("Pressed", key)
+    end,
+
+    onkeyup = function(w, key, mods)
+      if key == 32 then
+        self:set_state({
+            dragging = false
+        })
+
+        self.drag_start_x = nil
+        self.drag_start_y = nil
+
+        w.document:set_cursor(self.prev_cursor)
+      end
+
+      if key == 226 then
+        self:set_state({
+            picker = false
+        })
+
+        w.document:set_cursor(self.prev_cursor)
+      end
+
+      -- terminal_print("Released", key)
+    end,
 
     -- Palette
     {
@@ -111,12 +219,132 @@ function Sprite:render(state, props)
 
       background = 7,
 
+      onmove = function(w, event)
+        if state.dragging then
+          self:set_state({
+              canvas_offset_x = event.x-self.mouse_start_x+self.drag_start_x,
+              canvas_offset_y = event.y-self.mouse_start_y+self.drag_start_y,
+          })
+        end
+      end,
+
       -- Canvas
-      {Canvas,
-       color = state.selected_color,
-       palette = state.selected_palette,
-       sprite = state.sprite,
-       scale = state.zoom}
+      {
+        Canvas,
+
+        color = state.selected_color,
+        palette = state.selected_palette,
+        sprite = state.sprite,
+        preview = state.preview,
+        tool = state.tool,
+        scale = state.zoom,
+        dragging = state.dragging,
+        picker = state.picker,
+        offset_x = state.canvas_offset_x,
+        offset_y = state.canvas_offset_y,
+
+        onpickcolor = function(c)
+          self:set_state { selected_color = c+1 }
+        end
+      },
+
+      {
+        x = NOM.right-2*spacing-64, y = NOM.bottom-2*spacing-9,
+        w = 64, h = 9,
+
+        {
+          x = NOM.left+9, w = NOM.width-18,
+
+          background = 2,
+          border_color = 1,
+          border_size = 1,
+          radius = 2,
+
+          set_zoom = function(w, event)
+            local p = (event.x-w.x)/w.w
+
+            self:set_state({
+                zoom = math.ceil(p*max_zoom)
+            })
+          end,
+
+          onpress = function(w, event)
+            w:set_zoom(event)
+          end,
+
+          onmove = function(w, event)
+            if event.drag then
+              w:set_zoom(event)
+            end
+          end,
+
+          -- Highlight
+          {
+            y = NOM.top+1, x = NOM.left+1,
+            w = NOM.width-2, h = 1,
+            background = 3,
+          },
+          {
+            x = NOM.left+1,
+            w = state.zoom/max_zoom*(NOM.width-2),
+            y = NOM.top+1,
+            h = NOM.height-2,
+
+            background = 14,
+
+            {
+              h = 1,
+              background = 15,
+            }
+          },
+        },
+
+        -- Zoom out
+        {
+          w = 8,
+          h = 9,
+
+          clip_to = 0,
+          background = { 80, 0, 8, 9 },
+
+          onclick = function()
+            self:set_state({
+                zoom = state.zoom-1
+            })
+          end,
+
+          onenter = function(self)
+            self.document:set_cursor("hand")
+          end,
+
+          onleave = function(self)
+            self.document:set_cursor("default")
+          end,
+        },
+        -- Zoom in
+        {
+          y = NOM.top,
+          x = NOM.right-8,
+          w = 8, h = 9,
+
+          clip_to = 0,
+          background = { 88, 0, 8, 9 },
+
+          onclick = function()
+            self:set_state({
+                zoom = state.zoom+1
+            })
+          end,
+
+          onenter = function(self)
+            self.document:set_cursor("hand")
+          end,
+
+          onleave = function(self)
+            self.document:set_cursor("default")
+          end,
+        },
+      }
     },
 
     -- Toolbar
@@ -124,30 +352,20 @@ function Sprite:render(state, props)
       x = NOM.right-toolbar_width, y = NOM.top+spacing,
       w = toolbar_width, h = NOM.height-2*spacing,
 
-      {
-        x = NOM.left+spacing, y = NOM.top+spacing,
-        w = 16, h = 16,
+      NOM.map(tools, function(tool, i)
+          return {
+            x = NOM.left+spacing, y = NOM.top+spacing+(16+spacing)*(i-1),
+            w = 16, h = 16,
 
-        background = 8,
-        border_size = 1,
-        border_color = 4,
+            background = { state.tool == tool[2] and 1 or 0, tool[1] },
 
-        radius = 2,
-
-        content = "B"
-      },
-      {
-        x = NOM.left+spacing, y = NOM.top+spacing+16+spacing,
-        w = 16, h = 16,
-
-        background = 8,
-        border_size = 1,
-        border_color = 4,
-
-        radius = 2,
-
-        content = "L"
-      }
+            onclick = function(w)
+              self:set_state {
+                tool = tool[2]
+              }
+            end,
+          }
+      end)
     },
   }
 end
@@ -157,6 +375,12 @@ local nom = sprite_editor:nom():use('cursor')
 
 nom.cursor["pencil"] = {
   x = 56, y = 80,
+  w = 8, h = 8,
+  hx = 0, hy = 8,
+}
+
+nom.cursor["picker"] = {
+  x = 72, y = 80,
   w = 8, h = 8,
   hx = 0, hy = 8,
 }
@@ -172,4 +396,13 @@ end
 
 function update(dt)
   nom:update(dt)
+
+  local keys = read_keys()
+
+  for i=1,#keys do
+    local key = keys:sub(i, i)
+
+    if key == " " then
+    end
+  end
 end
