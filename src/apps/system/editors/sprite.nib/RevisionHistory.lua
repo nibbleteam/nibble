@@ -2,10 +2,12 @@ local RevisionHistory = {}
 
 local Bitmap = require 'Bitmap'
 
-function RevisionHistory:new()
+function RevisionHistory:new(w, h)
   return new(RevisionHistory, {
                past = {},
                future = {},
+
+               internal = Bitmap:new(w, h, {}, 0)
   })
 end
 
@@ -41,36 +43,40 @@ function RevisionHistory:apply_region(spr, region, sx, sy)
 end
 
 function RevisionHistory:snapshot(sprite, sx, sy, ex, ey)
+  local redo = self:copy_region(sprite, sx, sy, ex, ey)
+  local undo = self:copy_region(self.internal, sx, sy, ex, ey)
+
   push(self.past, {
          x = sx, y = sy,
 
-         bitmap = self:copy_region(sprite, sx, sy, ex, ey)
+         after = redo,
+         before = undo,
   })
+
+  self:apply_region(self.internal, redo, sx, sy)
 
   self.future = {}
 end
 
 function RevisionHistory:undo(sprite)
-  local data = pop(self.past)
+  local revision = pop(self.past)
 
-  if data then
-    -- Do all the changes from a zeroed out sprite, except the last one
-    sprite:clear()
-    for _, data in ipairs(self.past) do
-        self:apply_region(sprite, data.bitmap, data.x, data.y)
-    end
+  if revision then
+    self:apply_region(sprite, revision.before, revision.x, revision.y)
+    self:apply_region(self.internal, revision.before, revision.x, revision.y)
 
-    push(self.future, data)
+    push(self.future, revision)
   end
 end
 
 function RevisionHistory:redo(sprite)
-  local data = pop(self.future)
+  local revision = pop(self.future)
 
-  if data then
-    self:apply_region(sprite, data.bitmap, data.x, data.y)
+  if revision then
+    self:apply_region(sprite, revision.after, revision.x, revision.y)
+    self:apply_region(self.internal, revision.after, revision.x, revision.y)
 
-    push(self.past, data)
+    push(self.past, revision)
   end
 end
 

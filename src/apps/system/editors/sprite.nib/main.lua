@@ -31,7 +31,9 @@ local palette_selector_height = 80+2*spacing
 
 local max_zoom = 8
 
-local history = RevisionHistory:new()
+local spr_w, spr_h = 4096, 1024
+
+local history = RevisionHistory:new(spr_w, spr_h)
 
 local tools = {
   { 6, PencilTool:new(history), 98 },
@@ -59,8 +61,6 @@ local function zero_data(length, v)
 
   return data
 end
-
-local spr_w, spr_h = 4096, 1024
 
 function Sprite:new(props)
   return new(Sprite, {
