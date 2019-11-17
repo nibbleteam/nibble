@@ -54,6 +54,8 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
 }
 
 GPU::~GPU() {
+    stop_capturing();
+
     free_cursors();
 
     SDL_DestroyTexture(framebuffer);
@@ -269,8 +271,10 @@ bool GPU::stop_capturing() {
     //     return false;
     // }
 
-    delete h264;
-    h264 = nullptr;
+    if (h264) {
+        delete h264;
+        h264 = nullptr;
+    }
 
     return true;
 }
