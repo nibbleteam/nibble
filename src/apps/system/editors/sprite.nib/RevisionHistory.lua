@@ -2,12 +2,12 @@ local RevisionHistory = {}
 
 local Bitmap = require 'Bitmap'
 
-function RevisionHistory:new(w, h)
+function RevisionHistory:new(w, h, bitmap)
   return new(RevisionHistory, {
                past = {},
                future = {},
 
-               internal = Bitmap:new(w, h, {}, 0)
+               internal = RevisionHistory:copy_region(bitmap, 0, 0, bitmap.width-1, bitmap.height-1)
   })
 end
 

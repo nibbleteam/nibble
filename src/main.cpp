@@ -1,4 +1,5 @@
 #include <kernel/Kernel.hpp>
+#include <kernel/mmap/Image.hpp>
 
 extern "C" {
 #include <getopt.h>
@@ -27,6 +28,9 @@ int main(int argc, char** argv) {
     KernelSingleton = kernel;
 
     kernel->loop();
+
+    // Limpa paletas que ainda estiverem em memória
+    mmap::cleanup_palettes();
 
     return 0;
 }

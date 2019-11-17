@@ -147,6 +147,9 @@ function make_process(entrypoint, env, group)
     env.x = x
     env.y = y
 
+    local parent_process = executing_process
+    executing_process = proc
+
     proc.pub = nib_api(entrypoint, proc, env)
     proc.pub.env = env
     proc.pub.env.pid = proc.priv.pid
@@ -162,6 +165,8 @@ function make_process(entrypoint, env, group)
     sandbox_fn(proc.pub.init, proc.pub)
     sandbox_fn(proc.pub.draw, proc.pub)
     sandbox_fn(proc.pub.update, proc.pub)
+
+    executing_process = parent_process
 
     return proc
 end
@@ -503,9 +508,25 @@ function nib_api(entrypoint, proc, env)
             local sheet = executing_process.priv.spritesheet
             return gpu.get_sheet_pixel(sheet.ptr, sheet.w, sheet.h, x, y)
         end,
+        get_sheet_full = function()
+            print(executing_process.priv.entrypoint)
+
+            local sheet = executing_process.priv.spritesheet
+            return gpu.get_sheet_full(sheet.ptr, sheet.w, sheet.h)
+        end,
         put_sheet_pixel = function(x, y, color)
             local sheet = executing_process.priv.spritesheet
             return gpu.put_sheet_pixel(sheet.ptr, sheet.w, sheet.h, x, y, color)
+        end,
+        get_sheet_size = function()
+            local sheet = executing_process.priv.spritesheet
+
+            return sheet.w, sheet.h
+        end,
+        save_sheet = function(file)
+            local sheet = executing_process.priv.spritesheet
+
+            hw.save_spritesheet(sheet.ptr, sheet.w, sheet.h, file)
         end,
         open_asset = function(asset, kind)
             return nib_open_asset(entrypoint, asset, kind)

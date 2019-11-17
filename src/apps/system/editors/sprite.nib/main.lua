@@ -31,16 +31,7 @@ local palette_selector_height = 80+2*spacing
 
 local max_zoom = 8
 
-local spr_w, spr_h = 4096, 1024
-
-local history = RevisionHistory:new(spr_w, spr_h)
-
-local tools = {
-  { 6, PencilTool:new(history), 98 },
-  { 7, LineTool:new(history), 108 },
-  { 8, FillTool:new(history), 102 },
-  { 9, EraserTool:new(history), 101 }
-}
+local spr_w, spr_h = get_sheet_size()
 
 local function random_data(length)
   local data = {}
@@ -62,13 +53,42 @@ local function zero_data(length, v)
   return data
 end
 
+local function sheet_data()
+  local data = {}
+  local w, h = get_sheet_size()
+  local sheet = get_sheet_full()
+
+  for y=0,h-1 do
+    for x=0,w-1 do
+      local p = y*w+x;
+
+      data[p] = sheet:sub(p, p):byte()
+    end
+  end
+
+  return data
+end
+
+-- Mutable data
+
+local main_sprite = Bitmap:new(spr_w, spr_h, sheet_data(), 0)
+
+local history = RevisionHistory:new(spr_w, spr_h, main_sprite)
+
+local tools = {
+  { 6, PencilTool:new(history), 98 },
+  { 7, LineTool:new(history), 108 },
+  { 8, FillTool:new(history), 102 },
+  { 9, EraserTool:new(history), 101 }
+}
+
 function Sprite:new(props)
   return new(Sprite, {
                props = props,
                state = {
                  selected_color = 16,
                  selected_palette = 1,
-                 sprite = Bitmap:new(spr_w, spr_h, zero_data(spr_w*spr_h), 0),
+                 sprite = main_sprite,
                  preview = Bitmap:new(spr_w, spr_h, {}),
                  zoom = 1,
                  dragging = false,
@@ -159,6 +179,16 @@ function Sprite:render(state, props)
                         content = "Undo!"
           })
         end
+      end
+
+      -- Save
+      if key == 115 and bit.band(mods, CTRL) ~= 0 then
+        save_sheet("hello.png")
+
+        send_message(env.taskbar, {
+                       kind = "notification",
+                       content = "Saved as \"".."hello.png".."\""
+        })
       end
 
       local zoom_levels = { 49, 50, 51, 52, 53, 54, 55, 56 }

@@ -280,6 +280,12 @@ tuple<size_t, int, int> Kernel::api_load_spritesheet(const string from_str) {
     return mmap::read_image(memory, path);
 }
 
+void Kernel::api_save_spritesheet(const size_t ptr, const int w, const int h, const string to_str) {
+    auto path = Path(to_str);
+
+    mmap::write_image(memory, ptr, w, h, path);
+}
+
 // Wrapper estático para a API
 
 size_t kernel_api_write(const size_t to, const size_t amount, const char* data) {
@@ -296,6 +302,10 @@ void kernel_api_load_spritesheet(const char* from, size_t* ptr, int* w, int* h) 
     *ptr = get<0>(t);
     *w = get<1>(t);
     *h = get<2>(t);
+}
+
+void kernel_api_save_spritesheet(const size_t ptr, const int w, const int h, const char* to) {
+    KernelSingleton.lock()->api_save_spritesheet(ptr, w, h, to);
 }
 
 void kernel_api_use_spritesheet(const size_t source, const int w, const int h) {

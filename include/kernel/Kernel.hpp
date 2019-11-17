@@ -75,6 +75,7 @@ public:
 
     void api_use_spritesheet(const size_t, const int, const int);
     tuple<size_t, int, int> api_load_spritesheet(string);
+    void api_save_spritesheet(const size_t, const int, const int, const string);
 };
 
 extern "C" {
@@ -89,6 +90,7 @@ extern "C" {
 
     // Spritesheets
     API void kernel_api_load_spritesheet(const char*, size_t*, int*, int*);
+    API void kernel_api_save_spritesheet(const size_t, const int, const int, const char*);
     API void kernel_api_use_spritesheet(const size_t, const int, const int);
 
     // Arquivos

@@ -5,8 +5,9 @@
 
 namespace mmap {
     tuple<size_t, int16_t, int16_t> read_image(Memory&, Path&);
+    void write_image(Memory&, size_t, int16_t, int16_t, Path&);
 
-    //void write_image(Memory&, size_t, Path&);
+    void cleanup_palettes();
 }
 
 #endif /* MMAP_IMAGE_H */
