@@ -1,6 +1,6 @@
 env.menu = {
   'Nibble Edit',
-  'v0.1.0',
+  'v0.1.1',
   '',
   'by Uberoverlord'
 }
@@ -10,6 +10,25 @@ require "lang.timeout"
 local NOM = require "nibui.NOM"
 local Widget = require "nibui.Widget"
 local Easing = require "nibui.Easing"
+
+local function extract_app_name()
+  local no_app = "<NO APP>"
+
+  if #env.params >= 2 then
+    local app = env.params[2]:match("[^/\\]+%.nib")
+
+    if app then
+      return app
+    else
+      return env.params[2]..".nib"
+    end
+  else
+    return no_app
+  end
+end
+
+-- TODO
+local app_name = extract_app_name()
 
 -- Constants
 local taskbar_height = 18
@@ -22,6 +41,7 @@ local icon_height = 16
 local icon_gap = 0
 local icon_jump = 2
 local icon_offset = 2
+
 local icon_map = {
   ["music.nib"] = {
     sprite_y = 6,
@@ -55,6 +75,7 @@ local editor_paths = list_directory(editor_search_path)
 local editor_buttons = {}
 
 local button_x = icon_offset
+local button_counter = 0
 
 -- Prepare buttons for editors
 for _, path in ipairs(editor_paths) do
@@ -68,6 +89,8 @@ for _, path in ipairs(editor_paths) do
       background = { 2, icon_info.sprite_y }
       button_x = (icon_info.button_position-1)*(icon_width+icon_gap)+icon_offset
     else
+      button_x = (#icon_map+button_counter)*(icon_width+icon_gap)+icon_offset
+      button_counter += 1
       background = { 2, 10 }
     end
 
@@ -90,10 +113,10 @@ for _, path in ipairs(editor_paths) do
         self.document:set_cursor("default")
       end,
     })
-
-    button_x += icon_width+icon_gap
   end
 end
+
+local buttons_width = #editor_buttons*(icon_width+icon_gap)+2*icon_offset
 
 -- UI
 local ui = NOM:new({
@@ -255,6 +278,15 @@ local ui = NOM:new({
 
         background = 9,
       }
+    },
+
+    {
+      x = NOM.left+buttons_width,
+      w = measure(app_name),
+
+      padding_top = 2,
+
+      content = app_name,
     },
 
     unwrap(editor_buttons)

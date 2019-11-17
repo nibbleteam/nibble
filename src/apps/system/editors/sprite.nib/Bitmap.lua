@@ -10,7 +10,7 @@ function Bitmap:new(width, height, data, solid)
 
                data = data or {},
 
-               solid = solid or nil,
+               solid = (solid and from_ascii(solid)) or nil,
   })
 end
 
@@ -28,7 +28,7 @@ function Bitmap:put_pixel(x, y, color)
   if self:check_bounds(x, y) then
     local p = y*self.width+x;
 
-    self.data[p] = color%16
+    self.data[p] = from_ascii(color%16)
   end
 end
 
@@ -36,7 +36,7 @@ function Bitmap:get_pixel(x, y)
   if self:check_bounds(x, y) then
     local p = y*self.width+x;
 
-    return self.data[p]
+    return self.data[p]:byte()
   end
 end
 

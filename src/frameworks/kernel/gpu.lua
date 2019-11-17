@@ -63,6 +63,10 @@ function gpu.get_sheet_full(sheet_location, sheet_w, sheet_h)
     return hw.read(sheet_location, sheet_w*sheet_h)
 end
 
+function gpu.put_sheet_full(sheet_location, sheet_w, sheet_h, data)
+    return hw.write(sheet_location, data)
+end
+
 function gpu.put_sheet_pixel(sheet_location, sheet_w, sheet_h, x, y, color)
     x = math.abs(math.floor(x))%sheet_w
     y = math.abs(math.floor(y))%sheet_h

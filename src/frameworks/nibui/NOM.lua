@@ -191,6 +191,8 @@ function NOM:update(dt)
         local input = read_keys()
 
         self:handle_keys(input, events)
+    else
+        self.focused_widget = self.root
     end
 end
 

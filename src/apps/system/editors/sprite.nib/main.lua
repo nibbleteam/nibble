@@ -31,49 +31,33 @@ local palette_selector_height = 80+2*spacing
 
 local max_zoom = 8
 
-local spr_w, spr_h = get_sheet_size()
+local source_file = "apps/"..(env.params[2] or "").."/assets/sheet.png"
 
-local function random_data(length)
-  local data = {}
-
-  for i=0,length-1 do
-    data[i] = math.random(16)
-  end
-
-  return data
-end
-
-local function zero_data(length, v)
-  local data = {}
-
-  for i=0,length-1 do
-    data[i] = v or 0
-  end
-
-  return data
-end
+local main_sheet = nil
 
 local function sheet_data()
   local data = {}
-  local w, h = get_sheet_size()
-  local sheet = get_sheet_full()
+  local sheet, w, h = load_sheet(source_file)
+  local sheet_data = get_sheet_full(sheet, w, h)
+
+  main_sheet = sheet
 
   for y=0,h-1 do
     for x=0,w-1 do
       local p = y*w+x;
 
-      data[p] = sheet:sub(p, p):byte()
+      data[p] = sheet_data:sub(p, p)
     end
   end
 
-  return data
+  return w, h, data, 0
 end
 
 -- Mutable data
 
-local main_sprite = Bitmap:new(spr_w, spr_h, sheet_data(), 0)
+local main_sprite = Bitmap:new(sheet_data())
 
-local history = RevisionHistory:new(spr_w, spr_h, main_sprite)
+local history = RevisionHistory:new(main_sprite.weight, main_sprite.hidth, main_sprite)
 
 local tools = {
   { 6, PencilTool:new(history), 98 },
@@ -89,7 +73,7 @@ function Sprite:new(props)
                  selected_color = 16,
                  selected_palette = 1,
                  sprite = main_sprite,
-                 preview = Bitmap:new(spr_w, spr_h, {}),
+                 preview = Bitmap:new(main_sprite.width, main_sprite.height, {}),
                  zoom = 1,
                  dragging = false,
                  picker = false,
@@ -183,11 +167,13 @@ function Sprite:render(state, props)
 
       -- Save
       if key == 115 and bit.band(mods, CTRL) ~= 0 then
-        save_sheet("hello.png")
+        put_sheet_full(join(state.sprite.data), main_sheet, state.sprite.width, state.sprite.height)
+
+        save_sheet(source_file, main_sheet, state.sprite.width, state.sprite.height)
 
         send_message(env.taskbar, {
                        kind = "notification",
-                       content = "Saved as \"".."hello.png".."\""
+                       content = "Saved spritesheet!"
         })
       end
 
@@ -253,7 +239,7 @@ function Sprite:render(state, props)
       spacing = spacing,
 
       selected = state.selected_color,
-      palette = state.selected_palette,
+      palette = state.selected_palette or 1,
 
       onchange = function(color)
         self:set_state({

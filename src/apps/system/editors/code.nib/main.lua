@@ -61,6 +61,8 @@ function init()
         local filenames = {
             'apps/'..env.params[2]..'.nib/main.lua',
             'apps/system/'..env.params[2]..'.nib/main.lua',
+            'apps/'..env.params[2]..'/main.lua',
+            'apps/system/'..env.params[2]..'/main.lua',
             'frameworks/'..env.params[2]..'/main.lua',
             'apps/'..env.params[2]..'.lua',
             'apps/system/'..env.params[2]..'.lua',

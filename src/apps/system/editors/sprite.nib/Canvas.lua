@@ -95,10 +95,10 @@ function Canvas:render(state, props)
         for x=start_x,end_x+1 do
           local c = data[y*w+x] or spr.solid
 
-          if c then
+          if c and c:byte() then
             fill_rect(self.x+1+x*props.scale, self.y+1+y*props.scale,
                       props.scale, props.scale,
-                      c + (props.palette-1)*16)
+                      c:byte() + (props.palette-1)*16)
           end
         end
       end
@@ -122,8 +122,10 @@ function Canvas:render(state, props)
     end,
 
     onenter = function(w)
-      self:update_crosshair()
-      w.document:set_cursor("crosshair")
+      if not props.picker then
+        self:update_crosshair()
+        w.document:set_cursor("crosshair")
+      end
 
       self:set_state({
           show_cursor = true
@@ -167,8 +169,10 @@ function Canvas:render(state, props)
     end,
 
     onmove = function(w, event)
-      self:update_crosshair()
-      w.document:set_cursor("crosshair")
+      if not props.picker then
+        self:update_crosshair()
+        w.document:set_cursor("crosshair")
+      end
 
       local nx = math.floor((event.x-w.x)/props.scale)
       local ny = math.floor((event.y-w.y)/props.scale)

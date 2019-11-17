@@ -468,6 +468,7 @@ function nib_api(entrypoint, proc, env)
         ipairs = ipairs, next = next, type = type,
         setmetatable = setmetatable, pairs = pairs, rawget = rawget,
         tonumber = tonumber, tostring = tostring,
+        join = table.concat,
         push = table.insert,
         pop = table.remove,
         remove = table.remove,
@@ -508,25 +509,41 @@ function nib_api(entrypoint, proc, env)
             local sheet = executing_process.priv.spritesheet
             return gpu.get_sheet_pixel(sheet.ptr, sheet.w, sheet.h, x, y)
         end,
-        get_sheet_full = function()
-            print(executing_process.priv.entrypoint)
-
-            local sheet = executing_process.priv.spritesheet
-            return gpu.get_sheet_full(sheet.ptr, sheet.w, sheet.h)
+        get_sheet_full = function(sheet, w, h)
+            if sheet and w and h then
+                return gpu.get_sheet_full(sheet, w, h)
+            else
+                local sheet = executing_process.priv.spritesheet
+                return gpu.get_sheet_full(sheet.ptr, sheet.w, sheet.h)
+            end
         end,
         put_sheet_pixel = function(x, y, color)
             local sheet = executing_process.priv.spritesheet
             return gpu.put_sheet_pixel(sheet.ptr, sheet.w, sheet.h, x, y, color)
+        end,
+        put_sheet_full = function(data, sheet, w, h)
+            if sheet and w and h then
+                return gpu.put_sheet_full(sheet, w, h, data)
+            else
+                local sheet = executing_process.priv.spritesheet
+                return gpu.put_sheet_full(sheet.ptr, sheet.w, sheet.h, data)
+            end
         end,
         get_sheet_size = function()
             local sheet = executing_process.priv.spritesheet
 
             return sheet.w, sheet.h
         end,
-        save_sheet = function(file)
-            local sheet = executing_process.priv.spritesheet
-
-            hw.save_spritesheet(sheet.ptr, sheet.w, sheet.h, file)
+        save_sheet = function(file, sheet, w, h)
+            if sheet and w and h then
+                hw.save_spritesheet(sheet, w, h, file)
+            else
+                local sheet = executing_process.priv.spritesheet
+                hw.save_spritesheet(sheet.ptr, sheet.w, sheet.h, file)
+            end
+        end,
+        load_sheet = function(file)
+            return hw.load_spritesheet(file)
         end,
         open_asset = function(asset, kind)
             return nib_open_asset(entrypoint, asset, kind)

@@ -133,7 +133,7 @@ end
 function Line:new(content, prev, weight)
   return new(Line, {
                number = prev and prev.number+1 or 1,
-               offset_x = 32, offset_y = 0,
+               offset_x = 0, offset_y = 0,
                content = content or "",
                prev = prev,
                next = nil,
@@ -173,11 +173,11 @@ function Line:draw(x, y)
     self:highlight()
   end
 
-  swap_colors(15, 2)
-  swap_colors(7, 1)
-  print(tostring(self.number), x, y)
-  swap_colors(15, 15)
-  swap_colors(7, 7)
+  --swap_colors(15, 4)
+  --swap_colors(7, 1)
+  --print(tostring(self.number), x, y)
+  --swap_colors(15, 15)
+  --swap_colors(7, 7)
 
   line(x+self.offset_x-1, y+self.offset_y,
        x+self.offset_x-1, y+self.offset_y+10, 2)
