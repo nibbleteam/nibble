@@ -1,5 +1,8 @@
 local Bitmap = {}
 
+-- In filled pixels
+local FILL_LIMIT = 1024*128
+
 function Bitmap:new(width, height, data)
   return new(Bitmap, {
                width = width or 0,
@@ -62,10 +65,22 @@ end
 
 function Bitmap:fill(x, y, color)
   local frontier = { { x, y } }
+  local box = {
+    x, y,
+    x, y,
+  }
 
   local original = self:get_pixel(x, y)
 
+  local i = 0
+
   while #frontier > 0 do
+    i += 1
+
+    if i > FILL_LIMIT then
+      break
+    end
+
     local x, y = unwrap(shift(frontier))
 
     self:put_pixel(x, y, color)
@@ -76,12 +91,20 @@ function Bitmap:fill(x, y, color)
         if dx == 0 or dy == 0 then
           if self:get_pixel(x+dx, y+dy) == original then
             self:put_pixel(x+dx, y+dy, color)
+
             push(frontier, { x+dx, y+dy })
+
+            box = {
+              math.min(box[1], x+dx), math.min(box[2], y+dy),
+              math.max(box[3], x+dx), math.max(box[4], y+dy)
+            }
           end
         end
       end
     end
   end
+
+  return unwrap(box)
 end
 
 return Bitmap

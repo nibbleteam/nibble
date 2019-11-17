@@ -10,6 +10,8 @@ local PaletteSelector = require 'PaletteSelector'
 local Canvas = require 'Canvas'
 local Bitmap = require 'Bitmap'
 
+local RevisionHistory = require 'RevisionHistory'
+
 local PencilTool = require 'PencilTool'
 local LineTool = require 'LineTool'
 local FillTool = require 'FillTool'
@@ -29,11 +31,13 @@ local palette_selector_height = 80+2*spacing
 
 local max_zoom = 8
 
+local history = RevisionHistory:new()
+
 local tools = {
-  { 6, PencilTool:new(), 98 },
-  { 7, LineTool:new(), 108 },
-  { 8, FillTool:new(), 102 },
-  { 9, EraserTool:new(), 101 }
+  { 6, PencilTool:new(history), 98 },
+  { 7, LineTool:new(history), 108 },
+  { 8, FillTool:new(history), 102 },
+  { 9, EraserTool:new(history), 101 }
 }
 
 local function random_data(length)
@@ -120,6 +124,18 @@ function Sprite:render(state, props)
 
           self.prev_cursor = w.document.cursor.state
           w.document:set_cursor("picker")
+        end
+      end
+
+      if key == 122 and bit.band(mods, CTRL) ~= 0 then
+        -- Redo
+        if bit.band(mods, SHIFT) ~= 0 then
+          history:redo(state.sprite)
+          w:set_dirty()
+        -- Undo
+        else
+          history:undo(state.sprite)
+          w:set_dirty()
         end
       end
 

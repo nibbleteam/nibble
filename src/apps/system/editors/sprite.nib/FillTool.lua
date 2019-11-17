@@ -1,11 +1,11 @@
 local FillTool = {}
 
-function FillTool:new()
-  return new(FillTool, {})
+function FillTool:new(history)
+  return new(FillTool, { history = history })
 end
 
 function FillTool:press(preview, sprite, x, y, color)
-  sprite:fill(x, y, color)
+  self.history:snapshot(sprite, sprite:fill(x, y, color))
 end
 
 function FillTool:release(sprite, x, y)
