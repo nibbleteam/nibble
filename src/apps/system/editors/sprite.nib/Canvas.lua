@@ -61,8 +61,15 @@ function Canvas:render(state, props)
       local data = spr.data
       local w, h = spr.width, spr.height
 
-      for y=0,h-1 do
-        for x=0,w-1 do
+      -- How much is hidden on the top/left
+      local start_x = math.floor(math.max(0, self.parent.x-self.x)/props.scale)
+      local start_y = math.floor(math.max(0, self.parent.y-self.y)/props.scale)
+      -- How much is visible on the screen
+      local end_x = start_x+math.floor(self.parent.w/props.scale)
+      local end_y = start_y+math.floor(self.parent.h/props.scale)
+
+      for y=start_y,end_y+1 do
+        for x=start_x,end_x+1 do
           local c = data[y*w+x]
 
           if c then
@@ -115,6 +122,9 @@ function Canvas:render(state, props)
         self:pick_color(nx, ny)
       else
         self.props.tool:press(props.preview, props.sprite, nx, ny, props.color-1)
+
+        -- So we also redraw the zoom
+        w.parent:set_dirty()
       end
     end,
 
@@ -126,6 +136,9 @@ function Canvas:render(state, props)
         -- self:pick_color(nx, ny)
       else
         self.props.tool:release(props.sprite, nx, ny, props.color-1)
+
+        -- So we also redraw the zoom
+        w.parent:set_dirty()
       end
     end,
 
@@ -141,6 +154,9 @@ function Canvas:render(state, props)
                           state.cursor_x, state.cursor_y,
                           nx, ny,
                           props.color-1)
+
+          -- So we also redraw the zoom
+          w.parent:set_dirty()
         end
       end
 
@@ -148,6 +164,9 @@ function Canvas:render(state, props)
         cursor_x = nx,
         cursor_y = ny
       }
+
+      -- So we also redraw the zoom
+      w.parent:set_dirty()
     end,
   }
 end

@@ -439,11 +439,13 @@ function Widget:move(event, offset, left)
     if self:mouse_sprite_in_bounds(event, offset) then
         self.mouse.sprite_inside = true
 
-        self:set_dirty()
+        -- Hardware mouse does not mess things up
+        -- self:set_dirty()
     elseif self.mouse.sprite_inside then
         self.mouse.sprite_inside = false
 
-        self:set_dirty()
+        -- Hardware mouse does not mess things up
+        -- self:set_dirty()
     end
 
     if self:in_bounds(event) and not left then
@@ -487,7 +489,7 @@ end
 
 function Widget:leave(event)
     if self.mouse.inside then
-        self:set_dirty()
+        -- self:set_dirty()
 
         self.mouse.inside = false
 

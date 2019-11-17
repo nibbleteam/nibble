@@ -56,7 +56,7 @@ local function zero_data(length)
   return data
 end
 
-local spr_w, spr_h = 64, 64
+local spr_w, spr_h = 4096, 1024
 
 function Sprite:new(props)
   return new(Sprite, {
