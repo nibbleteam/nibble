@@ -46,6 +46,8 @@ function RevisionHistory:snapshot(sprite, sx, sy, ex, ey)
 
          bitmap = self:copy_region(sprite, sx, sy, ex, ey)
   })
+
+  self.future = {}
 end
 
 function RevisionHistory:undo(sprite)

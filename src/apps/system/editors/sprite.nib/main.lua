@@ -421,10 +421,10 @@ end
 local sprite_editor = Sprite:new({})
 local nom = sprite_editor:nom():use('cursor')
 
-nom.cursor["pencil"] = {
+nom.cursor["crosshair"] = {
   x = 56, y = 80,
   w = 8, h = 8,
-  hx = 0, hy = 8,
+  hx = 3, hy = 3,
 }
 
 nom.cursor["picker"] = {

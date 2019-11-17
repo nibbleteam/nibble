@@ -17,6 +17,29 @@ function Canvas:pick_color(x, y)
   self.props.onpickcolor(self.props.sprite:get_pixel(x, y))
 end
 
+function Canvas:update_crosshair()
+  local img = {
+    { 59, 80 },
+    { 59, 81 },
+    { 59, 83 },
+    { 59, 85 },
+    { 59, 86 },
+    { 56, 83 },
+    { 57, 83 },
+    { 61, 83 },
+    { 62, 83 },
+  }
+
+  local sx, sy = 59-1, 83-1
+  local px, py = mouse_position()
+
+  for _, pix in ipairs(img) do
+    local c = get_pixel(px+pix[1]-sx, py+pix[2]-sy)%16
+
+    put_sheet_pixel(pix[1], pix[2], (c <= 4) and 15 or 1)
+  end
+end
+
 function Canvas:render(state, props)
   props.scale = props.scale < 1 and 1 or props.scale
 
@@ -99,7 +122,8 @@ function Canvas:render(state, props)
     end,
 
     onenter = function(w)
-      w.document:set_cursor("pencil")
+      self:update_crosshair()
+      w.document:set_cursor("crosshair")
 
       self:set_state({
           show_cursor = true
@@ -143,6 +167,9 @@ function Canvas:render(state, props)
     end,
 
     onmove = function(w, event)
+      self:update_crosshair()
+      w.document:set_cursor("crosshair")
+
       local nx = math.floor((event.x-w.x)/props.scale)
       local ny = math.floor((event.y-w.y)/props.scale)
 
