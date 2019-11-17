@@ -2,6 +2,8 @@ local LineTool = {}
 
 function LineTool:new(history)
   return new(LineTool, {
+               name = "line tool",
+
                preview = nil,
                color = 0,
                start_x = 0,

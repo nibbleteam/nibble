@@ -52,9 +52,7 @@ function RevisionHistory:undo(sprite)
   local data = pop(self.past)
 
   if data then
-    terminal_print("Un-doing a region of", data.bitmap.width, data.bitmap.height)
-
-    -- Do all the changes from a zeroed out sprite
+    -- Do all the changes from a zeroed out sprite, except the last one
     sprite:clear()
     for _, data in ipairs(self.past) do
         self:apply_region(sprite, data.bitmap, data.x, data.y)
@@ -68,8 +66,6 @@ function RevisionHistory:redo(sprite)
   local data = pop(self.future)
 
   if data then
-    terminal_print("Re-doing a region of", data.bitmap.width, data.bitmap.height)
-
     self:apply_region(sprite, data.bitmap, data.x, data.y)
 
     push(self.past, data)

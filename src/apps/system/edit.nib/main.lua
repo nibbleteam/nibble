@@ -1,12 +1,15 @@
 env.menu = {
   'Nibble Edit',
-  'v0.0.1',
+  'v0.1.0',
   '',
   'by Uberoverlord'
 }
 
+require "lang.timeout"
+
 local NOM = require "nibui.NOM"
 local Widget = require "nibui.Widget"
+local Easing = require "nibui.Easing"
 
 -- Constants
 local taskbar_height = 18
@@ -19,7 +22,6 @@ local icon_height = 16
 local icon_gap = 0
 local icon_jump = 2
 local icon_offset = 2
-
 local icon_map = {
   ["music.nib"] = {
     sprite_y = 6,
@@ -38,7 +40,15 @@ local icon_map = {
     button_position = 4,
   },
 }
+
 local editor_search_path = "apps/system/editors/"
+
+local notification_time = 2
+
+-- Notification queue
+local notifications = {}
+local current_notification_timeout_id = nil
+local notification_removing = false
 
 -- Get all editors
 local editor_paths = list_directory(editor_search_path)
@@ -155,7 +165,9 @@ local ui = NOM:new({
             width=env.width,
             height=env.height-taskbar_height,
 
-            params = env.params
+            params = env.params,
+
+            taskbar = env.pid,
           }, true)
 
           self.running = widget.pid
@@ -212,6 +224,39 @@ local ui = NOM:new({
     --   end
     -- },
 
+    -- Notification Popup
+    {
+      id = "notification",
+
+      x = NOM.right, w = 0,
+      y = NOM.top+4, h = taskbar_height-6,
+
+      {
+        y = NOM.top+1,
+
+        radius = 2,
+
+        clip_to = 0,
+
+        background = 1,
+      },
+
+      {
+        id = "notification_content",
+
+        radius = 2,
+
+        background = 6,
+      },
+
+      {
+        h = 1,
+        x = NOM.left+1, w = NOM.width-2,
+
+        background = 9,
+      }
+    },
+
     unwrap(editor_buttons)
   }
 
@@ -223,4 +268,70 @@ end
 
 function update(dt)
   ui:update(dt)
+
+  local message
+
+  repeat
+    message = receive_message()
+
+    if type(message) == "table" and message.kind == "notification" then
+      push(notifications, {
+             content = message.content or ""
+      })
+
+      show_next_notification()
+    end
+  until message == nil
+
+  run_timeouts(dt)
+end
+
+function show_next_notification()
+  if current_notification_timeout_id then
+    clear_timeout(current_notification_timeout_id)
+
+    if not notification_removing then
+      notification_removing = true
+
+      ui:find("#notification").x = { NOM.right, 0.1, Easing.InOutCubic }
+
+      current_notification_timeout_id = set_timeout(0.1, function()
+        current_notification_timeout_id = nil
+        notification_removing = false
+        show_next_notification()
+      end)
+
+      return
+    else
+      while #notifications > 1 do
+        shift(notifications)
+      end
+    end
+  end
+
+  local notification = shift(notifications)
+
+  if notification then
+    local text = notification.content
+
+    local main_w = ui:find("#notification")
+    local content_w = ui:find("#notification_content")
+
+    local width = measure(text)+8
+
+    content_w.content = text
+    main_w.w = width
+    main_w.x = { NOM.right-width-2, 0.3, Easing.OutCubic }
+
+    current_notification_timeout_id = set_timeout(notification_time, function()
+      main_w.x = { NOM.right, 0.3, Easing.InOutCubic }
+      notification_removing = true
+
+      current_notification_timeout_id = set_timeout(0.4, function()
+        current_notification_timeout_id = nil
+        notification_removing = false
+        show_next_notification()
+      end)
+    end)
+  end
 end

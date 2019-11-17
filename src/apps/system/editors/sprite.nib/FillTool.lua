@@ -1,7 +1,10 @@
 local FillTool = {}
 
 function FillTool:new(history)
-  return new(FillTool, { history = history })
+  return new(FillTool, {
+               name = "fill tool",
+               history = history
+  })
 end
 
 function FillTool:press(preview, sprite, x, y, color)

@@ -3,12 +3,14 @@ local Bitmap = {}
 -- In filled pixels
 local FILL_LIMIT = 1024*128
 
-function Bitmap:new(width, height, data)
+function Bitmap:new(width, height, data, solid)
   return new(Bitmap, {
                width = width or 0,
                height = height or 0,
 
                data = data or {},
+
+               solid = solid or nil,
   })
 end
 

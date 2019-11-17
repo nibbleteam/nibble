@@ -3,6 +3,8 @@ local timeout_id = 0
 local time = 0
 
 function set_timeout(expires_after, fn)
+  local id = timeout_id
+
   insert(timeout_table, {
            expires_at = time + expires_after,
            fn = fn,
@@ -10,6 +12,8 @@ function set_timeout(expires_after, fn)
   })
 
   timeout_id += 1
+
+  return id
 end
 
 function clear_timeout(id)

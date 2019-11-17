@@ -1008,7 +1008,7 @@ SDL_Cursor* GPU::make_cursor(uint8_t* data, uint32_t hash,
 
     cursor_surfaces[hash] = scaled;
 
-    return SDL_CreateColorCursor(scaled, min(scaled_w-1, hot_x*scale), min(scaled_h, hot_y*scale));
+    return SDL_CreateColorCursor(scaled, min(scaled_w-1, hot_x*scale), min(scaled_h-1, hot_y*scale));
 }
 
 

@@ -50,11 +50,11 @@ local function random_data(length)
   return data
 end
 
-local function zero_data(length)
+local function zero_data(length, v)
   local data = {}
 
   for i=0,length-1 do
-    data[i] = 0
+    data[i] = v or 0
   end
 
   return data
@@ -68,7 +68,7 @@ function Sprite:new(props)
                state = {
                  selected_color = 16,
                  selected_palette = 1,
-                 sprite = Bitmap:new(spr_w, spr_h, zero_data(spr_w*spr_h)),
+                 sprite = Bitmap:new(spr_w, spr_h, zero_data(spr_w*spr_h), 0),
                  preview = Bitmap:new(spr_w, spr_h, {}),
                  zoom = 1,
                  dragging = false,
@@ -90,10 +90,22 @@ function Sprite:new(props)
                mouse_start_y = 0,
 
                prev_cursor = nil,
+
+               -- To calculate deltas and send messages
+               zoom = 1,
   })
 end
 
 function Sprite:render(state, props)
+  if state.zoom > 0 and state.zoom ~= self.zoom then
+    send_message(env.taskbar, {
+                   kind = "notification",
+                   content = "x"..tostring(state.zoom),
+    })
+
+    self.zoom = state.zoom
+  end
+
   return {
     x = NOM.left, y = NOM.top,
     w = NOM.width, h = NOM.height,
@@ -132,10 +144,20 @@ function Sprite:render(state, props)
         if bit.band(mods, SHIFT) ~= 0 then
           history:redo(state.sprite)
           w:set_dirty()
+
+          send_message(env.taskbar, {
+                        kind = "notification",
+                        content = "Redo"
+          })
         -- Undo
         else
           history:undo(state.sprite)
           w:set_dirty()
+
+          send_message(env.taskbar, {
+                        kind = "notification",
+                        content = "Undo!"
+          })
         end
       end
 
@@ -153,6 +175,11 @@ function Sprite:render(state, props)
         if key == tool[3] then
           self:set_state({
               tool = tool[2]
+          })
+
+          send_message(env.taskbar, {
+                         kind = "notification",
+                         content = ""..tool[2].name,
           })
         end
       end
@@ -379,6 +406,11 @@ function Sprite:render(state, props)
               self:set_state {
                 tool = tool[2]
               }
+
+              send_message(env.taskbar, {
+                             kind = "notification",
+                             content = "Using "..tool[2].name,
+              })
             end,
           }
       end)
@@ -405,6 +437,11 @@ nom.cursor["hand"] = {
   x = 64, y = 80,
   w = 8, h = 8,
 }
+
+send_message(env.taskbar, {
+               kind = "notification",
+               content = "Welcome! \7"
+})
 
 function draw()
   nom:draw()

@@ -2,6 +2,8 @@ local PencilTool = {}
 
 function PencilTool:new(history)
   return new(PencilTool, {
+               name = "pencil tool",
+
                history = history,
                bounding_box = { 0, 0, 0, 0 }
   })

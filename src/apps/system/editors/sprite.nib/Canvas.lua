@@ -70,7 +70,7 @@ function Canvas:render(state, props)
 
       for y=start_y,end_y+1 do
         for x=start_x,end_x+1 do
-          local c = data[y*w+x]
+          local c = data[y*w+x] or spr.solid
 
           if c then
             fill_rect(self.x+1+x*props.scale, self.y+1+y*props.scale,
