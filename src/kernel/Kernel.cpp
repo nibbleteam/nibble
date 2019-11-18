@@ -33,6 +33,10 @@ Kernel::Kernel(const bool fullscreen_startup): open_menu_next_frame(false), powe
 
     memory.set_log(false);
 
+    process_memory_start = memory.used();
+
+    cout << "Devices used " << process_memory_start << "bytes" << endl;
+
     // Inicializa kernel & dispositivos
     startup();
 }
@@ -44,6 +48,8 @@ Kernel::~Kernel() {
 }
 
 void Kernel::startup() {
+    cout << "Process memory starts at " << memory.used() << "bytes" << endl;
+
     gpu->startup();
     mouse->startup();
     keyboard->startup();
@@ -79,9 +85,8 @@ void Kernel::shutdown() {
     midi_controller->shutdown();
 #endif
 
-    // TODO: Hack para dealocar memória dos processos
-    // mas não dos despositivos
-    memory.deallocate(79856);
+    // Limpa a memória dos processos
+    memory.deallocate_after(process_memory_start);
 }
 
 void Kernel::loop() {
@@ -237,6 +242,7 @@ void Kernel::loop() {
     }
 }
 
+
 void Kernel::api_shutdown() {
     power = false;
 }
@@ -290,6 +296,10 @@ void Kernel::api_save_spritesheet(const size_t ptr, const int w, const int h, co
     mmap::write_image(memory, ptr, w, h, path);
 }
 
+void Kernel::api_unload_spritesheet(const size_t ptr) {
+    memory.deallocate(ptr);
+}
+
 // Wrapper estático para a API
 
 size_t kernel_api_write(const size_t to, const size_t amount, const char* data) {
@@ -314,6 +324,10 @@ void kernel_api_save_spritesheet(const size_t ptr, const int w, const int h, con
 
 void kernel_api_use_spritesheet(const size_t source, const int w, const int h) {
     KernelSingleton.lock()->api_use_spritesheet(source, w, h);
+}
+
+void kernel_api_unload_spritesheet(const size_t ptr) {
+    KernelSingleton.lock()->api_unload_spritesheet(ptr);
 }
 
 void kernel_api_shutdown() {

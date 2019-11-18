@@ -89,8 +89,6 @@ void Memory::deallocate(uint8_t *ptr) {
     try {
         auto area = used_areas.at((uint8_t*)ptr);
 
-        cout << "deallocate: " << area.pos << endl;
-
         free_areas.insert(make_pair(ptr, area));
         used_areas.erase(ptr);
     } catch (out_of_range &o) {

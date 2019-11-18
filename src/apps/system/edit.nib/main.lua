@@ -288,16 +288,26 @@ local ui = NOM:new({
       w = 16, h = 16,
 
       background = { 0, 10 },
+
+      onpress = function(self)
+        -- Press the button
+        self.background = { 1, 10 }
+      end,
   
       onclick = function(self)
+        -- Release the button
+        self.background = { 0, 10 }
+
         local child = start_app(app.path, {})
 
-        -- Wait for child to exit
-        pause_app(env.pid, child)
-        pause_app(self.parent:find("taskbar").running)
+        if child then
+          -- Wait for child to exit
+          pause_app(env.pid, child)
+          pause_app(self.parent:find("taskbar").running)
 
-        -- Disable the mouse
-        mouse_cursor(0, 0, 0, 0)
+          -- Disable the mouse
+          mouse_cursor(0, 0, 0, 0)
+        end
       end,
 
       onenter = function(self)
@@ -305,6 +315,9 @@ local ui = NOM:new({
       end,
 
       onleave = function(self)
+        -- Release the button
+        self.background = { 0, 10 }
+
         self.document:set_cursor("default")
       end,
     },

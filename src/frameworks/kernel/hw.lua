@@ -19,6 +19,7 @@ size_t kernel_api_write(const size_t, const size_t, const char*);
 void kernel_api_load_spritesheet(const char*, size_t*, int*, int*);
 void kernel_api_save_spritesheet(const size_t, const int, const int, const char*);
 void kernel_api_use_spritesheet(const size_t, const int, const int);
+void kernel_api_unload_spritesheet(const size_t);
 
 void gpu_api_clear(uint8_t);
 void gpu_api_clip(int16_t, int16_t, int16_t, int16_t);
@@ -72,6 +73,10 @@ function hw.load_spritesheet(sheet)
     ffi.C.kernel_api_load_spritesheet(sheet, ptr, w, h)
 
     return tonumber(ptr[0]), tonumber(w[0]), tonumber(h[0])
+end
+
+function hw.unload_spritesheet(ptr)
+    ffi.C.kernel_api_unload_spritesheet(ptr)
 end
 
 function hw.save_spritesheet(ptr, w, h, sheet)

@@ -125,6 +125,7 @@ function make_process(entrypoint, env, group)
             w = sheet_w,
             h = sheet_h
         },
+        external_spritesheets = {},
         width = w, height = h,
         x = x, y = y,
         message_queue = {},
@@ -387,7 +388,12 @@ function stop_app(pid, disable_grouping)
                 send_stopped(process)
 
                 if process then
-                    -- TODO: limpar a memória alocada pelo processo
+                    hw.unload_spritesheet(process.priv.spritesheet.ptr)
+
+                    for _, sheet in ipairs(process.priv.external_spritesheets) do
+                        hw.unload_spritesheet(sheet.ptr)
+                    end
+
                     processes[pid] = nil
                 end
             end
@@ -555,7 +561,13 @@ function nib_api(entrypoint, proc, env)
             end
         end,
         load_sheet = function(file)
-            return hw.load_spritesheet(file)
+            local ptr, w, h = hw.load_spritesheet(file)
+
+            table.insert(executing_process.priv.external_spritesheets, {
+                             ptr = ptr, w = w, h = h,
+            })
+
+            return ptr, w, h
         end,
         open_asset = function(asset, kind)
             return nib_open_asset(entrypoint, asset, kind)
@@ -638,4 +650,3 @@ function nib_api(entrypoint, proc, env)
 
     return api
 end
-

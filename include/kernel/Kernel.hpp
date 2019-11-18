@@ -44,6 +44,9 @@ private:
 
     /* Ligado? */
     bool power;
+
+    /* Início da memória livre */
+    size_t process_memory_start;
 public:
     /* Dispositivos */
 
@@ -81,6 +84,7 @@ public:
     void api_use_spritesheet(const size_t, const int, const int);
     tuple<size_t, int, int> api_load_spritesheet(string);
     void api_save_spritesheet(const size_t, const int, const int, const string);
+    void api_unload_spritesheet(const size_t);
 };
 
 extern "C" {
@@ -100,6 +104,7 @@ extern "C" {
     API void kernel_api_load_spritesheet(const char*, size_t*, int*, int*);
     API void kernel_api_save_spritesheet(const size_t, const int, const int, const char*);
     API void kernel_api_use_spritesheet(const size_t, const int, const int);
+    API void kernel_api_unload_spritesheet(const size_t);
 
     // Arquivos
     API LuaString* api_list_files(const char*, size_t*, int*);
