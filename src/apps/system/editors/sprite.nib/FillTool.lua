@@ -2,7 +2,7 @@ local FillTool = {}
 
 function FillTool:new(history)
   return new(FillTool, {
-               name = "fill tool",
+               name = "Fill Tool",
                history = history
   })
 end

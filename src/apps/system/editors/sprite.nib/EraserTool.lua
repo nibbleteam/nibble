@@ -2,7 +2,7 @@ local EraserTool = {}
 
 function EraserTool:new(history)
   return new(EraserTool, {
-               name = "eraser tool",
+               name = "Eraser Tool",
 
                history = history,
                bounding_box = { 0, 0, 0, 0 }

@@ -10,25 +10,11 @@ require "lang.timeout"
 local NOM = require "nibui.NOM"
 local Widget = require "nibui.Widget"
 local Easing = require "nibui.Easing"
+local find_app = require "path.find_app"
 
-local function extract_app_name()
-  local no_app = "<NO APP>"
+local found_apps = find_app((env.params and env.params[2]) or "")
 
-  if #env.params >= 2 then
-    local app = env.params[2]:match("[^/\\]+%.nib")
-
-    if app then
-      return app
-    else
-      return env.params[2]..".nib"
-    end
-  else
-    return no_app
-  end
-end
-
--- TODO
-local app_name = extract_app_name()
+local app = found_apps[1] or { name = "<NO APP>", path = "", entrypoint = "" }
 
 -- Constants
 local taskbar_height = 18
@@ -61,12 +47,22 @@ local icon_map = {
   },
 }
 
+local filetypes = {
+  ["code.nib"] = "entrypoint",
+  ["sprite.nib"] = "spritesheet"
+}
+
 local editor_search_path = "apps/system/editors/"
 
 local notification_time = 2
 
 -- Notification queue
-local notifications = {}
+local notifications = {
+  {
+    content = "Nibble v0.2.0",
+  }
+}
+
 local current_notification_timeout_id = nil
 local notification_removing = false
 
@@ -183,12 +179,12 @@ local ui = NOM:new({
           self.running = widget.pid
         else
           -- otherwise start it from the ground up
-          widget.pid = start_app(id,{
+          widget.pid = start_app(id, {
             x=0,y=0,
             width=env.width,
             height=env.height-taskbar_height,
 
-            params = env.params,
+            params = { id, app[filetypes[id:sub(editor_search_path:len()+1)]] or app.path },
 
             taskbar = env.pid,
           }, true)
@@ -281,18 +277,46 @@ local ui = NOM:new({
     },
 
     {
+      padding_top = 1,
+      content = app.name,
+    },
+
+    -- A "Run" button
+    {
       x = NOM.left+buttons_width,
-      w = measure(app_name),
+      y = NOM.top+2,
+      w = 16, h = 16,
 
-      padding_top = 2,
+      background = { 0, 10 },
+  
+      onclick = function(self)
+        local child = start_app(app.path, {})
 
-      content = app_name,
+        -- Wait for child to exit
+        pause_app(env.pid, child)
+        pause_app(self.parent:find("taskbar").running)
+
+        -- Disable the mouse
+        mouse_cursor(0, 0, 0, 0)
+      end,
+
+      onenter = function(self)
+        self.document:set_cursor("pointer")
+      end,
+
+      onleave = function(self)
+        self.document:set_cursor("default")
+      end,
     },
 
     unwrap(editor_buttons)
   }
 
 }):use('cursor')
+
+function init()
+  show_next_notification()
+end
 
 function draw()
   ui:draw()
@@ -312,6 +336,10 @@ function update(dt)
       })
 
       show_next_notification()
+    end
+
+    if type(message) == "table" and message.app_stopped then
+      resume_app(ui:find("#taskbar").running)
     end
   until message == nil
 

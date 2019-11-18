@@ -90,7 +90,7 @@ function init()
                 NOM.require("ui", { code = code, filename = opened_file }),
             }):use("cursor")
         else
-            print_available_apps_and_exit(true)
+            return print_available_apps_and_exit(true)
         end
     else
         -- print_available_apps_and_exit()
@@ -102,6 +102,11 @@ function init()
             NOM.require("ui", { code = "", filename = "unamed.lua" }),
         }):use("cursor")
     end
+
+    send_message(env.taskbar, {
+      kind = "notification",
+      content = "Lets hack!",
+    })
 end
 
 function draw()

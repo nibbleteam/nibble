@@ -1,3 +1,10 @@
+env.menu = {
+  'Sprite Editor',
+  'v0.1.0',
+  '',
+  'by @felipeoltavares',
+}
+
 require 'nibui.Neact'
 
 local NOM = require 'nibui.NOM'
@@ -31,7 +38,7 @@ local palette_selector_height = 80+2*spacing
 
 local max_zoom = 8
 
-local source_file = "apps/"..(env.params[2] or "").."/assets/sheet.png"
+local source_file = env.params[2]
 
 local main_sheet = nil
 
@@ -46,7 +53,7 @@ local function sheet_data()
     for x=0,w-1 do
       local p = y*w+x;
 
-      data[p] = sheet_data:sub(p, p)
+      data[p] = sheet_data:sub(p+1, p+1)
     end
   end
 
@@ -97,6 +104,18 @@ function Sprite:new(props)
 
                -- To calculate deltas and send messages
                zoom = 1,
+  })
+end
+
+function Sprite:zoom_at_cursor(zoom)
+  local cz = self.state.zoom
+  local cx = self.state.canvas_offset_x
+  local cy = self.state.canvas_offset_y
+
+  self:set_state({
+      zoom = zoom,
+      canvas_offset_x = cx*zoom/cz,
+      canvas_offset_y = cy*zoom/cz
   })
 end
 
@@ -167,7 +186,7 @@ function Sprite:render(state, props)
 
       -- Save
       if key == 115 and bit.band(mods, CTRL) ~= 0 then
-        put_sheet_full(join(state.sprite.data), main_sheet, state.sprite.width, state.sprite.height)
+        put_sheet_full(join(state.sprite.data, "", 0), main_sheet, state.sprite.width, state.sprite.height)
 
         save_sheet(source_file, main_sheet, state.sprite.width, state.sprite.height)
 
@@ -181,9 +200,7 @@ function Sprite:render(state, props)
 
       for zoom, zoom_key in ipairs(zoom_levels) do
         if key == zoom_key then
-          self:set_state({
-              zoom = zoom
-          })
+          self:zoom_at_cursor(zoom)
         end
       end
 
@@ -322,9 +339,7 @@ function Sprite:render(state, props)
           set_zoom = function(w, event)
             local p = (event.x-w.x)/w.w
 
-            self:set_state({
-                zoom = math.ceil(p*max_zoom)
-            })
+            self:zoom_at_cursor(math.ceil(p*max_zoom))
           end,
 
           onpress = function(w, event)
@@ -367,9 +382,7 @@ function Sprite:render(state, props)
           background = { 80, 0, 8, 9 },
 
           onclick = function()
-            self:set_state({
-                zoom = state.zoom-1
-            })
+            self:zoom_at_cursor(state.zoom-1)
           end,
 
           onenter = function(self)
@@ -390,9 +403,7 @@ function Sprite:render(state, props)
           background = { 88, 0, 8, 9 },
 
           onclick = function()
-            self:set_state({
-                zoom = state.zoom+1
-            })
+            self:zoom_at_cursor(state.zoom+1)
           end,
 
           onenter = function(self)

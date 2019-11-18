@@ -2,7 +2,7 @@ local LineTool = {}
 
 function LineTool:new(history)
   return new(LineTool, {
-               name = "line tool",
+               name = "Line Tool",
 
                preview = nil,
                color = 0,

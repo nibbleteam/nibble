@@ -364,6 +364,10 @@ function stop_app(pid, disable_grouping)
             local parent = proc.priv.parent
 
             table.insert(parent.priv.message_queue, 1, { app_stopped = executing_process.priv.pid })
+
+            if parent.priv.waiting == proc.priv.pid then
+                resume_app(parent.priv.pid)
+            end
         end
     end
 
@@ -401,6 +405,15 @@ function stop_app(pid, disable_grouping)
     end
 end
 
+function resume_app(pid)
+    local process = processes[pid]
+
+    if process then
+        process.priv.running = true
+        hw.write(768, process.priv.screen)
+    end
+end
+
 function nib_api(entrypoint, proc, env)
     local api = {
         -- Processos podem usar require limitado,
@@ -417,22 +430,19 @@ function nib_api(entrypoint, proc, env)
         stop_app = function(pid, disable_grouping)
             return stop_app(pid, disable_grouping)
         end,
-        -- TODO: act on children and self and if isn't graphical, all parents until one is
-        pause_app = function (pid)
+        pause_app = function (pid, wait_pid)
             local process = processes[pid]
 
             if process then
                 process.priv.screen = hw.read(768, 400*240)
                 process.priv.running = false
+
+                -- This process can wake us up
+                process.priv.waiting = wait_pid
             end
         end,
         resume_app = function (pid)
-            local process = processes[pid]
-
-            if process then
-                process.priv.running = true
-                hw.write(768, process.priv.screen)
-            end
+            resume_app(pid)
         end,
         send_message = function(pid, message)
             if processes[pid] and message then

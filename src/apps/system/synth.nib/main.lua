@@ -232,21 +232,37 @@ function draw()
 end
 
 function audio_tick()
-    local input = read_keys()
+    local input = read_key_events()
+
     local octs = 'zsxdcvgbhnjmq2w3er5t6y7ui9o0p'
+
+    local key_to_str = {}
 
     for k=1,#input do
         -- Encontra a nota
-        local note = octs:find(input:sub(k, k))
+        local note = octs:find(from_ascii(input[k][2]))
 
         if note ~= nil then
-            note += 39-12
+            note += 47
 
-            -- Toca
-            channel(CH1)
-            noteon(note, 255)
+            if input[k][1] == 1 then
+                -- Toca
+                if not pressed_keys[note] then
+                    channel(CH1)
+                    noteon(note, 255)
 
-            pressed_keys[note] = true
+                    pressed_keys[note] = true
+
+                    say('key down '..tostring(note))
+                end
+            elseif input[k][1] == 2 then
+                channel(CH1)
+                noteoff(note, 255)
+
+                pressed_keys[note] = false
+
+                say('key up '..tostring(note))
+            end
         end
     end
 
