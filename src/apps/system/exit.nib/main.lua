@@ -1,0 +1,3 @@
+function init()
+  shutdown()
+end
