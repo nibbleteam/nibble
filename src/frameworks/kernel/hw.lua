@@ -11,6 +11,8 @@ typedef struct LuaString {
     size_t len;
 } LuaString;
 
+void kernel_api_shutdown();
+
 size_t kernel_api_read(char*, const size_t, const size_t);
 size_t kernel_api_write(const size_t, const size_t, const char*);
 
@@ -362,6 +364,10 @@ end
 
 function hw.enqueue_command(t, ch, cmd, note, intensity)
     ffi.C.audio_enqueue_command(t, ch, cmd, note, intensity)
+end
+
+function hw.shutdown()
+    ffi.C.kernel_api_shutdown()
 end
 
 return hw

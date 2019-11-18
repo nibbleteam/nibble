@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Kernel::Kernel(const bool fullscreen_startup): open_menu_next_frame(false) {
+Kernel::Kernel(const bool fullscreen_startup): open_menu_next_frame(false), power(true) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         cout << "SDL_Init: " << SDL_GetError() << endl;
     }
@@ -87,7 +87,7 @@ void Kernel::shutdown() {
 void Kernel::loop() {
     float last_time = 0;
 
-    while (true) {
+    while (power) {
         float current_time = SDL_GetTicks();
         float delta = (current_time - last_time)/1000;
         //float fps = 1.f / delta;
@@ -237,6 +237,10 @@ void Kernel::loop() {
     }
 }
 
+void Kernel::api_shutdown() {
+    power = false;
+}
+
 size_t Kernel::api_write(const size_t where, const size_t wanted_size, const uint8_t* what) {
     if (where >= NIBBLE_MEM_SIZE) {
         return 0;
@@ -310,6 +314,10 @@ void kernel_api_save_spritesheet(const size_t ptr, const int w, const int h, con
 
 void kernel_api_use_spritesheet(const size_t source, const int w, const int h) {
     KernelSingleton.lock()->api_use_spritesheet(source, w, h);
+}
+
+void kernel_api_shutdown() {
+    KernelSingleton.lock()->api_shutdown();
 }
 
 void gpu_api_sprite(int16_t x, int16_t y,

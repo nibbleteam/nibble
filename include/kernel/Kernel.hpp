@@ -41,6 +41,9 @@ private:
 
     /* Devemos abrir o menu na próxima frame? */
     bool open_menu_next_frame;
+
+    /* Ligado? */
+    bool power;
 public:
     /* Dispositivos */
 
@@ -70,6 +73,8 @@ public:
     void loop();
 
     // API
+    void api_shutdown();
+
     size_t api_write(const size_t, const size_t, const uint8_t*);
     size_t api_read(char*, const size_t, const size_t);
 
@@ -83,6 +88,9 @@ extern "C" {
         char* ptr;
         size_t len;
     } LuaString;
+
+    // Energia
+    API void kernel_api_shutdown();
 
     // Memória
     API size_t kernel_api_read(char*, const size_t, const size_t);
