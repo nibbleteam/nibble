@@ -1,3 +1,6 @@
+-- Nibble Shell
+-- by @felipeoltavares
+
 local tty
 
 local name = 'shell.nib'
@@ -140,5 +143,3 @@ function receive_messages()
         end
     end
 end
-
-

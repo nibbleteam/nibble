@@ -1,4 +1,5 @@
 local NOM = require 'nibui.NOM'
+local Widget = require 'nibui.Widget'
 
 local Editor = require 'Editor'
 
@@ -50,26 +51,47 @@ return {
     x = NOM.left+editor_margin,
     y = NOM.top+editor_margin,
 
-    background = 1,
+    background = 16,
 
     draw = function (self)
+        local text_breathing = 0
+
         if not self.editor then
-            self.editor = Editor:new(self.code)
+            self.editor = Editor:new(self.code, math.ceil((self.h)/10))
         end
+
+        Widget.draw(self)
 
         clip(self.x, self.y, self.w, self.h)
 
         self.editor:draw(self.x, self.y, self.w, self.h)
     end,
 
+    onclick = function(self, event)
+        if self.editor then
+            self.editor:move_to_mouse(event.x-self.x, event.y-self.y)
+        end
+    end,
+
+    onmove = function(self, event)
+        if event.drag and self.editor then
+            self.editor:move_to_mouse(event.x-self.x, event.y-self.y)
+        end
+    end,
+
     update = function(self)
+        -- TODO: use NOM's event system
         local input = read_keys()
 
         for i=1,#input do
             local char = input:sub(i, i)
 
             if char == "\08" then
-                self.editor:remove_chars(-1)
+                if self.editor:look_at(-2) == "  " then
+                    self.editor:remove_chars(-2)
+                else
+                    self.editor:remove_chars(-1)
+                end
             elseif char == "\127" then
                 self.editor:remove_chars(1)
             elseif char == "\09" then
@@ -80,6 +102,7 @@ return {
                 self.editor:insert_chars(char)
             end
 
+            -- TODO: use save signal
             write_file(self.filename, self.editor:text())
         end
 
@@ -102,6 +125,12 @@ return {
 
         if #input > 0 then
             self:set_dirty()
+        end
+
+        local sx, sy = mouse_scroll()
+
+        if sy ~= 0 then
+            self.editor:move_by_lines(-sy*4)
         end
     end
 }

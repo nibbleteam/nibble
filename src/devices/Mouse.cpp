@@ -8,6 +8,11 @@ Mouse::Mouse(Memory &memory) {
     mem = memory.allocate(MOUSE_MEM_SIZE, "Mouse");
 }
 
+void Mouse::scrolled(uint8_t x, uint8_t y) {
+    mem[6] = x;
+    mem[7] = y;
+}
+
 void Mouse::moved(uint16_t x, uint16_t y) {
     mem[0] = x>>8;
     mem[1] = (uint8_t)x;
@@ -50,4 +55,7 @@ void Mouse::update() {
                 break;
         }
     }
+
+    mem[6] = 128;
+    mem[7] = 128;
 }

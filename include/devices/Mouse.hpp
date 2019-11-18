@@ -12,6 +12,7 @@ class Mouse : public Device {
 public:
 	Mouse(Memory&);
 
+    void scrolled(uint8_t, uint8_t);
     void moved(uint16_t, uint16_t);
     void pressed(uint8_t);
     void released(uint8_t);

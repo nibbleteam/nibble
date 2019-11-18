@@ -607,6 +607,7 @@ function nib_api(entrypoint, proc, env)
         mouse_button_press = input.mouse_button_press,
         mouse_button_release = input.mouse_button_release,
         mouse_position = input.mouse_position,
+        mouse_scroll = input.mouse_scroll,
         read_keys = input.read_keys,
         read_key_events = input.read_key_events,
         read_midi = input.read_midi,

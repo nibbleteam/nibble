@@ -164,6 +164,10 @@ function Line:length()
   return #self.content
 end
 
+function Line:indentation()
+  return self.content:match("^%s+")
+end
+
 function Line:height()
   return 10
 end

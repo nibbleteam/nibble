@@ -36,7 +36,7 @@ local toolbar_width = 16+2*spacing
 
 local palette_selector_height = 80+2*spacing
 
-local max_zoom = 8
+local max_zoom = 12
 
 local source_file = env.params[2]
 
@@ -243,6 +243,10 @@ function Sprite:render(state, props)
       -- terminal_print("Released", key)
     end,
 
+    onscroll = function(w, x, y)
+      self:zoom_at_cursor(math.max(1, math.min(max_zoom, y+state.zoom)))
+    end,
+
     -- Palette
     {
       Palette,
@@ -403,7 +407,7 @@ function Sprite:render(state, props)
           background = { 88, 0, 8, 9 },
 
           onclick = function()
-            self:zoom_at_cursor(state.zoom+1)
+            self:zoom_at_cursor(math.min(max_zoom, state.zoom+1))
           end,
 
           onenter = function(self)

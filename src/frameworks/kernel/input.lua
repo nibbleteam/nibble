@@ -7,7 +7,7 @@ local input = {}
 --input.KEYBOARD          = 78418
 --input.MOUSE             = 78450
 -- 400x240
-input.MIDI_CONTROLLER   = 97688
+input.MIDI_CONTROLLER   = 97690
 input.CONTROLLER        = 97608
 input.KEYBOARD          = 97618
 input.KEYBOARD_EVENTS   = 97650
@@ -75,6 +75,12 @@ end
 
 function input.mouse_button(b)
     return hw.read8(input.MOUSE+4+b)
+end
+
+function input.mouse_scroll()
+  local x, y = hw.read8(input.MOUSE+6), hw.read8(input.MOUSE+7)
+
+  return (x-128), (y-128)
 end
 
 function input.mouse_button_down(b) return input.mouse_button(b) == input.STDOWN end

@@ -136,6 +136,7 @@ function NOM:new(desc)
         mouse = { x = 0, y = 0 },
         event_queue = {},
         focused_widget = nil,
+        mouse_focused_widget = nil,
     }
 
     instanceof(instance, NOM)
@@ -185,7 +186,7 @@ function NOM:update(dt)
         mouse_cursor(c.x, c.y, c.w, c.h, c.hx, c.hy)
     end
 
-    -- Read keyboard events
+    -- Read keyboard events and scroll events
     if self.focused_widget then
         local events = read_key_events()
         local input = read_keys()
@@ -193,6 +194,14 @@ function NOM:update(dt)
         self:handle_keys(input, events)
     else
         self.focused_widget = self.root
+    end
+
+    if self.mouse_focused_widget then
+        local x, y = mouse_scroll()
+
+        if x ~= 0 or y ~= 0 then
+            self.mouse_focused_widget:mouse_scroll(x, y)
+        end
     end
 end
 

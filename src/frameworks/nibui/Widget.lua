@@ -457,12 +457,12 @@ function Widget:move(event, offset, left)
                     if self:onenter(event) then
                         return true
                     end
+
+                    local c = self.document.cursor[self.document.cursor.state]
+
+                    mouse_cursor(c.x, c.y, c.w, c.h)
                 end, 0)
             end
-
-            local c = self.document.cursor[self.document.cursor.state]
-
-            mouse_cursor(c.x, c.y, c.w, c.h)
         end
 
         if self.onmove then
@@ -477,6 +477,10 @@ function Widget:move(event, offset, left)
             local child = self.children[i]
 
             left = child:move(event, offset, left) or left
+        end
+
+        if not left then
+            self.document.mouse_focused_widget = self
         end
 
         return true
@@ -520,7 +524,7 @@ function Widget:keyboard_event(event)
         local bubble = true
 
         if self.onkeyup then
-            if not self:onkeyup(event[2], event[3]) then
+            if self:onkeyup(event[2], event[3]) then
                 bubble = false
             end
         end
@@ -532,12 +536,30 @@ function Widget:keyboard_event(event)
 end
 
 function Widget:text_input(input)
+    local bubble = true
+
     if self.ontext then
-        if not self:ontext(input) then
-            if self.parent.text_input then
-                self.parent:text_input(input)
-            end
+        if self:ontext(input) then
+            bubble = false
         end
+    end
+
+    if bubble and self.parent.text_input then
+        self.parent:text_input(input)
+    end
+end
+
+function Widget:mouse_scroll(x, y)
+    local bubble = true
+
+    if self.onscroll then
+        if self:onscroll(x, y) then
+            bubble = false
+        end
+    end
+
+    if bubble and self.parent.mouse_scroll then
+        self.parent:mouse_scroll(x, y)
     end
 end
 

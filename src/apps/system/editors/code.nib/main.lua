@@ -55,6 +55,17 @@ function print_available_apps_and_exit(not_found)
   
     stop_app(0)
 end
+
+function create_ui(code, opened_file)
+    nom = NOM:new({
+            w = env.width,
+            h = env.height,
+            x = env.x, y = env.y,
+            background = 11,
+
+            NOM.require("ui", { code = code, filename = opened_file }),
+    }):use("cursor")
+end
     
 function init()
     if env.params[2] then
@@ -82,25 +93,13 @@ function init()
         end
 
         if code then
-            nom = NOM:new({
-                w = env.width,
-                h = env.height,
-                x = env.x, y = env.y,
-                background = 11,
-                NOM.require("ui", { code = code, filename = opened_file }),
-            }):use("cursor")
+            create_ui(code, opened_file)
         else
             return print_available_apps_and_exit(true)
         end
     else
         -- print_available_apps_and_exit()
-        nom = NOM:new({
-            w = env.width,
-            h = env.height,
-            x = env.x, y = env.y,
-            background = 11,
-            NOM.require("ui", { code = "", filename = "unamed.lua" }),
-        }):use("cursor")
+        create_ui("", "unamed.lua")
     end
 
     send_message(env.taskbar, {

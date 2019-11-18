@@ -215,6 +215,11 @@ void Kernel::loop() {
                     mouse->moved(x, y);
                 } break;
 
+                case SDL_MOUSEWHEEL: {
+                    // Possível perda de precisão
+                    mouse->scrolled(uint8_t(event.wheel.x+128), uint8_t(event.wheel.y+128));
+                } break;
+
                 default:
                     break;
             }

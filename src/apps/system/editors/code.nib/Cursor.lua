@@ -42,6 +42,17 @@ function Cursor:move_by_lines(line_count)
   self:move_by_chars(0)
 end
 
+function Cursor:look_at(char_count)
+  if self.line then
+    local x1, x2 = self.position+char_count, self.position
+    local s, e = math.max(0, math.min(x1, x2)), math.min(math.max(x1, x2), self.line:length())
+
+    return self.line.content:sub(s, e)
+  else
+    return ""
+  end
+end
+
 function Cursor:insert_chars(str)
   local content = self.line.content
 
@@ -115,8 +126,10 @@ function Cursor:insert_line()
 
   -- Move para o inicio da linha
   self.user_position = 1
-
   self:move_by_chars(0)
+
+  -- Autoindent
+  self:insert_chars(self.line.prev:indentation())
 end
 
 function Cursor:is_in_line(line)
