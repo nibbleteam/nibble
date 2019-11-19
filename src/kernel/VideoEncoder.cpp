@@ -90,7 +90,7 @@ bool VideoEncoder::capture_frame(const uint8_t* rgba_frame) {
   for (int y=0;y<GPU_VIDEO_HEIGHT;y++) {
     for (int x=0;x<GPU_VIDEO_WIDTH;x++) {
       const int chroma_p = y*GPU_VIDEO_WIDTH+x;
-      const int rgba_p = chroma_p*4;
+      const int rgba_p = chroma_p*3;
       const int luma_p = (y*GPU_VIDEO_WIDTH*2+x)*2;
 
       // Extract colors
