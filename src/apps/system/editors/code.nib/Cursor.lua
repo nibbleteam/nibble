@@ -54,12 +54,14 @@ function Cursor:look_at(char_count)
 end
 
 function Cursor:insert_chars(str)
-  local content = self.line.content
+  if str then
+    local content = self.line.content
 
-  self.line.content = content:sub(1, self.position-1)..str..content:sub(self.position, -1)
-  self.line:highlight()
+    self.line.content = content:sub(1, self.position-1)..str..content:sub(self.position, -1)
+    self.line:highlight()
 
-  self:move_by_chars(#str)
+    self:move_by_chars(#str)
+  end
 end
 
 function Cursor:remove_chars(char_count)

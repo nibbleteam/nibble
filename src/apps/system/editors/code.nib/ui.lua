@@ -130,7 +130,7 @@ return {
         local sx, sy = mouse_scroll()
 
         if sy ~= 0 then
-            self.editor:move_by_lines(-sy*4)
+            self.editor:move_by_lines(sy*4)
         end
     end
 }

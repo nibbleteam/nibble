@@ -11,6 +11,25 @@
 
 using namespace std;
 
+// Referência: https://github.com/AugustoRuiz/sdl2glsl/blob/master/src/main.cpp
+#ifndef __APPLE__
+
+PFNGLCREATESHADERPROC glCreateShader;
+PFNGLSHADERSOURCEPROC glShaderSource;
+PFNGLCOMPILESHADERPROC glCompileShader;
+PFNGLGETSHADERIVPROC glGetShaderiv;
+PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+PFNGLDELETESHADERPROC glDeleteShader;
+PFNGLATTACHSHADERPROC glAttachShader;
+PFNGLCREATEPROGRAMPROC glCreateProgram;
+PFNGLLINKPROGRAMPROC glLinkProgram;
+PFNGLVALIDATEPROGRAMPROC glValidateProgram;
+PFNGLGETPROGRAMIVPROC glGetProgramiv;
+PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
+PFNGLUSEPROGRAMPROC glUseProgram;
+
+#endif
+
 GPU::GPU(Memory& memory, const bool fullscreen_startup):
     target_clip_start_x(0), target_clip_start_y(0),
     target_clip_end_x(GPU_VIDEO_WIDTH), target_clip_end_y(GPU_VIDEO_HEIGHT),
@@ -43,14 +62,44 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
     delete pixels;
 
     framebuffer = SDL_CreateTexture(renderer,
-                                    SDL_PIXELFORMAT_ABGR8888,
+                                    SDL_PIXELFORMAT_RGBA32,
                                     SDL_TEXTUREACCESS_STREAMING,
-                                    GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT);
+                                    GPU_VIDEO_WIDTH/4, GPU_VIDEO_HEIGHT);
 
-    framebuffer_src = SDL_Rect {0, 0, GPU_VIDEO_WIDTH, GPU_VIDEO_HEIGHT};
+    framebuffer_src = SDL_Rect {0, 0, GPU_VIDEO_WIDTH/4, GPU_VIDEO_HEIGHT};
     framebuffer_dst = SDL_Rect {0, 0,
-                               int(GPU_VIDEO_WIDTH*screen_scale),
-                               int(GPU_VIDEO_HEIGHT*screen_scale)};
+                                int(GPU_VIDEO_WIDTH*screen_scale),
+                                int(GPU_VIDEO_HEIGHT*screen_scale)};
+
+    // Inicializa extensões OpenGL
+    // Referência: https://github.com/AugustoRuiz/sdl2glsl/blob/master/src/main.cpp
+	glCreateShader = (PFNGLCREATESHADERPROC)SDL_GL_GetProcAddress("glCreateShader");
+	glShaderSource = (PFNGLSHADERSOURCEPROC)SDL_GL_GetProcAddress("glShaderSource");
+	glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
+	glGetShaderiv = (PFNGLGETSHADERIVPROC)SDL_GL_GetProcAddress("glGetShaderiv");
+	glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)SDL_GL_GetProcAddress("glGetShaderInfoLog");
+	glDeleteShader = (PFNGLDELETESHADERPROC)SDL_GL_GetProcAddress("glDeleteShader");
+	glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
+	glCreateProgram = (PFNGLCREATEPROGRAMPROC)SDL_GL_GetProcAddress("glCreateProgram");
+	glLinkProgram = (PFNGLLINKPROGRAMPROC)SDL_GL_GetProcAddress("glLinkProgram");
+	glValidateProgram = (PFNGLVALIDATEPROGRAMPROC)SDL_GL_GetProcAddress("glValidateProgram");
+	glGetProgramiv = (PFNGLGETPROGRAMIVPROC)SDL_GL_GetProcAddress("glGetProgramiv");
+	glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)SDL_GL_GetProcAddress("glGetProgramInfoLog");
+	glUseProgram = (PFNGLUSEPROGRAMPROC)SDL_GL_GetProcAddress("glUseProgram");
+
+    // Se alguma extensão não foi encontrada
+    if (!(glCreateShader && glShaderSource &&
+          glCompileShader && glGetShaderiv &&
+          glGetShaderInfoLog && glDeleteShader &&
+          glAttachShader && glCreateProgram &&
+          glLinkProgram && glValidateProgram &&
+          glGetProgramiv && glGetProgramInfoLog &&
+          glUseProgram)) {
+        cout << "Could not load the required GL Extensions!" << endl;
+        cout << "Quitting." << endl;
+
+        exit(1);
+    }
 }
 
 GPU::~GPU() {
@@ -136,18 +185,22 @@ void GPU::draw() {
     int pitch;
     SDL_LockTexture(framebuffer, NULL, &data, &pitch);
 
-    for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
-        memcpy(((uint8_t*)data)+i*4,
-                palette_memory+(COLMAP2(video_memory[i])*4), 4);
-    }
+    memcpy(data, video_memory, GPU_VIDEO_MEM_SIZE);
+
+    // TODO: Mover o abaixo para dentro da gravação de frame
+
+    // for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
+    //     memcpy(((uint8_t*)data)+i*4,
+    //             palette_memory+(COLMAP2(video_memory[i])*4), 3);
+    // }
 
     // Grava a frame
-    if (h264) {
-        h264->capture_frame((const uint8_t*)data);
-    }
+    //if (h264) {
+    //    h264->capture_frame((const uint8_t*)data);
+    //}
 
+    // Upload para a GPU
     SDL_UnlockTexture(framebuffer);
-
 
     // Só limpa a tela se tivermos barras horizontais ou verticais
     if (screen_offset_x != 0 || screen_offset_y != 0) {

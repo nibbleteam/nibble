@@ -74,6 +74,10 @@ function Bitmap:fill(x, y, color)
 
   local original = self:get_pixel(x, y)
 
+  if color == original then
+    return
+  end
+
   local i = 0
 
   while #frontier > 0 do
@@ -93,7 +97,6 @@ function Bitmap:fill(x, y, color)
         if dx == 0 or dy == 0 then
           if self:get_pixel(x+dx, y+dy) == original then
             self:put_pixel(x+dx, y+dy, color)
-
             push(frontier, { x+dx, y+dy })
 
             box = {

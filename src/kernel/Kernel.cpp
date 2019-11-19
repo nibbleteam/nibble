@@ -216,6 +216,13 @@ void Kernel::loop() {
                 } break;
 
                 case SDL_MOUSEWHEEL: {
+                    int x = event.wheel.x, y = event.wheel.y;
+
+                    if (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
+                        x *= -1;
+                        y *= -1;
+                    }
+
                     // Possível perda de precisão
                     mouse->scrolled(uint8_t(event.wheel.x+128), uint8_t(event.wheel.y+128));
                 } break;

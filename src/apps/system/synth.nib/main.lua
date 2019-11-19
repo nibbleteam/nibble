@@ -31,7 +31,7 @@ local envelopes = {
     },
     {
         freq = 0.5,
-        inf = 15,
+        inf = 0,
         volume = 1,
         sustain = 0,
         a = 0.05,
@@ -151,17 +151,18 @@ function init()
 
     channel(CH2)
     -- Frequências
-    freqs(1.0, 1.0, 1.0, 2.0)
+    freqs(1.0, 1.0, 1.0, 8.0)
     -- Envelopes
-    envelope(OP1, 0, 1, 0.2, 0.01, 10, 0.1, 0)
-    envelope(OP2, 0, 1, 0.2, 0.01, 10, 0.1, 0)
-    envelope(OP3, 0, 1, 0.2, 0.01, 10, 0.1, 0)
-    envelope(OP4, 0, 1, 0.2, 0.01, 10, 0.1, 0)
+    envelope(OP1, 0, 0, 0.01, 0.01, 1.0, 0.5, 0)
+    envelope(OP2, 0, 1, 0.2, 0.01, 0.5, 0.2, 0)
+    envelope(OP3, 0, 1, 0.2, 0.01, 0.5, 0.2, 0)
+    envelope(OP4, 0, 1, 0.2, 0.01, 0.5, 0.2, 0)
     -- Roteia
-    route(OP1, OUT, 0.05)
-    route(OP2, OP1, 2.0)
-    route(OP3, OP1, 0.01)
-    route(OP4, OP1, 0.01)
+    route(OP1, OUT, 0.5)
+    route(OP1, OP1, 0.1)
+    route(OP2, OUT, 0.2)
+    route(OP3, OUT, 0.1)
+    route(OP4, OUT, 0.1)
 
     channel(CH1)
     -- Frequências
@@ -172,8 +173,8 @@ function init()
     envelope(OP3, 0, 1, 0.5, 0.0, 0.2, 0.3, 0)
     envelope(OP4, 0, 1, 0.5, 0.0, 0.2, 0.3, 0)
     -- Roteia
-    route(OP1, OP2, 1.0)
-    route(OP2, OUT, 0.05)
+    route(OP1, OP2, 8.0)
+    route(OP2, OUT, 0.5)
     route(OP3, OP4, 0.3)
     route(OP4, OUT, 0.2)
 
@@ -198,11 +199,11 @@ function init()
     --route(OP3, OP4, 0.8)
     --route(OP4, OUT, 0.8)
     --
-    channel(CH1)
-    route(OP1, OP2, 0.0)
-    route(OP2, OP3, 0.1)
-    route(OP3, OP4, 15)
-    route(OP4, OUT, 0.1)
+    channel(CH2)
+    --route(OP1, OP2, 0.0)
+    --route(OP2, OP3, 0.1)
+    --route(OP3, OP4, 15)
+    --route(OP4, OUT, 0.1)
 end
 
 function draw()
@@ -248,7 +249,7 @@ function audio_tick()
             if input[k][1] == 1 then
                 -- Toca
                 if not pressed_keys[note] then
-                    channel(CH1)
+                    channel(CH2)
                     noteon(note, 255)
 
                     pressed_keys[note] = true
@@ -256,7 +257,7 @@ function audio_tick()
                     say('key down '..tostring(note))
                 end
             elseif input[k][1] == 2 then
-                channel(CH1)
+                channel(CH2)
                 noteoff(note, 255)
 
                 pressed_keys[note] = false
