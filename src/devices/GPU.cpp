@@ -268,11 +268,11 @@ void GPU::draw() {
 
     // Grava a frame
     if (h264) {
-        uint8_t data[GPU_VIDEO_WIDTH*3];
+        uint8_t data[GPU_VIDEO_MEM_SIZE*3];
 
         for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
-            memcpy(((uint8_t*)data)+i*3,
-                    palette_memory+(COLMAP2(video_memory[i])*4), 3);
+            memcpy(data+i*3,
+                   palette_memory+(COLMAP2(video_memory[i])*4), 3);
         }
 
         h264->capture_frame(data);

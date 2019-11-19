@@ -4,7 +4,7 @@ project(nibble VERSION 0.1
                DESCRIPTION "A fantasy console designed to run on real hardware"
                LANGUAGES CXX C)
 
-set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
