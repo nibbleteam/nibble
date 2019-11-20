@@ -12,8 +12,6 @@
 using namespace std;
 
 // Referência: https://github.com/AugustoRuiz/sdl2glsl/blob/master/src/main.cpp
-#ifndef __APPLE__
-
 PFNGLCREATESHADERPROC glCreateShader;
 PFNGLSHADERSOURCEPROC glShaderSource;
 PFNGLCOMPILESHADERPROC glCompileShader;
@@ -27,8 +25,6 @@ PFNGLVALIDATEPROGRAMPROC glValidateProgram;
 PFNGLGETPROGRAMIVPROC glGetProgramiv;
 PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 PFNGLUSEPROGRAMPROC glUseProgram;
-
-#endif
 
 const static string default_vertex_shader = R"(
 // Shader padrão do SFML sem alterações
@@ -145,7 +141,6 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
 }
 
 void GPU::check_opengl() {
-#ifndef __APPLE__
     // Inicializa extensões OpenGL
     // Referência: https://github.com/AugustoRuiz/sdl2glsl/blob/master/src/main.cpp
     glCreateShader = (PFNGLCREATESHADERPROC)SDL_GL_GetProcAddress("glCreateShader");
@@ -161,7 +156,6 @@ void GPU::check_opengl() {
     glGetProgramiv = (PFNGLGETPROGRAMIVPROC)SDL_GL_GetProcAddress("glGetProgramiv");
     glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)SDL_GL_GetProcAddress("glGetProgramInfoLog");
     glUseProgram = (PFNGLUSEPROGRAMPROC)SDL_GL_GetProcAddress("glUseProgram");
-#endif
 
     // Se alguma extensão não foi encontrada
     if (!(glCreateShader && glShaderSource &&

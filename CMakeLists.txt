@@ -16,8 +16,6 @@ if(WIN32)
     set(CMAKE_C_FLAGS_DEBUG "")
 elseif(APPLE)
     set(CMAKE_CXX_FLAGS "-pagezero_size 10000 -image_base 100000000")
-    # Index opengl symbols
-    set(CMAKE_C_ARCHIVE_FINISH "<CMAKE_RANLIB> -c <TARGET>")
 else()
     set(CMAKE_CXX_FLAGS "-rdynamic")
 endif()
