@@ -44,7 +44,7 @@ function NOM.map(array, fn)
   local count = 1
 
   for i, el in pairs(array) do
-    push(mapped_array, fn(el, i, count))
+    push(mapped_array, fn(el, i, count, array))
 
     count = count+1
   end

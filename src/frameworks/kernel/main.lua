@@ -422,6 +422,7 @@ end
 
 function nib_api(entrypoint, proc, env)
     local api = {
+        _G = {},
         -- Processos podem usar require limitado,
         require = function(module)
             return nib_require(entrypoint, module, proc)
@@ -478,6 +479,7 @@ function nib_api(entrypoint, proc, env)
         _VERSION = _VERSION,
         -- Funções matemática
         math = math,
+        string = string,
         -- Funções gerais
         bit = require 'bit',
         time = os.time,
@@ -645,6 +647,13 @@ function nib_api(entrypoint, proc, env)
         api.create_directory = hw.create_directory
         api.touch_file = hw.touch_file
         api.create_file = hw.create_file
+
+        api.loadstring = function(str)
+            local chunk = loadstring(str)
+            setfenv(chunk, executing_process.pub)
+
+            return chunk
+        end
 
         -- print("privileged:", entrypoint)
     --end

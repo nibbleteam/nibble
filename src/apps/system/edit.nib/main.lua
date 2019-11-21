@@ -13,6 +13,8 @@ local Widget = require "nibui.Widget"
 local Easing = require "nibui.Easing"
 local find_app = require "path.find_app"
 
+local Menu = require "Menu"
+
 local found_apps = find_app((env.params and env.params[2]) or "")
 
 local app = found_apps[1] or { name = "<NO APP>", path = "", entrypoint = "" }
@@ -125,6 +127,10 @@ function Edit:new(props)
                state = {
                  menu = {
                    color = 7,
+
+                   items = {
+                     { name = "save", icon = { 0, 0, 8, 8 } },
+                   }
                  }
                }
   })
@@ -135,61 +141,7 @@ function Edit:render(state, props)
     x = NOM.left,  y = NOM.top,
     w = NOM.width, h = NOM.height,
 
-    -- Menu
-    {
-      x = NOM.left, y = NOM.top,
-      w = NOM.width, h = menu_height,
-      background = state.menu.color,
-
-      -- Highlight
-      {
-        y = NOM.bottom-1, h = 1,
-
-        background = 15,
-      },
-
-      -- A "Run" button
-      {
-        x = NOM.left,
-        y = NOM.top-2,
-        w = 16, h = 16,
-
-        background = { 0, 10 },
-
-        onpress = function(self)
-          -- Press the button
-          self.background = { 1, 10 }
-        end,
-
-        onclick = function(self)
-          -- Release the button
-          self.background = { 0, 10 }
-
-          local child = start_app(app.path, {})
-
-          if child then
-            -- Wait for child to exit
-            pause_app(env.pid, child)
-            pause_app(self.parent.parent:find("taskbar").running)
-
-            -- Disable the mouse
-            mouse_cursor(0, 0, 0, 0)
-          end
-        end,
-
-        onenter = function(self)
-          self.document:set_cursor("pointer")
-        end,
-
-        onleave = function(self)
-          -- Release the button
-          self.background = { 0, 10 }
-
-          self.document:set_cursor("default")
-        end,
-      },
-
-    },
+    {Menu, h = menu_height, color = state.menu.color, items = state.menu.items },
 
     -- Background when no apps are running
     {
