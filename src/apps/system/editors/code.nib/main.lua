@@ -103,8 +103,18 @@ function init()
     end
 
     send_message(env.taskbar, {
-      kind = "notification",
-      content = "Lets hack!",
+        kind = "notification",
+        content = "Lets hack!",
+    })
+
+    send_message(env.taskbar, {
+        kind = "set_menu",
+        menu = {
+            color = 11,
+            items = {
+                { name = "save", icon = { 0, 0, 8, 8 } },
+            }
+        }
     })
 end
 

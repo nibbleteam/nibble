@@ -474,6 +474,16 @@ send_message(env.taskbar, {
                content = "Welcome! \7"
 })
 
+function init()
+  send_message(env.taskbar, {
+                 kind = "set_menu",
+                 menu = {
+                   color = 14,
+                   items = {}
+                 }
+  })
+end
+
 function draw()
   nom:draw()
 end

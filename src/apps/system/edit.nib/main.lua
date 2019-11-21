@@ -17,7 +17,7 @@ local Menu = require "Menu"
 
 local found_apps = find_app((env.params and env.params[2]) or "")
 
-local app = found_apps[1] or { name = "<NO APP>", path = "", entrypoint = "" }
+local editing_app = found_apps[1] or { name = "<NO APP>", path = "", entrypoint = "" }
 
 -- Constants
 local menu_height = 12
@@ -73,51 +73,45 @@ local notification_removing = false
 
 -- Get all editors
 local editor_paths = list_directory(editor_search_path)
-local editor_buttons = {}
+local editor_apps = {}
 
-local button_x = icon_offset
-local button_counter = 0
-
--- Prepare buttons for editors
+-- Prepare editor apps
 for _, path in ipairs(editor_paths) do
   -- If the name does not start with a .
   if not path:match("[/\\]%..*") then
     local icon_info = icon_map[path:sub(editor_search_path:len()+1)]
-    local background
+    local sprite
+    local position = 9
 
     -- The icon has a custom position and sprite
     if icon_info then
-      background = { 2, icon_info.sprite_y }
-      button_x = (icon_info.button_position-1)*(icon_width+icon_gap)+icon_offset
+      sprite = { 2, icon_info.sprite_y }
+      position = icon_info.button_position
     else
-      button_x = (#icon_map+button_counter)*(icon_width+icon_gap)+icon_offset
-      button_counter += 1
-      background = { 2, 10 }
+      sprite = { 2, 10 }
     end
 
-    insert(editor_buttons,{
-      x = NOM.left+button_x, y = NOM.top+icon_jump-1,
-      w = icon_width, h = icon_height,
-      background = background,
-      id = path,
+    insert(editor_apps, {
+      position = position,
+      sprite = sprite,
+      path = path,
       pid = nil,
 
-      onclick = function(self)
-        self.parent:select(self.id, self)
-      end,
-
-      onenter = function(self)
-        self.document:set_cursor("pointer")
-      end,
-
-      onleave = function(self)
-        self.document:set_cursor("default")
-      end,
+      menu = { color = 16, items = {} }
     })
+
+    sort(editor_apps, function(a, b)
+           if a.position == b.position then
+             -- Alphabetic order
+             return a.path:byte() < b.path:byte()
+           else
+             return a.position < b.position
+           end
+    end)
   end
 end
 
-local buttons_width = #editor_buttons*(icon_width+icon_gap)+2*icon_offset
+local buttons_width = #editor_apps*(icon_width+icon_gap)+2*icon_offset
 
 local Edit = Neact.Component:new()
 
@@ -128,12 +122,72 @@ function Edit:new(props)
                  menu = {
                    color = 7,
 
-                   items = {
-                     { name = "save", icon = { 0, 0, 8, 8 } },
-                   }
-                 }
+                   items = {}
+                 },
+
+                 apps = editor_apps,
+
+                 selected = nil,
                }
   })
+end
+
+function Edit:select(i)
+  -- Pause the previously running app
+  if self.state.selected then
+    local prev = self.state.apps[self.state.selected]
+
+    if prev.pid then
+      pause_app(prev.pid)
+    end
+  end
+
+  -- Start/resume the clicked app
+  local app = self.state.apps[i]
+
+  if app.pid then
+    resume_app(app.pid)
+  else
+    app.pid = start_app(app.path, {
+      -- Viewport
+      x = 0, y = menu_height,
+      width = env.width, height = env.height-taskbar_height-menu_height,
+
+      -- Which file to edit
+      params = { app.path, editing_app[filetypes[app.path:sub(editor_search_path:len()+1)]] or app.path },
+
+      -- PID to send messages to
+      taskbar = env.pid,
+    }, true)
+  end
+
+  -- Update the menu, without any transition
+  self:set_state {
+    menu = app.menu,
+    apps = self.state.apps
+  }
+
+  -- Update the app, with a slight transition
+  -- (in the up/down icon movement)
+  self:set_state({
+    selected = i,
+  }, 0.05)
+end
+
+function Edit:set_menu(menu)
+  if self.state.selected then
+    local app = self.state.apps[self.state.selected]
+
+    app.menu = {
+      color = menu.color or 16,
+      items = menu.items or {}
+    }
+
+    self:set_state {
+      menu = app.menu,
+      apps = self.state.apps
+    }
+  end
 end
 
 function Edit:render(state, props)
@@ -150,7 +204,7 @@ function Edit:render(state, props)
       id = "editor",
 
       draw = function(self)
-        if self.dirty and not self.parent:find("taskbar").selected then
+        if self.dirty and state.selected == nil then
           Widget.draw(self)
 
           local side = 16
@@ -174,25 +228,24 @@ function Edit:render(state, props)
       w = NOM.width, h = taskbar_height,
       background = taskbar_background_color,
 
-      selected = nil,
       running = nil,
 
-      select = function(self, id, widget)
-        if self.selected ~= id then
+      select = function(w, id, widget)
+        if state.selected ~= id then
           -- Move the icon up
           widget.y -= icon_jump
           -- and select the bright background
           widget.background[1] -= 2
 
           -- If there was an app running, pause it
-          if self.selected ~= nil then
-            local prev_widget = self:find(self.selected)
+          if state.selected ~= nil then
+            local prev_widget = w:find(state.selected)
             -- and also move its icon down
             prev_widget.y += icon_jump
             -- and select the dark background
             prev_widget.background[1] += 2
 
-            pause_app(self.running)
+            pause_app(w.running)
           end
 
           -- If this app has a running process
@@ -200,7 +253,7 @@ function Edit:render(state, props)
             -- just resume it
             resume_app(widget.pid)
 
-            self.running = widget.pid
+            w.running = widget.pid
           else
             -- otherwise start it from the ground up
             widget.pid = start_app(id, {
@@ -213,11 +266,13 @@ function Edit:render(state, props)
               taskbar = env.pid,
             }, true)
 
-            self.running = widget.pid
+            w.running = widget.pid
           end
 
           -- Mark as selected
-          self.selected = id
+          self:set_state {
+            selected = id
+          }
         end
       end,
 
@@ -302,10 +357,30 @@ function Edit:render(state, props)
 
       {
         padding_top = 1,
-        content = app.name,
+        content = editing_app.name,
       },
 
-      unwrap(editor_buttons)
+      -- Generate app buttons
+      NOM.map(state.apps, function(desc, i)
+                return {
+                  x = (i-1)*(icon_width+icon_gap)+icon_offset, y = NOM.top-1+(i == state.selected and 0 or icon_jump),
+                  w = icon_width, h = icon_height,
+
+                  background = { desc.sprite[1] + (i == state.selected and -2 or 0), desc.sprite[2] },
+
+                  onclick = function(w)
+                    self:select(i)
+                  end,
+
+                  onenter = function(w)
+                    w.document:set_cursor("pointer")
+                  end,
+
+                  onleave = function(w)
+                    w.document:set_cursor("default")
+                  end,
+                }
+      end)
     }
   }
 end
@@ -341,6 +416,10 @@ function update(dt)
 
     if type(message) == "table" and message.app_stopped then
       resume_app(ui:find("#taskbar").running)
+    end
+
+    if type(message) == "table" and message.kind == "set_menu" then
+      edit_app:set_menu(message.menu)
     end
   until message == nil
 

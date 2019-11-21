@@ -38,7 +38,7 @@ local function update_widget(widget, new_widget, time, easing)
     -- Update the current widget props with the new widget props
     -- without destroying the current widget
     for k, v in pairs(new_widget.props) do
-      if widget.props[k].isdynamicvalue and
+      if widget.props[k] and widget.props[k].isdynamicvalue and
         widget.props[k].kind == "interpolated" then
         widget[k] = { new_widget[k], time, easing }
 

@@ -16,6 +16,9 @@ package.loaded.moonscript = require("frameworks.kernel.moonscript")
 local moon_parse = require("moonscript.parse")
 local moon_compile = require("moonscript.compile")
 
+-- Fennel
+local fennel = require("frameworks.kernel.fennel")
+
 local processes = {}
 local pid_counter = 0
 local executing_process = nil
@@ -159,7 +162,12 @@ function make_process(entrypoint, env, group)
     proc.priv.running = true
 
     if not proc.priv.ok then
-        print(err)
+        if err == nil then
+            return nil
+        else
+            -- true = erro de sintaxe
+            handle_process_error(err, true)
+        end
     end
 
     -- Põe as funções que vamos chamar em sandboxes
@@ -251,6 +259,7 @@ function loadmoon(path)
 
         local lua_script = moon_compile.tree(moon_parse.string(moon_script))
 
+        -- TODO: remove
         print(lua_script)
 
         return loadstring(lua_script)
@@ -259,15 +268,50 @@ function loadmoon(path)
     end
 end
 
-function exec(path, env, args)
-    local fn, msg = loadmoon(path..".moon")
+function loadfennel(path)
+    local fennel_file = io.open(path, "rb")
 
-    if not fn then
+    if fennel_file then
+        local fennel_script = fennel_file:read("*all")
+        fennel_file:close()
+
+        local ok, lua_script = pcall(fennel.compileString, fennel_script)
+
+        if ok then
+            return loadstring(lua_script)
+        else
+            return ok, lua_script
+        end
+    else
+        return nil, "No such file or directory"
+    end
+end
+
+function file_exists(path)
+    local file = io.open(path, "r")
+
+    if file then
+        file:close()
+
+        return true
+    end
+
+    return false
+end
+
+function exec(path, env, args)
+    local fn, msg, ok
+
+    if file_exists(path..".moon") then
+        fn, msg = loadmoon(path..".moon")
+    elseif file_exists(path..".fnl") then
+        fn, msg = loadfennel(path..".fnl")
+    elseif file_exists(path..".lua") then
         fn, msg = loadfile(path..".lua")
     end
 
     if not fn then
-       return nil, msg
+       return fn, msg
     end
 
     return exec_fn(fn, env, args)
@@ -298,7 +342,7 @@ function nib_require(entrypoint, module, proc)
         'frameworks/'..module:gsub("%.", "/").."/main",
     }
 
-    local extensions = { ".lua", ".moon" }
+    local extensions = { ".lua", ".moon", ".fnl" }
 
     local errors = {}
 
@@ -308,8 +352,10 @@ function nib_require(entrypoint, module, proc)
 
             if extension == ".lua" then
                 fn, err = loadfile(path..extension)
-            else
+            elseif extension == ".moon" then
                 fn, err = loadmoon(path..extension)
+            elseif extension == ".fnl" then
+                fn, err = loadfennel(path..extension)
             end
 
             if not fn then
@@ -327,11 +373,13 @@ function nib_require(entrypoint, module, proc)
     end
 end
 
-function handle_process_error(err)
+function handle_process_error(err, syntax)
     print(err)
     print(debug.traceback())
 
-    pause_app(executing_process.priv.pid)
+    --if not syntax then
+    --    pause_app(executing_process.priv.pid)
+    --end
 
     start_app('apps/system/debug.nib', {
         error = err,
@@ -352,7 +400,7 @@ function start_app(app, env, grouped)
     pid_counter += 1
     processes[pid_counter] = make_process(app, env, grouped and parent_group)
 
-    if processes[pid_counter].priv.ok then
+    if processes[pid_counter] and processes[pid_counter].priv.ok then
         return pid_counter, ''
     else
         return nil

@@ -19,13 +19,6 @@ function Menu:render(state, props)
     w = NOM.width, h = props.h,
     background = props.color,
 
-    -- Highlight
-    {
-      y = NOM.bottom-1, h = 1,
-
-      background = 15,
-    },
-
     -- A "Run" button
     --{
     --  x = NOM.left,
@@ -71,10 +64,10 @@ function Menu:render(state, props)
               return {
                 x = (i-1)*item_width, w = item_width,
 
-                background = math.random(16)
+                background = item.icon,
               }
     end)
-  },
+  }
 end
 
 return Menu

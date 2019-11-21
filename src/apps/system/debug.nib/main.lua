@@ -28,6 +28,10 @@ function init()
     area:newline()
   end
 
+  area:add(Text:new(env.error):set('background_color', 6))
+  area:newline()
+  area:newline()
+
   for file, line, fn in env.traceback:gmatch '\t([^\n]+):(%d+): in function ([^\n]+)' do
     if not file:match 'frameworks/kernel' and not file:match '[C]' then
       print_file(file)

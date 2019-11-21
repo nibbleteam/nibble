@@ -6,6 +6,16 @@ local nom = NOM:new({
   background = 6
 })
 
+function init()
+  send_message(env.taskbar, {
+    kind = "set_menu",
+    menu = {
+      color = 6,
+      items = {}
+    }
+  })
+end
+
 function draw()
   nom:draw()
 end
