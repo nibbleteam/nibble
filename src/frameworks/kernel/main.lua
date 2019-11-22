@@ -259,10 +259,7 @@ function loadmoon(path)
 
         local lua_script = moon_compile.tree(moon_parse.string(moon_script))
 
-        -- TODO: remove
-        print(lua_script)
-
-        return loadstring(lua_script)
+        return loadstring(lua_script, "@"..path)
     else
         return nil, "No such file or directory"
     end
@@ -277,8 +274,10 @@ function loadfennel(path)
 
         local ok, lua_script = pcall(fennel.compileString, fennel_script)
 
+        print(lua_script)
+
         if ok then
-            return loadstring(lua_script, "@"..path)
+            return loadstring(lua_script, '@'..path)
         else
             return ok, lua_script
         end
@@ -705,6 +704,13 @@ function nib_api(entrypoint, proc, env)
 
         -- print("privileged:", entrypoint)
     --end
+
+    -- API bonitinha para Fennel
+    for k, v in pairs(api) do
+        if k:match("_") then
+            api["__fnl_global__"..k:gsub("_", "_2d")] = v
+        end
+    end
 
     return api
 end
