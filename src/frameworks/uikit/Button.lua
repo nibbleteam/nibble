@@ -57,8 +57,6 @@ function Button:render(state, props)
       end,
 
       onpress = function(w)
-         terminal_print(w.x, w.y, w.w, w.h)
-
          self:set_state { pressed = true }
       end,
 
