@@ -12,9 +12,22 @@ function Menu:new(props)
 end
 
 function Menu:render(state, props)
+  local item_offset = 2
+  local item_gap = 4
   local item_width = 16
 
-  return {
+  local last_x = item_offset
+
+  local run_item = {
+    name = "Run",
+    icon = { 2, 161, 14, 12 },
+    onclick = props.run_app,
+  }
+
+  local items = copy(props.items)
+  insert(items, run_item)
+
+  local menu = {
     x = NOM.left, y = NOM.top,
     w = NOM.width, h = props.h,
     background = props.color,
@@ -60,14 +73,32 @@ function Menu:render(state, props)
     --  end,
     --},
 
-    NOM.map(props.items, function(item, i)
-              return {
-                x = (i-1)*item_width, w = item_width,
+    NOM.map(items, function(item, i)
+              local x = last_x
+              local w = item.icon and item_width or measure(item.name)
 
-                background = item.icon,
+              last_x += w+item_gap
+
+              return {
+                x = NOM.left+x, w = w,
+
+                content = (not item.icon) and item.name,
+                background = item.icon or 0,
+
+                onclick = item.onclick or nil,
+
+                onenter = function(self)
+                  self.document:set_cursor("pointer")
+                end,
+
+                onleave = function(self)
+                  self.document:set_cursor("default")
+                end,
               }
     end)
   }
+
+  return menu
 end
 
 return Menu

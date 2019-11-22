@@ -120,7 +120,7 @@ function Edit:new(props)
                props = props,
                state = {
                  menu = {
-                   color = 7,
+                   color = 3,
 
                    items = {}
                  },
@@ -130,6 +130,12 @@ function Edit:new(props)
                  selected = nil,
                }
   })
+end
+
+function Edit:resume()
+  if self.state.selected then
+    resume_app(self.state.apps[self.state.selected].pid)
+  end
 end
 
 function Edit:select(i)
@@ -195,7 +201,26 @@ function Edit:render(state, props)
     x = NOM.left,  y = NOM.top,
     w = NOM.width, h = NOM.height,
 
-    {Menu, h = menu_height, color = state.menu.color, items = state.menu.items },
+    {Menu,
+     h = menu_height, color = state.menu.color, items = state.menu.items,
+     run_app = function(self)
+       -- Release the button
+       self.background = { 0, 10 }
+
+       local child = start_app(editing_app.path, {})
+
+       if child then
+         -- Wait for child to exit
+         pause_app(env.pid, child)
+
+         if state.selected then
+           pause_app(state.apps[state.selected].pid)
+         end
+
+         -- Disable the mouse
+         mouse_cursor(0, 0, 0, 0)
+       end
+    end},
 
     -- Background when no apps are running
     {
@@ -415,7 +440,7 @@ function update(dt)
     end
 
     if type(message) == "table" and message.app_stopped then
-      resume_app(ui:find("#taskbar").running)
+      edit_app:resume()
     end
 
     if type(message) == "table" and message.kind == "set_menu" then

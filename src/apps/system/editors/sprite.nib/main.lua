@@ -479,7 +479,9 @@ function init()
                  kind = "set_menu",
                  menu = {
                    color = 14,
-                   items = {}
+                   items = {
+                     { name = "File", icon = nil },
+                   }
                  }
   })
 end

@@ -39,11 +39,13 @@ local function update_widget(widget, new_widget, time, easing)
     -- without destroying the current widget
     for k, v in pairs(new_widget.props) do
       if widget.props[k] and widget.props[k].isdynamicvalue and
-        widget.props[k].kind == "interpolated" then
-        widget[k] = { new_widget[k], time, easing }
-
-        -- Avoid flickering
-        widget.props[k].cache = nil
+          widget.props[k].kind == "interpolated" then
+        if new_widget.props[k] then
+          widget[k] = { new_widget[k], time, easing }
+          widget.props[k].cache = nil
+        else
+          widget.props[k] = new_widget.props[k]
+        end
       else
         widget.props[k] = new_widget.props[k]
       end

@@ -48,7 +48,7 @@ function InterpolatedValue:new(v, w)
                     -- Set interpolated value
                     return iv+dv*i
                 else
-                    return self:get(self.interpolation.from.v, w)
+                    return self:get(self.interpolation.to.v, w)
                 end
             else
                 return rawget(self, idx) or rawget(InterpolatedValue, idx)
@@ -73,6 +73,7 @@ function InterpolatedValue:set(v, time, easing)
     if type(v) == 'table' and not v.isdynamicvalue then
         time = v[2]
         easing = v[3]
+
         v = v[1]
     end
 

@@ -23,7 +23,7 @@ function Neact.component_to_instance(component_id, component, props)
         local children = instances[2]
 
         -- TODO: remove numeric keys
-        if children[k]then
+        if children[k] and children[k][1].props.key == props.key then
             if Neact.props_differ(children[k][1].props, props) then
                 children[k][1].props = props
             end

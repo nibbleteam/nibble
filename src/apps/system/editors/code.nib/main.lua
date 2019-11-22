@@ -1,5 +1,8 @@
 env.menu = {
-    'Code'
+    'Code Editor',
+    'v0.2.0',
+    '',
+    'by Felipe Tavares'
 }
 
 require 'lang.timeout'
@@ -112,7 +115,7 @@ function init()
         menu = {
             color = 11,
             items = {
-                { name = "save", icon = { 0, 0, 8, 8 } },
+                { name = "File", icon = nil },
             }
         }
     })

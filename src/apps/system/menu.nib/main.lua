@@ -7,6 +7,8 @@ local Menu = Neact.Component:new()
 
 local menu, nom = nil, nil
 
+local visible = true
+
 function Menu:new(props)
     return new(Menu, {
                    state = props,
@@ -39,17 +41,24 @@ function Menu:render(state, props)
                  content = state.time
              },
              {
-                 Button,
+                 Button, key = 'close',
+
                  side = 'right',
                  color = 'black',
-                 content = 'close'
+                 content = 'close',
+                 onclick = function()
+                     close()
+                 end
              },
              {
-                 Button,
+                 Button, key = 'back',
                  side = 'left',
                  color = 'white',
                  content = 'back',
                  w = measure('close'),
+                 onclick = function()
+                     back()
+                 end
              }
         }, body = body}
     }
@@ -72,7 +81,34 @@ function init()
 end
 
 function draw()
+    if not visible then
+        return
+    end
+
     nom:draw()
+end
+
+function close()
+    -- Avoid redrawing
+    visible = false
+
+    for _, pid in ipairs(env.running) do
+        resume_app(pid)
+    end
+
+    stop_app(env.app.pid)
+    stop_app(0)
+end
+
+function back()
+    -- Avoid redrawing
+    visible = false
+
+    for _, pid in ipairs(env.running) do
+        resume_app(pid)
+    end
+
+    stop_app(0)
 end
 
 function update(dt)
@@ -80,26 +116,13 @@ function update(dt)
         menu:set_state({time = get_time() })
     end
 
-    nom:update(dt)
-
     if button_down(BLACK) then
-        for _, pid in ipairs(env.running) do
-            resume_app(pid)
-        end
-
-        stop_app(env.app.pid)
-        stop_app(0)
-
-        return
+        close()
     end
 
     if button_down(WHITE) then
-        for _, pid in ipairs(env.running) do
-            resume_app(pid)
-        end
-
-        stop_app(0)
-
-        return
+        back()
     end
+
+    nom:update(dt)
 end
