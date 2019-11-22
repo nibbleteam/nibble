@@ -278,7 +278,7 @@ function loadfennel(path)
         local ok, lua_script = pcall(fennel.compileString, fennel_script)
 
         if ok then
-            return loadstring(lua_script)
+            return loadstring(lua_script, "@"..path)
         else
             return ok, lua_script
         end

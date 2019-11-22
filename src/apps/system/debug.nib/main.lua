@@ -4,8 +4,10 @@ local Text = require 'nibui.Text'
 local area = Textarea:new(8, 8, 400-16, 240-16)
 
 function print_file(file)
-  for path, file in file:gmatch '(.*).nib/(.*)' do
+  for path, file in file:gmatch 'apps/(.*.nib)/(.*)' do
     area:add(Text:new('in '))
+    area:add(Text:new(path):set('background_color', 3):set('color', 14))
+    area:add(Text:new(' in '))
     area:add(Text:new(file):set('background_color', 3):set('color', 14))
     area:add(Text:new(' @ line '))
   end
@@ -28,9 +30,9 @@ function init()
     area:newline()
   end
 
-  area:add(Text:new(env.error):set('background_color', 6))
-  area:newline()
-  area:newline()
+  -- area:add(Text:new(env.error):set('background_color', 6))
+  -- area:newline()
+  -- area:newline()
 
   for file, line, fn in env.traceback:gmatch '\t([^\n]+):(%d+): in function ([^\n]+)' do
     if not file:match 'frameworks/kernel' and not file:match '[C]' then
