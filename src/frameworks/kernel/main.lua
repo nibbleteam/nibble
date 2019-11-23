@@ -161,6 +161,8 @@ function make_process(entrypoint, env, group)
     proc.priv.ok, err = exec(entrypoint..'/main', proc.pub)
     proc.priv.running = true
 
+    executing_process = parent_process
+
     if not proc.priv.ok then
         if err == nil then
             return nil
@@ -174,8 +176,6 @@ function make_process(entrypoint, env, group)
     sandbox_fn(proc.pub.init, proc.pub)
     sandbox_fn(proc.pub.draw, proc.pub)
     sandbox_fn(proc.pub.update, proc.pub)
-
-    executing_process = parent_process
 
     return proc
 end
@@ -199,7 +199,6 @@ function exec_process(process, dt)
     local sheet = process.priv.spritesheet
     hw.use_spritesheet(sheet.ptr, sheet.w, sheet.h)
 
-    -- TODO: Coletar erros das chamadas?
     if process.priv.initialized then
         if process.pub.update then
             xpcall(process.pub.update, function (err)
@@ -273,8 +272,6 @@ function loadfennel(path)
         fennel_file:close()
 
         local ok, lua_script = pcall(fennel.compileString, fennel_script)
-
-        print(lua_script)
 
         if ok then
             return loadstring(lua_script, '@'..path)
