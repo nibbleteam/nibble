@@ -249,7 +249,7 @@ bool fs::create_file (Path _path) {
 		return false;
 
 #ifdef WIN32
-	int fd = ::open(_path.get_path().c_str(), O_CREAT);
+	int fd = ::open(_path.get_path().c_str(), _O_CREAT, _S_IREAD | _S_IWRITE);
 #else
 	int fd = open(_path.get_path().c_str(), O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 #endif
