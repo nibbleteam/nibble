@@ -16,6 +16,12 @@ local function update_parent_refs(widget, parent)
 end
 
 local function update_widget(widget, new_widget, time, easing)
+  -- Make sure "widget" is the render target of
+  -- the generator neact element for it
+  if new_widget.neact_generated_by then
+    new_widget.neact_generated_by._widget = widget
+  end
+
   -- Calculates the new widget hash from its properties
   new_widget:update_hash()
 

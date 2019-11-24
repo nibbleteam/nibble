@@ -4,6 +4,8 @@ local NOM = require "nibui.NOM"
 
 local Menu = Neact.Component:new()
 
+local MenuItem = require "MenuItem"
+
 function Menu:new(props)
   return new(Menu, {
                props = props,
@@ -20,7 +22,7 @@ function Menu:render(state, props)
 
   local run_item = {
     name = "Run",
-    icon = { 2, 161, 14, 12 },
+    icon = { 0, 160, 16, 16 },
     onclick = props.run_app,
   }
 
@@ -32,46 +34,7 @@ function Menu:render(state, props)
     w = NOM.width, h = props.h,
     background = props.color,
 
-    -- A "Run" button
-    --{
-    --  x = NOM.left,
-    --  y = NOM.top-2,
-    --  w = 16, h = 16,
-
-    --  background = { 0, 10 },
-
-    --  onpress = function(self)
-    --    -- Press the button
-    --    self.background = { 1, 10 }
-    --  end,
-
-    --  onclick = function(self)
-    --    -- Release the button
-    --    self.background = { 0, 10 }
-
-    --    local child = start_app(app.path, {})
-
-    --    if child then
-    --      -- Wait for child to exit
-    --      pause_app(env.pid, child)
-    --      pause_app(self.parent.parent:find("taskbar").running)
-
-    --      -- Disable the mouse
-    --      mouse_cursor(0, 0, 0, 0)
-    --    end
-    --  end,
-
-    --  onenter = function(self)
-    --    self.document:set_cursor("pointer")
-    --  end,
-
-    --  onleave = function(self)
-    --    -- Release the button
-    --    self.background = { 0, 10 }
-
-    --    self.document:set_cursor("default")
-    --  end,
-    --},
+    border = 2,
 
     NOM.map(items, function(item, i)
               local x = last_x
@@ -80,20 +43,17 @@ function Menu:render(state, props)
               last_x += w+item_gap
 
               return {
-                x = NOM.left+x, w = w,
+                MenuItem, key = item.name,
+               
+                x = NOM.left+x,  y = NOM.top+1,
+                w = w, h = NOM.height-2,
 
-                content = (not item.icon) and item.name,
-                background = item.icon or 0,
+                color = props.color,
+                secondary_color = props.secondary_color,
 
-                onclick = item.onclick or nil,
+                item = item,
 
-                onenter = function(self)
-                  self.document:set_cursor("pointer")
-                end,
-
-                onleave = function(self)
-                  self.document:set_cursor("default")
-                end,
+                pause = props.pause, resume = props.resume,
               }
     end)
   }

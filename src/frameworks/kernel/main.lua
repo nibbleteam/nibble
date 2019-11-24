@@ -199,24 +199,7 @@ function exec_process(process, dt)
     local sheet = process.priv.spritesheet
     hw.use_spritesheet(sheet.ptr, sheet.w, sheet.h)
 
-    if process.priv.initialized then
-        if process.pub.update then
-            xpcall(process.pub.update, function (err)
-                process.priv.ok = false
-                handle_process_error(err)
-            end, dt)
-        end
-
-        if process.pub.draw then
-            hw.clip(process.priv.x, process.priv.y,
-                    process.priv.width, process.priv.height)
-
-            xpcall(process.pub.draw, function (err)
-                process.priv.ok = false
-                handle_process_error(err)
-            end)
-        end
-    else
+    if not process.priv.initialized then
         if process.pub.init then
             xpcall(process.pub.init, function (err)
                 process.priv.ok = false
@@ -225,6 +208,23 @@ function exec_process(process, dt)
         end
 
         process.priv.initialized = true
+    end
+
+    if process.pub.update then
+        xpcall(process.pub.update, function (err)
+            process.priv.ok = false
+            handle_process_error(err)
+        end, dt)
+    end
+
+    if process.pub.draw then
+        hw.clip(process.priv.x, process.priv.y,
+                process.priv.width, process.priv.height)
+
+        xpcall(process.pub.draw, function (err)
+            process.priv.ok = false
+            handle_process_error(err)
+        end)
     end
 end
 

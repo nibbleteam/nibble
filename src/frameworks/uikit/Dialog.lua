@@ -26,8 +26,8 @@ function Dialog:render(state, props)
         radius = 4,
         background = 1,
 
-        {Dialog.Header, children = props.header or {}, h = 16},
-        {Dialog.Body, children = props.body, h = NOM.height-16-3, y = 16}
+        {Dialog.Header, children = props.header, h = 16, key = "a"},
+        {Dialog.Body, children = props.body, h = NOM.height-16-3, y = 16, key = "b"}
       }
    }
 end

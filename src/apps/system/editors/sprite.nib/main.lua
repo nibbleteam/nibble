@@ -147,7 +147,7 @@ function Sprite:render(state, props)
           self.mouse_start_x, self.mouse_start_y = mouse_position()
 
           self.prev_cursor = w.document.cursor.state
-          w.document:set_cursor("hand")
+          w.document:set_cursor("drag")
         end
       end
 
@@ -390,7 +390,7 @@ function Sprite:render(state, props)
           end,
 
           onenter = function(self)
-            self.document:set_cursor("hand")
+            self.document:set_cursor("pointer")
           end,
 
           onleave = function(self)
@@ -411,7 +411,7 @@ function Sprite:render(state, props)
           end,
 
           onenter = function(self)
-            self.document:set_cursor("hand")
+            self.document:set_cursor("pointer")
           end,
 
           onleave = function(self)
@@ -453,20 +453,15 @@ local sprite_editor = Sprite:new({})
 local nom = sprite_editor:nom():use('cursor')
 
 nom.cursor["crosshair"] = {
-  x = 56, y = 80,
+  x = 80, y = 80,
   w = 8, h = 8,
   hx = 3, hy = 3,
 }
 
 nom.cursor["picker"] = {
-  x = 72, y = 80,
+  x = 88, y = 80,
   w = 8, h = 8,
   hx = 0, hy = 8,
-}
-
-nom.cursor["hand"] = {
-  x = 64, y = 80,
-  w = 8, h = 8,
 }
 
 send_message(env.taskbar, {
@@ -479,8 +474,9 @@ function init()
                  kind = "set_menu",
                  menu = {
                    color = 14,
+                   secondary_color = 12,
                    items = {
-                     { name = "File", icon = nil },
+                     --{ name = "File", icon = nil },
                    }
                  }
   })

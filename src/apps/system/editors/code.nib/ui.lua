@@ -79,6 +79,14 @@ return {
         end
     end,
 
+    onenter = function(self)
+        self.document:set_cursor("cursor")
+    end,
+
+    onleave = function(self)
+        self.document:set_cursor("default")
+    end,
+
     update = function(self)
         -- TODO: use NOM's event system
         local input = read_keys()

@@ -51,6 +51,7 @@ function Widget:new(config, document, parent)
         dirty = true,
         -- Hash of all properties
         hash = 0,
+        neact_generated_by = config.neact_generated_by,
     }
 
     for k, _ in zip(config, defaults) do
@@ -435,75 +436,59 @@ function Widget:click(event, press)
     return nil
 end
 
-function Widget:move(event, offset, left)
-    if self:mouse_sprite_in_bounds(event, offset) then
-        self.mouse.sprite_inside = true
-
-        -- Hardware mouse does not mess things up
-        -- self:set_dirty()
-    elseif self.mouse.sprite_inside then
-        self.mouse.sprite_inside = false
-
-        -- Hardware mouse does not mess things up
-        -- self:set_dirty()
-    end
-
-    if self:in_bounds(event) and not left then
-        if not self.mouse.inside then
-            self.mouse.inside = true
-
-            if self.onenter then
-                self.document:fire(function()
-                    if self:onenter(event) then
-                        return true
-                    end
-
-                    local c = self.document.cursor[self.document.cursor.state]
-
-                    mouse_cursor(c.x, c.y, c.w, c.h)
-                end, 0)
-            end
-        end
-
-        if self.onmove then
-            if self:onmove(event) then
-                return true
-            end
-        end
-
-        local left = false
+-- FIXME: this does not accuratly handle occlusion
+-- TODO:
+-- * stop propagation if a caller requests so
+function Widget:move(event, offset, mark_left)
+    do
+        local mark_left = false
 
         for i=#self.children,1,-1 do
             local child = self.children[i]
 
-            left = child:move(event, offset, left) or left
+            mark_left = child:move(event, offset, mark_left)
+        end
+    end
+
+    if self:in_bounds(event) and not mark_left then
+        -- Mouse just entered
+        if not self.mouse.inside then
+            self.document:fire(function()
+                self:enter(event)
+                self.document.mouse_focused_widget = self
+            end, 0)
         end
 
-        if not left then
-            self.document.mouse_focused_widget = self
+        if self.onmove then
+            self:onmove(event)
         end
 
         return true
     else
-        self.document:fire(function()
-            self:leave(event)
-        end, 1)
+        -- Mouse just left
+        if self.mouse.inside then
+            self.document:fire(function()
+                self:leave(event)
+            end, 1)
+        end
+
+        return false
     end
 end
 
 function Widget:leave(event)
-    if self.mouse.inside then
-        -- self:set_dirty()
+    self.mouse.inside = false
 
-        self.mouse.inside = false
+    if self.onleave then
+        self:onleave(event)
+    end
+end
 
-        if self.onleave then
-            self:onleave(event)
-        end
+function Widget:enter(event)
+    self.mouse.inside = true
 
-        for _, child in ipairs(self.children) do
-            child:leave(event)
-        end
+    if self.onenter then
+        self:onenter(event)
     end
 end
 
@@ -569,10 +554,13 @@ function Widget:init()
     end
 end
 
-function Widget:in_point(x, y)
-    return x >= self.x and y >= self.y and
-           x < self.x+self.w and
-           y < self.y+self.h
+function Widget:in_point(ex, ey)
+    local x, y, w, h = unwrap(self:clip_box())
+
+    return ex >= x and
+           ey >= y and
+           ex < x+w and
+           ey < y+h
 end
 
 function Widget:mouse_sprite_in_bounds(e, offset)

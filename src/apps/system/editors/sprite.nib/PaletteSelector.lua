@@ -51,7 +51,7 @@ function PaletteSelector:render(state, props)
     background = 7,
 
     onenter = function(self)
-      self.document:set_cursor("hand")
+      self.document:set_cursor("pointer")
     end,
 
     onleave = function(self)

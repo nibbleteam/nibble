@@ -114,8 +114,15 @@ function init()
         kind = "set_menu",
         menu = {
             color = 11,
+            secondary_color = 5,
             items = {
-                { name = "File", icon = nil },
+                -- {
+                --     name = "File", icon = nil,
+                --     items = {
+                --         { name = "Save", icon = nil },
+                --         { name = "Open", icon = nil },
+                --     },
+                -- },
             }
         }
     })

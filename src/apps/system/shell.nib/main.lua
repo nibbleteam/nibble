@@ -30,8 +30,7 @@ function init()
     -- Avisa que quer receber mensagens com entrada do usuário
     send_message(tty, { subscribe = env.pid, name = name })
 
-    -- Desenha prompt
-    print_prompt()
+    execute("help")
 end
 
 function update(dt)

@@ -23,8 +23,12 @@ function Neact.component_to_instance(component_id, component, props)
         local children = instances[2]
 
         -- TODO: remove numeric keys
-        if children[k] and children[k][1].props.key == props.key then
+        if children[k] and children[k][1].props.key == props.key and component == children[k][1]._component then
             if Neact.props_differ(children[k][1].props, props) then
+                if children[k][1].on_receive_props then
+                    children[k][1]:on_receive_props(props)
+                end
+
                 children[k][1].props = props
             end
 
@@ -32,10 +36,15 @@ function Neact.component_to_instance(component_id, component, props)
         else
             local instance = component:new(props)
 
+            instance._component = component
             instance._id = component_id
 
             if props.ref then
                 props.ref(instance)
+            end
+
+            if instance.on_receive_props then
+                instance:on_receive_props(props)
             end
 
             children[k] = {instance, {}}

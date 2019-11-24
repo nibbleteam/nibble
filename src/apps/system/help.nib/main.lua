@@ -13,6 +13,8 @@ function init()
 
   write("You can type ")
   write("ls apps", 8)
+  write(" and ")
+  write("ls apps/system", 8)
   write_line(" to list available apps!")
 
   stop_app(0)

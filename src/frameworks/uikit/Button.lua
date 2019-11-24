@@ -3,6 +3,8 @@ require 'nibui.Neact'
 local NOM = require 'nibui.NOM'
 local Widget = require 'nibui.Widget'
 
+local Click = require 'soundkit.Click'
+
 local Button = Neact.Component:new()
 
 function Button:new(props)
@@ -52,16 +54,27 @@ function Button:render(state, props)
       content = props.content,
       cmap = cmap,
 
-      onleave = function()
-         self:set_state { pressed = false }
+      onenter = function(w)
+         w.document:set_cursor("pointer")
+      end,
+
+      onleave = function(w)
+         w.document:set_cursor("default")
+
+         if state.pressed then
+            self:set_state { pressed = false }
+            Click.release()
+         end
       end,
 
       onpress = function(w)
          self:set_state { pressed = true }
+         Click.press()
       end,
 
       onclick = function(w)
          self:set_state { pressed = false }
+         Click.release()
 
          props.onclick()
       end,

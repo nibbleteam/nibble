@@ -11,8 +11,8 @@ local visible = true
 
 function Menu:new(props)
     return new(Menu, {
-                   state = props,
-                   props = props
+                   props = props,
+                   state = copy(props),
     })
 end
 
@@ -33,7 +33,6 @@ function Menu:render(state, props)
         w = NOM.parent.w, h = NOM.parent.h,
 
         --background = 14,
-        background = 0,
 
         {Dialog, w = 160, h = 128, header = {
              {
@@ -46,16 +45,19 @@ function Menu:render(state, props)
                  side = 'right',
                  color = 'black',
                  content = 'close',
+
                  onclick = function()
                      close()
                  end
              },
              {
                  Button, key = 'back',
+
                  side = 'left',
                  color = 'white',
                  content = 'back',
                  w = measure('close'),
+
                  onclick = function()
                      back()
                  end
@@ -112,8 +114,8 @@ function back()
 end
 
 function update(dt)
-    if time()%60 == 0 then
-        menu:set_state({time = get_time() })
+    if time()%30 == 0 then
+        menu:set_state { time = get_time() }
     end
 
     if button_down(BLACK) then

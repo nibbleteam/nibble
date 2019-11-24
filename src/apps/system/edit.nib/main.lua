@@ -91,13 +91,27 @@ for _, path in ipairs(editor_paths) do
       sprite = { 2, 10 }
     end
 
+    local pid = start_app(path, {
+      -- Viewport
+      x = 0, y = menu_height,
+      width = env.width, height = env.height-taskbar_height-menu_height,
+
+      -- Which file to edit
+      params = { path, editing_app[filetypes[path:sub(editor_search_path:len()+1)]] or path },
+
+      -- PID to send messages to
+      taskbar = env.pid,
+    }, true)
+
+    pause_app(pid)
+
     insert(editor_apps, {
       position = position,
       sprite = sprite,
       path = path,
-      pid = nil,
+      pid = pid,
 
-      menu = { color = 16, items = {} }
+      menu = { color = 16, secondary_color = 15, items = {} }
     })
 
     sort(editor_apps, function(a, b)
@@ -121,6 +135,7 @@ function Edit:new(props)
                state = {
                  menu = {
                    color = 3,
+                   secondary_color = 7,
 
                    items = {}
                  },
@@ -135,6 +150,12 @@ end
 function Edit:resume()
   if self.state.selected then
     resume_app(self.state.apps[self.state.selected].pid)
+  end
+end
+
+function Edit:pause()
+  if self.state.selected then
+    pause_app(self.state.apps[self.state.selected].pid)
   end
 end
 
@@ -186,6 +207,7 @@ function Edit:set_menu(menu)
 
     app.menu = {
       color = menu.color or 16,
+      secondary_color = menu.secondary_color or 16,
       items = menu.items or {}
     }
 
@@ -202,11 +224,13 @@ function Edit:render(state, props)
     w = NOM.width, h = NOM.height,
 
     {Menu,
-     h = menu_height, color = state.menu.color, items = state.menu.items,
-     run_app = function(self)
-       -- Release the button
-       self.background = { 0, 10 }
+     h = menu_height,
 
+     color = state.menu.color,
+     secondary_color = state.menu.secondary_color,
+     items = state.menu.items,
+
+     run_app = function(self)
        local child = start_app(editing_app.path, {})
 
        if child then
@@ -220,7 +244,11 @@ function Edit:render(state, props)
          -- Disable the mouse
          mouse_cursor(0, 0, 0, 0)
        end
-    end},
+     end,
+
+     pause = function() self:pause() end,
+     resume = function() self:resume() end,
+    },
 
     -- Background when no apps are running
     {
@@ -253,54 +281,6 @@ function Edit:render(state, props)
       w = NOM.width, h = taskbar_height,
       background = taskbar_background_color,
 
-      running = nil,
-
-      select = function(w, id, widget)
-        if state.selected ~= id then
-          -- Move the icon up
-          widget.y -= icon_jump
-          -- and select the bright background
-          widget.background[1] -= 2
-
-          -- If there was an app running, pause it
-          if state.selected ~= nil then
-            local prev_widget = w:find(state.selected)
-            -- and also move its icon down
-            prev_widget.y += icon_jump
-            -- and select the dark background
-            prev_widget.background[1] += 2
-
-            pause_app(w.running)
-          end
-
-          -- If this app has a running process
-          if widget.pid then
-            -- just resume it
-            resume_app(widget.pid)
-
-            w.running = widget.pid
-          else
-            -- otherwise start it from the ground up
-            widget.pid = start_app(id, {
-              x = 0, y = menu_height,
-              width=env.width,
-              height=env.height-taskbar_height-menu_height,
-
-              params = { id, app[filetypes[id:sub(editor_search_path:len()+1)]] or app.path },
-
-              taskbar = env.pid,
-            }, true)
-
-            w.running = widget.pid
-          end
-
-          -- Mark as selected
-          self:set_state {
-            selected = id
-          }
-        end
-      end,
-
       -- A little highlight line
       {
         x = NOM.left, y = NOM.top,
@@ -315,37 +295,6 @@ function Edit:render(state, props)
 
         background = taskbar_silhouette_color
       },
-
-      -- A "reload" button
-      -- {
-      --   x = NOM.right-16, y = NOM.bottom-taskbar_height+8,
-      --   w = 16, h = 16,
-
-      --   background = 9,
-
-      --   content = "R",
-
-      --   onclick = function(self)
-      --     local taskbar = self.parent:find("taskbar")
-
-      --     if taskbar.selected then
-      --       local widget = self.parent:find(taskbar.selected)
-
-      --       -- Disable grouping so we don't kill ourselves too
-      --       stop_app(widget.pid, true)
-
-      --       widget.pid = start_app(taskbar.selected, {
-      --         x=0,y=0,
-      --         width=env.width,
-      --         height=env.height-taskbar_height,
-
-      --         params = env.params
-      --       }, true)
-
-      --       taskbar.running = widget.pid
-      --     end
-      --   end
-      -- },
 
       -- Notification Popup
       {

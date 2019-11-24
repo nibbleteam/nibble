@@ -121,7 +121,7 @@ function NOM:new(desc)
         features = {},
         cursor = {
             --offset = { x = -6, y = -8 },
-            offset = { x = -1, y = 0 },
+            offset = { x = 0, y = 0 },
             default = {
                 x = 48, y = 80,
                 w = 8, h = 8
@@ -130,6 +130,16 @@ function NOM:new(desc)
                 x = 56, y = 80,
                 w = 8, h = 8
             },
+            drag = {
+                x = 64, y = 80,
+                w = 8, h = 8
+            },
+            cursor = {
+                x = 72, y = 80,
+                w = 8, h = 8,
+                hx = 3, hy = 4,
+            },
+
             state = 'default',
             dirty = true
         },
