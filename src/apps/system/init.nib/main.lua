@@ -1,7 +1,7 @@
 require 'lang.timeout'
 
-local SCREEN_W = 400
-local SCREEN_H = 240
+local SCREEN_W = env.width
+local SCREEN_H = env.height
 
 local BOOT_ANIM_W = 64
 local BOOT_ANIM_H = 64
@@ -10,9 +10,9 @@ local SHEET_W = 8
 
 local FRAMES = 32
 
-local SPEED = 12
+local SPEED = 16
 
-local SKIP_INTRO = true
+local SKIP_INTRO = false
 
 function play()
   channel(CH1)
@@ -28,8 +28,8 @@ function play()
   local notes = { 32, 33, 35, 33, 35, 37, 39, 40 }
 
   for i=1,8 do
-    set_timeout(i/2, function()
-      noteon(notes[i]+12, 128)
+    set_timeout(i/16, function()
+      noteon(notes[i]+24, 128)
     end)
   end
 
@@ -37,7 +37,9 @@ function play()
 end
 
 function init()
-  --play()
+  set_timeout(1.25, play)
+  
+  -- start_recording("v0.2.0.gif")
 end
 
 function run_app()

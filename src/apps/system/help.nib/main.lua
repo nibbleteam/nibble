@@ -1,6 +1,8 @@
 require 'tty'
 
 function init()
+  write_line("Nibble v0.2.0")
+  write_line("")
   write_line("Type the name of the app you want to")
   write_line("start after the \"~\" prompt")
 
