@@ -1,11 +1,11 @@
 function copy_file(from, to)
-  local f_from = io.open(from, 'r')
+  local f_from = io.open(from, 'rb')
 
   if f_from then
     local content = f_from:read('*all')
   
     if content then
-      local f_to = io.open(to, 'w')
+      local f_to = io.open(to, 'wb')
 
       if f_to then
         f_to:write(content)

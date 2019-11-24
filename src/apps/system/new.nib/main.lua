@@ -17,7 +17,7 @@ function make_file(file)
 end
 
 function copy_file(from, to)
-  local original = io.open(from, "r")
+  local original = io.open(from, "rb")
 
   if original then
     local content = original:read("*all")
@@ -25,7 +25,7 @@ function copy_file(from, to)
     if content then
       make_file(to)
       
-      local destination = io.open(to, "w")
+      local destination = io.open(to, "wb")
 
       if destination then
         destination:write(content)
