@@ -105,7 +105,7 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
                               SDL_WINDOWPOS_CENTERED,
                               GPU_VIDEO_WIDTH*GPU_DEFAULT_SCALING,
                               GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING,
-                              SDL_WINDOW_SHOWN | (is_fullscreen? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_RESIZABLE );
+                              SDL_WINDOW_SHOWN | (is_fullscreen? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL );
 
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 

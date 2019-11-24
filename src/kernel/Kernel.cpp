@@ -10,9 +10,15 @@
 using namespace std;
 
 Kernel::Kernel(const bool fullscreen_startup): open_menu_next_frame(false), power(true) {
+#ifdef SDL_VIDEO_OPENGL
     if (SDL_Init(SDL_INIT_EVERYTHING | SDL_VIDEO_OPENGL) != 0) {
         cout << "SDL_Init: " << SDL_GetError() << endl;
     }
+#else
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        cout << "SDL_Init: " << SDL_GetError() << endl;
+    }
+#endif
 
     memory.set_log(true);
 
