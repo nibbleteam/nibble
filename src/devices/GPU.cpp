@@ -107,7 +107,9 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
                               GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING,
                               SDL_WINDOW_SHOWN | (is_fullscreen? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_RESIZABLE );
 
-    renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     //renderer = SDL_CreateSoftwareRenderer(SDL_GetWindowSurface(window));
 
     palette_memory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
