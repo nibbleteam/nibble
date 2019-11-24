@@ -18,7 +18,7 @@ Você será recebido pela shell.
 Você pode rodar qualquer programa digitando o nome dele.
 
 <p align="center">
-        <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/shell-demo.gif" width="800" height="480"/>
+        <img style="image-rendering: pixelated;" src ="https://github.com/pongboy/nibble/raw/master/assets/screencaps/v0.2.0-cut.gif" width="800" height="480"/>
 </p>
 
 Dá uma olhada na [documentação](https://docs.nibble.world).
