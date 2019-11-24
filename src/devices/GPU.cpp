@@ -27,6 +27,7 @@ PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 PFNGLUSEPROGRAMPROC glUseProgram;
 
 const static string default_vertex_shader = R"(
+#version 130
 // Shader padrão do SFML sem alterações
 void main()
 {
@@ -40,6 +41,7 @@ void main()
 )";
 
 const static string expand_colors_shader = R"(
+#version 130
 uniform sampler2D texture;
 
 vec2 index_to_position(float i, float w, float h) {
