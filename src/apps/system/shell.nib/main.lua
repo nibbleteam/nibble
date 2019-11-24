@@ -9,6 +9,7 @@ local prompt_color = 9
 
 sh = {
     path = {
+        "apps/system/editors/",
         "apps/system/",
         "apps/",
     },

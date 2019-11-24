@@ -101,47 +101,53 @@ function init()
             return print_available_apps_and_exit(true)
         end
     else
-        -- print_available_apps_and_exit()
+        --print_available_apps_and_exit()
         create_ui("", "unamed.lua")
     end
 
-    send_message(env.taskbar, {
-        kind = "notification",
-        content = "Lets hack!",
-    })
+    if env.taskbar then
+        send_message(env.taskbar, {
+            kind = "notification",
+            content = "Lets hack!",
+        })
 
-    send_message(env.taskbar, {
-        kind = "set_menu",
-        menu = {
-            color = 11,
-            secondary_color = 5,
-            items = {
-                -- {
-                --     name = "File", icon = nil,
-                --     items = {
-                --         { name = "Save", icon = nil },
-                --         { name = "Open", icon = nil },
-                --     },
-                -- },
+        send_message(env.taskbar, {
+            kind = "set_menu",
+            menu = {
+                color = 11,
+                secondary_color = 5,
+                items = {
+                    -- {
+                    --     name = "File", icon = nil,
+                    --     items = {
+                    --         { name = "Save", icon = nil },
+                    --         { name = "Open", icon = nil },
+                    --     },
+                    -- },
+                }
             }
-        }
-    })
+        })
+    end
 end
 
 function draw()
-    nom:draw()
+    if nom then
+        nom:draw()
+    end
 end
 
 function update(dt)
-    local msg = receive_message()
+    if nom then
+        local msg = receive_message()
 
-    if msg then
-        if msg.resume then
-            nom.root:set_dirty()
+        if msg then
+            if msg.resume then
+                nom.root:set_dirty()
+            end
         end
+
+        nom:update(dt)
+
+        run_timeouts(dt)
     end
-
-    nom:update(dt)
-
-    run_timeouts(dt)
 end

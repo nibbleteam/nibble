@@ -88,6 +88,10 @@ return {
     end,
 
     update = function(self)
+        if not self.editor then
+            return
+        end
+
         -- TODO: use NOM's event system
         local input = read_keys()
 
