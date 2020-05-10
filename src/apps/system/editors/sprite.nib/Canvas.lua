@@ -3,6 +3,8 @@ local Widget = require 'nibui.Widget'
 
 local Canvas = Neact.Component:new()
 
+local ALPHA_SIZE = 16
+
 function Canvas:new(props)
   return new(Canvas, {
                props = props,
@@ -59,7 +61,7 @@ function Canvas:render(state, props)
     draw_checkboard = function(self)
       local x, y, w, h = self.x+1, self.y+1, self.w-2, self.h-2
 
-      local side = 8*props.scale
+      local side = ALPHA_SIZE*props.scale
       local colors = { 10, 8 }
 
       -- Draw a checkers pattern

@@ -75,7 +75,7 @@ function Bitmap:fill(x, y, color)
   local original = self:get_pixel(x, y)
 
   if color == original then
-    return
+    return nil
   end
 
   local i = 0

@@ -8,7 +8,12 @@ function FillTool:new(history)
 end
 
 function FillTool:press(preview, sprite, x, y, color)
-  self.history:snapshot(sprite, sprite:fill(x, y, color))
+  -- b for bouding
+  local bx, by, bw, bh = sprite:fill(x, y, color)
+
+  if bx and by and bw and bh then
+    self.history:snapshot(sprite, bx, by, bw, bh)
+  end
 end
 
 function FillTool:release(sprite, x, y)
