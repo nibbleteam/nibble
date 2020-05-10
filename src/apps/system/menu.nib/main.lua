@@ -9,6 +9,8 @@ local menu, nom = nil, nil
 
 local visible = true
 
+local restart_state = 0
+
 function Menu:new(props)
     return new(Menu, {
                    props = props,
@@ -102,6 +104,20 @@ function close()
     stop_app(0)
 end
 
+function restart()
+    -- Avoid redrawing
+    visible = false
+
+    for _, pid in ipairs(env.running) do
+        resume_app(pid)
+    end
+
+    stop_app(env.app.pid)
+    stop_app(0)
+
+    start_app(env.app.entrypoint, env.app.env)
+end
+
 function back()
     -- Avoid redrawing
     visible = false
@@ -124,6 +140,30 @@ function update(dt)
 
     if button_down(WHITE) then
         back()
+    end
+
+    if button_down(RIGHT) and restart_state == 0 then
+        restart_state = 1
+    end
+
+    if button_down(DOWN) and restart_state == 1 then
+        restart_state = 2
+    end
+
+    if button_down(LEFT) and restart_state == 2 then
+        restart_state = 3
+    end
+
+    if button_down(UP) and restart_state == 3 then
+        restart_state = 4
+    end
+
+    if button_down(RIGHT) and restart_state == 4 then
+        restart_state = 5
+    end
+
+    if restart_state == 5 then
+        restart()
     end
 
     nom:update(dt)

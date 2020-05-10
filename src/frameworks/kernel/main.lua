@@ -58,6 +58,7 @@ function menu()
             app = {
                 env = executing_process.pub.env,
                 pid = executing_process.priv.pid,
+                entrypoint = executing_process.priv.entrypoint,
             },
             running = get_running_pids()
         })
@@ -679,6 +680,7 @@ function nib_api(entrypoint, proc, env)
         CH6 = audio.CH6,
         CH7 = audio.CH7,
         CH8 = audio.CH8,
+        utf8 = require "frameworks.kernel.utf8",
     }
 
     -- Expõe o sistema de arquivos para processos

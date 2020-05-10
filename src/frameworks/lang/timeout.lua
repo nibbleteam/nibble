@@ -5,11 +5,11 @@ local time = 0
 function set_timeout(expires_after, fn)
   local id = timeout_id
 
-  insert(timeout_table, {
-           expires_at = time + expires_after,
-           fn = fn,
-           id = timeout_id
-  })
+  timeout_table[id] = {
+    expires_at = time + expires_after,
+    fn = fn,
+    id = timeout_id
+  }
 
   timeout_id += 1
 
@@ -17,23 +17,21 @@ function set_timeout(expires_after, fn)
 end
 
 function clear_timeout(id)
-  for i=#timeout_table,1,-1 do
-    if timeout_table[i].id == id then
-        remove(timeout_table, i)
-        break
-    end
+  timeout_table[id] = nil
+end
+
+function get_timeout(id)
+  if timeout_table[id] then
+    return timeout_table[id].expires_at-time
   end
 end
 
 function run_timeouts(dt)
   time += dt
 
-  for i=#timeout_table,1,-1 do
-    if timeout_table[i].expires_at <= time then
-      local timeout = timeout_table[i]
-
-      remove(timeout_table, i)
-
+  for id, timeout in pairs(timeout_table) do
+    if timeout.expires_at <= time then
+      timeout_table[id] = nil
       timeout.fn()
     end
   end
