@@ -54,5 +54,5 @@ jobs:
       shell: cmd
     - uses: actions/upload-artifact@master
       with:
-        name: Nibble for Windows (x64)
+        name: Nibble for Windows (x86)
         path: nibble/
