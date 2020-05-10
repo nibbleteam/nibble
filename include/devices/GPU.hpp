@@ -142,6 +142,7 @@ private:
     // Shaders
     GLuint compile_shader(const string&, const GLuint);
     GLuint compile_program(const string&, const string&);
+    void print_shader_errors(GLuint);
 
     void check_opengl();
 };

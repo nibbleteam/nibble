@@ -1165,6 +1165,21 @@ void GPU::free_cursors() {
     cursor_surfaces.clear();
 }
 
+void GPU::print_shader_errors(GLuint shader) {
+    GLint log_len;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_len);
+
+    if (log_len > 0) {
+        auto log = new GLchar[log_len];
+
+        glGetShaderInfoLog(shader, log_len, &log_len, log);
+
+        cout << "Error while compiling shader: " << log << endl;
+
+        delete log;
+    }
+}
+
 // Referência:
 GLuint GPU::compile_shader(const string &source, const GLuint type) {
     // C-string
@@ -1183,18 +1198,7 @@ GLuint GPU::compile_shader(const string &source, const GLuint type) {
 
     if(compiled != GL_TRUE) {
         // Escreve os erros
-        GLint log_len;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_len);
-
-        if (log_len > 0) {
-            auto log = new GLchar[log_len];
-
-            glGetShaderInfoLog(shader, log_len, &log_len, log);
-
-            cout << "Error while compiling shader: " << log << endl;
-
-            delete log;
-        }
+        print_shader_errors(shader);
 
         glDeleteShader(shader);
 
@@ -1224,18 +1228,33 @@ GLuint GPU::compile_program(const string &vertex_source, const string &fragment_
     // Checa o programa
     glValidateProgram(program);
 
-    // Escreve os erros, se algum
-    GLint log_len;
-    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_len);
+    GLint link_status;
+    glGetProgramiv(program, GL_LINK_STATUS, &link_status);
 
-    if(log_len > 0) {
-        auto log = new GLchar[log_len];
+    if (link_status == GL_FALSE) {
+        cout << "Shader program linking failed. Checking logs." << endl;
 
-        // Show any errors as appropriate
-        glGetProgramInfoLog(program, log_len, &log_len, log);
-        cout << "Error linking shader: " << log << endl;
+        // Escreve os erros, se algum
+        GLint log_len;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_len);
 
-        delete log;
+        if(log_len > 0) {
+            cout << "There are " << log_len << " characters of logs." << endl;
+
+            auto log = new GLchar[log_len];
+
+            glGetProgramInfoLog(program, log_len, &log_len, log);
+            cout << "Error linking shader: " << log << endl;
+
+            delete log;
+        } else {
+            cout << "No logs found." << endl;
+        }
+
+        glDeleteShader(vertex_shader);
+        glDeleteShader(fragment_shader);
+
+        return 0;
     }
 
     // Não precisamos mais dos shaders
