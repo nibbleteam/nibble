@@ -34,21 +34,25 @@ local icon_jump = 2
 local icon_offset = 2
 
 local icon_map = {
-  ["music.nib"] = {
-    sprite_y = 6,
-    button_position = 3
-  },
   ["code.nib"] = {
     sprite_y = 7,
     button_position = 1,
+    highlight_color = 10,
   },
   ["sprite.nib"] = {
     sprite_y = 8,
     button_position = 2,
+    highlight_color = 9,
+  },
+  ["music.nib"] = {
+    sprite_y = 6,
+    button_position = 3,
+    highlight_color = 2,
   },
   ["map.nib"] = {
     sprite_y = 9,
     button_position = 4,
+    highlight_color = 8,
   },
 }
 
@@ -80,15 +84,15 @@ for _, path in ipairs(editor_paths) do
   -- If the name does not start with a .
   if not path:match("[/\\]%..*") then
     local icon_info = icon_map[path:sub(editor_search_path:len()+1)]
-    local sprite
+    local sprite = { 2, 10 }
+    local highlight_color = 7
     local position = 9
 
     -- The icon has a custom position and sprite
     if icon_info then
       sprite = { 2, icon_info.sprite_y }
       position = icon_info.button_position
-    else
-      sprite = { 2, 10 }
+      highlight_color = icon_info.highlight_color
     end
 
     local pid = start_app(path, {
@@ -106,6 +110,7 @@ for _, path in ipairs(editor_paths) do
     pause_app(pid)
 
     insert(editor_apps, {
+      highlight_color = highlight_color,
       position = position,
       sprite = sprite,
       path = path,
@@ -141,6 +146,7 @@ function Edit:new(props)
                  },
 
                  apps = editor_apps,
+                 highlight_color = taskbar_highlight_color,
 
                  selected = nil,
                }
@@ -191,7 +197,8 @@ function Edit:select(i)
   -- Update the menu, without any transition
   self:set_state {
     menu = app.menu,
-    apps = self.state.apps
+    apps = self.state.apps,
+    highlight_color = app.highlight_color,
   }
 
   -- Update the app, with a slight transition
@@ -286,7 +293,7 @@ function Edit:render(state, props)
         x = NOM.left, y = NOM.top,
         w = NOM.width, h = 1,
 
-        background = taskbar_highlight_color
+        background = state.highlight_color,
       },
       -- A little silhouette line
       {

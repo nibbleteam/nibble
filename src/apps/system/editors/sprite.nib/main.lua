@@ -15,6 +15,7 @@ local Sprite = Neact.Component:new()
 local Palette = require 'Palette'
 local PaletteSelector = require 'PaletteSelector'
 local Canvas = require 'Canvas'
+local FloatingToolbox = require 'FloatingToolbox'
 local Bitmap = require 'Bitmap'
 
 local RevisionHistory = require 'RevisionHistory'
@@ -247,56 +248,62 @@ function Sprite:render(state, props)
       self:zoom_at_cursor(math.max(1, math.min(max_zoom, y+state.zoom)))
     end,
 
-    -- Palette
+    {FloatingToolbox},
+
+    -- -- Palette
+    -- {
+    --   Palette,
+
+    --   x = NOM.left+spacing, y = NOM.top+spacing,
+    --   w = palette_width-2*spacing, h = palette_height,
+
+    --   border_color = palette_border_color,
+    --   width = palette_width,
+    --   height = palette_height,
+    --   spacing = spacing,
+
+    --   selected = state.selected_color,
+    --   palette = state.selected_palette or 1,
+
+    --   onchange = function(color)
+    --     self:set_state({
+    --         selected_color = color
+    --     })
+    --   end
+    -- },
+
+    -- -- Palette Selector
+    -- {
+    --   PaletteSelector,
+    --
+    --   x = NOM.left+spacing, y = NOM.bottom-palette_selector_height-spacing,
+    --   w = palette_width-2*spacing, h = palette_selector_height,
+
+    --   spacing = spacing,
+
+    --   selected = state.selected_palette,
+
+    --   onchange = function(palette)
+    --     self:set_state({
+    --         selected_palette = palette
+    --     })
+    --   end
+    -- },
+
+    -- Top shadow line
     {
-      Palette,
+      x = NOM.left+spacing, y = NOM.top,
+      w = NOM.width-spacing*2, h = 1,
 
-      x = NOM.left+spacing, y = NOM.top+spacing,
-      w = palette_width-2*spacing, h = palette_height,
-
-      border_color = palette_border_color,
-      width = palette_width,
-      height = palette_height,
-      spacing = spacing,
-
-      selected = state.selected_color,
-      palette = state.selected_palette or 1,
-
-      onchange = function(color)
-        self:set_state({
-            selected_color = color
-        })
-      end
-    },
-
-    -- Palette Selector
-    {
-      PaletteSelector,
-     
-      x = NOM.left+spacing, y = NOM.bottom-palette_selector_height-spacing,
-      w = palette_width-2*spacing, h = palette_selector_height,
-
-      spacing = spacing,
-
-      selected = state.selected_palette,
-
-      onchange = function(palette)
-        self:set_state({
-            selected_palette = palette
-        })
-      end
+      background = 9,
     },
 
     -- Drawing area
     {
-      x = NOM.left+palette_width, y = NOM.top+spacing,
-      w = NOM.width-palette_width-toolbar_width, h = NOM.height-2*spacing,
+      x = NOM.left+spacing, y = NOM.top+1,
+      w = NOM.width-spacing*2, h = NOM.height-spacing-1,
 
-      border_color = 3,
-      border_size = 1,
-
-      radius = 2,
-
+      border_size = 0,
       background = 7,
 
       onmove = function(w, event)
@@ -421,31 +428,31 @@ function Sprite:render(state, props)
       }
     },
 
-    -- Toolbar
-    {
-      x = NOM.right-toolbar_width, y = NOM.top+spacing,
-      w = toolbar_width, h = NOM.height-2*spacing,
+    -- -- Toolbar
+    -- {
+    --   x = NOM.right-toolbar_width, y = NOM.top+spacing,
+    --   w = toolbar_width, h = NOM.height-2*spacing,
 
-      NOM.map(tools, function(tool, i)
-          return {
-            x = NOM.left+spacing, y = NOM.top+spacing+(16+spacing)*(i-1),
-            w = 16, h = 16,
+    --   NOM.map(tools, function(tool, i)
+    --       return {
+    --         x = NOM.left+spacing, y = NOM.top+spacing+(16+spacing)*(i-1),
+    --         w = 16, h = 16,
 
-            background = { state.tool == tool[2] and 1 or 0, tool[1] },
+    --         background = { state.tool == tool[2] and 1 or 0, tool[1] },
 
-            onclick = function(w)
-              self:set_state {
-                tool = tool[2]
-              }
+    --         onclick = function(w)
+    --           self:set_state {
+    --             tool = tool[2]
+    --           }
 
-              send_message(env.taskbar, {
-                             kind = "notification",
-                             content = "Using "..tool[2].name,
-              })
-            end,
-          }
-      end)
-    },
+    --           send_message(env.taskbar, {
+    --                          kind = "notification",
+    --                          content = "Using "..tool[2].name,
+    --           })
+    --         end,
+    --       }
+    --   end)
+    -- },
   }
 end
 
@@ -475,6 +482,7 @@ function init()
                  menu = {
                    color = 14,
                    secondary_color = 12,
+                   taskbar_highlight_color = 9,
                    items = {
                      --{ name = "File", icon = nil },
                    }

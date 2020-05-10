@@ -203,7 +203,10 @@ local function merge_boxes(a, b)
     local start = clip_point({ b[1], b[2] }, a)
     local finish = clip_point({ b[1]+b[3], b[2]+b[4] }, a)
 
-    return { start[1], start[2], finish[1]-start[1], finish[2]-start[2] }
+    return { start[1],
+             start[2],
+             math.ceil(finish[1]-start[1]),
+             math.ceil(finish[2]-start[2]) }
 end
 
 function Widget:clip_box(b)

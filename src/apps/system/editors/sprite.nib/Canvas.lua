@@ -53,10 +53,6 @@ function Canvas:render(state, props)
     w = w+2, h = h+2,
 
     background = 8,
-    border_size = 1,
-    border_color = 1,
-
-    clip_to = 1,
 
     draw_checkboard = function(self)
       local x, y, w, h = self.x+1, self.y+1, self.w-2, self.h-2
@@ -110,7 +106,7 @@ function Canvas:render(state, props)
       if self.dirty then
         self.dirty = false
 
-        clip(unwrap(Widget.clip_box(self, 1)))
+        clip(unwrap(Widget.clip_box(self, 0)))
 
         fill_rect(self.x, self.y, self.w, self.h, self.border_color)
 
