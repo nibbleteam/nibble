@@ -63,8 +63,8 @@ function Canvas:render(state, props)
   local w, h = math.floor(props.sprite.width*props.scale), math.floor(props.sprite.height*props.scale)
 
   return {
-    x = NOM.left+props.offset_x,
-    y = NOM.top+props.offset_y,
+    x = NOM.left+math.floor((NOM.width-w)/2)+props.offset_x,
+    y = NOM.top+math.floor((NOM.height-h)/2)+props.offset_y,
     w = w, h = h,
 
     background = 8,
