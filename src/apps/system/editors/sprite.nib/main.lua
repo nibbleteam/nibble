@@ -115,8 +115,8 @@ function Sprite:zoom_at_cursor(zoom)
 
   self:set_state({
       zoom = zoom,
-      canvas_offset_x = cx*zoom/cz,
-      canvas_offset_y = cy*zoom/cz
+      canvas_offset_x = math.floor(cx*zoom/cz),
+      canvas_offset_y = math.floor(cy*zoom/cz)
   })
 end
 
@@ -309,8 +309,8 @@ function Sprite:render(state, props)
       onmove = function(w, event)
         if state.dragging then
           self:set_state({
-              canvas_offset_x = event.x-self.mouse_start_x+self.drag_start_x,
-              canvas_offset_y = event.y-self.mouse_start_y+self.drag_start_y,
+              canvas_offset_x = math.floor(event.x-self.mouse_start_x+self.drag_start_x),
+              canvas_offset_y = math.floor(event.y-self.mouse_start_y+self.drag_start_y),
           })
         end
       end,
