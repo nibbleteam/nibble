@@ -63,8 +63,8 @@ function Canvas:render(state, props)
   local w, h = math.floor(props.sprite.width*props.scale), math.floor(props.sprite.height*props.scale)
 
   return {
-    x = NOM.left+math.floor((NOM.width-w)/2)+props.offset_x,
-    y = NOM.top+math.floor((NOM.height-h)/2)+props.offset_y,
+    x = NOM.left+(NOM.width-w)/2+props.offset_x,
+    y = NOM.top+(NOM.height-h)/2+props.offset_y,
     w = w, h = h,
 
     background = 8,
@@ -121,8 +121,6 @@ function Canvas:render(state, props)
 
         clip(unwrap(Widget.clip_box(self, 0)))
 
-        terminal_print(unwrap(Widget.clip_box(self, 0)))
-
         self:draw_checkboard()
 
         self:draw_sprite(props.sprite)
@@ -133,6 +131,10 @@ function Canvas:render(state, props)
     end,
 
     onenter = function(w)
+      if props.dragging then
+        return
+      end
+
       if not props.picker then
         self:update_crosshair()
         w.document:set_cursor("crosshair")
@@ -144,6 +146,10 @@ function Canvas:render(state, props)
     end,
 
     onleave = function(w)
+      if props.dragging then
+        return
+      end
+
       w.document:set_cursor("default")
 
       self:set_state({
@@ -154,6 +160,10 @@ function Canvas:render(state, props)
     onpress = function(w, event)
       local nx = math.floor((event.x-w.x)/props.scale)
       local ny = math.floor((event.y-w.y)/props.scale)
+
+      if props.dragging then
+        return
+      end
 
       if props.picker then
         self:pick_color(nx, ny)
@@ -169,6 +179,10 @@ function Canvas:render(state, props)
       local nx = math.floor((event.x-w.x)/props.scale)
       local ny = math.floor((event.y-w.y)/props.scale)
 
+      if props.dragging then
+        return
+      end
+
       if props.picker then
         -- self:pick_color(nx, ny)
       else
@@ -180,6 +194,10 @@ function Canvas:render(state, props)
     end,
 
     onmove = function(w, event)
+      if props.dragging then
+        return
+      end
+
       if not props.picker and not props.dragging then
         self:update_crosshair()
         w.document:set_cursor("crosshair")

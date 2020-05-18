@@ -1,6 +1,6 @@
 env.menu = {
   'Sprite Editor',
-  'v0.1.0',
+  'v0.2.0',
   '',
   'by @felipeoltavares',
 }
@@ -89,8 +89,13 @@ function Sprite:new(props)
                  -- The first tool in the tools array
                  tool = tools[1][2],
 
+                 -- Canvas position
                  canvas_offset_x = 0,
                  canvas_offset_y = 0,
+
+                 -- Colorpicker position
+                 colorpicker_offset_x = 0,
+                 colorpicker_offset_y = 0,
                },
 
                -- Canvas offset at the start of the drag
@@ -120,6 +125,33 @@ function Sprite:zoom_at_cursor(zoom)
   })
 end
 
+function Sprite:start_dragging(widget, what)
+  self:set_state({
+      dragging = what,
+  })
+
+  if not (self.drag_start_x or self.drag_start_y) then
+    self.drag_start_x = self.state[what .. "_offset_x"]
+    self.drag_start_y = self.state[what .. "_offset_y"]
+
+    self.mouse_start_x, self.mouse_start_y = mouse_position()
+
+    self.prev_cursor = widget.document.cursor.state
+    widget.document:set_cursor("drag")
+  end
+end
+
+function Sprite:stop_dragging(widget)
+  self:set_state({
+      dragging = false
+  })
+
+  self.drag_start_x = nil
+  self.drag_start_y = nil
+
+  widget.document:set_cursor(self.prev_cursor)
+end
+
 function Sprite:render(state, props)
   if state.zoom > 0 and state.zoom ~= self.zoom then
     send_message(env.taskbar, {
@@ -137,19 +169,7 @@ function Sprite:render(state, props)
 
     onkeydown = function(w, key, mods)
       if key == 32 then
-        self:set_state({
-            dragging = true
-        })
-
-        if not (self.drag_start_x or self.drag_start_y) then
-          self.drag_start_x = state.canvas_offset_x
-          self.drag_start_y = state.canvas_offset_y
-
-          self.mouse_start_x, self.mouse_start_y = mouse_position()
-
-          self.prev_cursor = w.document.cursor.state
-          w.document:set_cursor("drag")
-        end
+        self:start_dragging(w, "canvas")
       end
 
       if key == 226 then
@@ -223,14 +243,7 @@ function Sprite:render(state, props)
 
     onkeyup = function(w, key, mods)
       if key == 32 then
-        self:set_state({
-            dragging = false
-        })
-
-        self.drag_start_x = nil
-        self.drag_start_y = nil
-
-        w.document:set_cursor(self.prev_cursor)
+        self:stop_dragging(w)
       end
 
       if key == 226 then
@@ -248,7 +261,11 @@ function Sprite:render(state, props)
       self:zoom_at_cursor(math.max(1, math.min(max_zoom, y+state.zoom)))
     end,
 
-    {FloatingToolbox},
+    onclick = function(w)
+      if state.dragging and state.dragging ~= "canvas" then
+        self:stop_dragging(w)
+      end
+    end,
 
     -- -- Palette
     -- {
@@ -309,8 +326,8 @@ function Sprite:render(state, props)
       onmove = function(w, event)
         if state.dragging then
           self:set_state({
-              canvas_offset_x = math.floor(event.x-self.mouse_start_x+self.drag_start_x),
-              canvas_offset_y = math.floor(event.y-self.mouse_start_y+self.drag_start_y),
+              [ state.dragging .. "_offset_x" ] = math.floor(event.x-self.mouse_start_x+self.drag_start_x),
+              [ state.dragging .. "_offset_y" ] = math.floor(event.y-self.mouse_start_y+self.drag_start_y),
           })
         end
       end,
@@ -325,7 +342,7 @@ function Sprite:render(state, props)
         preview = state.preview,
         tool = state.tool,
         scale = state.zoom,
-        dragging = state.dragging,
+        dragging = state.dragging and true or false,
         picker = state.picker,
         offset_x = state.canvas_offset_x,
         offset_y = state.canvas_offset_y,
@@ -333,6 +350,17 @@ function Sprite:render(state, props)
         onpickcolor = function(c)
           self:set_state { selected_color = c+1 }
         end
+      },
+
+      {
+        FloatingToolbox,
+
+        offset_x = state.colorpicker_offset_x,
+        offset_y = state.colorpicker_offset_y,
+
+        ongrab = function(w)
+          self:start_dragging(w, "colorpicker")
+        end,
       },
 
       {
