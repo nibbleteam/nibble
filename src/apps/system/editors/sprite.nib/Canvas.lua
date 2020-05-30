@@ -15,7 +15,7 @@ end
 local function screen_to_canvas(ox, oy,
                                 sx, sy,
                                 x1, y1, x2, y2)
-  local x, y = math.floor((x1-ox)/sx), math.floor((y1-oy)/sy)
+  local x, y = math.floor((x1-math.floor(ox))/sx), math.floor((y1-math.floor(oy))/sy)
 
   return x, y, x+math.ceil((x2-x1)/sx), y+math.ceil((y2-y1)/sy)
 end
@@ -58,9 +58,9 @@ function Canvas:update_crosshair()
 end
 
 function Canvas:render(state, props)
-  props.scale = props.scale < 1 and 1 or props.scale
+  props.scale = props.scale < 1 and 1 or math.floor(props.scale)
 
-  local w, h = math.floor(props.sprite.width*props.scale), math.floor(props.sprite.height*props.scale)
+  local w, h = props.sprite.width*props.scale, props.sprite.height*props.scale
 
   return {
     x = NOM.left+(NOM.width-w)/2+props.offset_x,
@@ -70,7 +70,7 @@ function Canvas:render(state, props)
     background = 8,
 
     draw_checkboard = function(self)
-      local x, y, w, h = self.x, self.y, self.w, self.h
+      local x, y, w, h = math.floor(self.x), math.floor(self.y), self.w, self.h
 
       local side = ALPHA_SIZE*props.scale
       local colors = { 10, 8 }
@@ -85,8 +85,8 @@ function Canvas:render(state, props)
 
     draw_cursor = function(self)
       if state.show_cursor then
-        fill_rect(self.x+state.cursor_x*props.scale+1,
-                  self.y+state.cursor_y*props.scale+1,
+        fill_rect(math.floor(self.x)+state.cursor_x*props.scale,
+                  math.floor(self.y)+state.cursor_y*props.scale,
                   props.scale,
                   props.scale,
                   props.color-1)
@@ -107,7 +107,8 @@ function Canvas:render(state, props)
           local c = data[y*w+x] or spr.solid
 
           if c and c:byte() then
-            fill_rect(self.x+x*props.scale, self.y+y*props.scale,
+            fill_rect(math.floor(self.x)+x*props.scale,
+                      math.floor(self.y)+y*props.scale,
                       props.scale, props.scale,
                       c:byte() + (props.palette-1)*16)
           end
@@ -158,8 +159,8 @@ function Canvas:render(state, props)
     end,
 
     onpress = function(w, event)
-      local nx = math.floor((event.x-w.x)/props.scale)
-      local ny = math.floor((event.y-w.y)/props.scale)
+      local nx = math.floor((event.x-math.floor(w.x))/props.scale)
+      local ny = math.floor((event.y-math.floor(w.y))/props.scale)
 
       if props.dragging then
         return
@@ -176,8 +177,8 @@ function Canvas:render(state, props)
     end,
 
     onclick = function(w, event)
-      local nx = math.floor((event.x-w.x)/props.scale)
-      local ny = math.floor((event.y-w.y)/props.scale)
+      local nx = math.floor((event.x-math.floor(w.x))/props.scale)
+      local ny = math.floor((event.y-math.floor(w.y))/props.scale)
 
       if props.dragging then
         return
@@ -203,8 +204,8 @@ function Canvas:render(state, props)
         w.document:set_cursor("crosshair")
       end
 
-      local nx = math.floor((event.x-w.x)/props.scale)
-      local ny = math.floor((event.y-w.y)/props.scale)
+      local nx = math.floor((event.x-math.floor(w.x))/props.scale)
+      local ny = math.floor((event.y-math.floor(w.y))/props.scale)
 
       if event.drag then
         if props.picker then
