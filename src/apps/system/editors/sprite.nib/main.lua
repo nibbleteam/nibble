@@ -84,6 +84,8 @@ function Sprite:new(props)
                  preview = Bitmap:new(main_sprite.width, main_sprite.height, {}),
                  zoom = 1,
                  dragging = false,
+                 bounds_w = nil,
+                 bounds_h = nil,
                  picker = false,
 
                  -- The first tool in the tools array
@@ -96,6 +98,10 @@ function Sprite:new(props)
                  -- Colorpicker position
                  colorpicker_offset_x = 0,
                  colorpicker_offset_y = 0,
+
+                 -- Toolbar position
+                 toolbar_offset_x = 0,
+                 toolbar_offset_y = 0,
                },
 
                -- Canvas offset at the start of the drag
@@ -125,9 +131,11 @@ function Sprite:zoom_at_cursor(zoom)
   })
 end
 
-function Sprite:start_dragging(widget, what)
+function Sprite:start_dragging(widget, what, w, h)
   self:set_state({
       dragging = what,
+      bounds_w = w,
+      bounds_h = h,
   })
 
   if not (self.drag_start_x or self.drag_start_y) then
@@ -143,7 +151,9 @@ end
 
 function Sprite:stop_dragging(widget)
   self:set_state({
-      dragging = false
+      dragging = false,
+      bounds_w = false,
+      bounds_h = false,
   })
 
   self.drag_start_x = nil
@@ -169,7 +179,7 @@ function Sprite:render(state, props)
 
     onkeydown = function(w, key, mods)
       if key == 32 then
-        self:start_dragging(w, "canvas")
+        self:start_dragging(w, "canvas", false, false)
       end
 
       if key == 226 then
@@ -237,8 +247,6 @@ function Sprite:render(state, props)
           })
         end
       end
-
-      -- terminal_print("Pressed", key)
     end,
 
     onkeyup = function(w, key, mods)
@@ -253,8 +261,6 @@ function Sprite:render(state, props)
 
         w.document:set_cursor(self.prev_cursor)
       end
-
-      -- terminal_print("Released", key)
     end,
 
     onscroll = function(w, x, y)
@@ -325,9 +331,21 @@ function Sprite:render(state, props)
 
       onmove = function(w, event)
         if state.dragging then
+          -- Calculate new offset
+          local tentative_x = math.floor(event.x-self.mouse_start_x+self.drag_start_x)
+          local tentative_y = math.floor(event.y-self.mouse_start_y+self.drag_start_y)
+          local x, y
+
+          if state.bounds_w and state.bounds_h then
+            -- Clamp to boundaries
+            x = math.min(math.max(tentative_x, 0), w.w-state.bounds_w)
+            y = math.min(math.max(tentative_y, 0), w.h-state.bounds_h)
+          end
+
+          -- Set new offset
           self:set_state({
-              [ state.dragging .. "_offset_x" ] = math.floor(event.x-self.mouse_start_x+self.drag_start_x),
-              [ state.dragging .. "_offset_y" ] = math.floor(event.y-self.mouse_start_y+self.drag_start_y),
+              [ state.dragging .. "_offset_x" ] = x or tentative_x,
+              [ state.dragging .. "_offset_y" ] = y or tentative_y,
           })
         end
       end,
@@ -358,8 +376,19 @@ function Sprite:render(state, props)
         offset_x = state.colorpicker_offset_x,
         offset_y = state.colorpicker_offset_y,
 
-        ongrab = function(w)
-          self:start_dragging(w, "colorpicker")
+        ongrab = function(widget, w, h)
+          self:start_dragging(widget, "colorpicker", w, h)
+        end,
+      },
+
+      {
+        FloatingToolbox,
+
+        offset_x = state.toolbar_offset_x,
+        offset_y = state.toolbar_offset_y,
+
+        ongrab = function(widget, w, h)
+          self:start_dragging(widget, "toolbar", w, h)
         end,
       },
 

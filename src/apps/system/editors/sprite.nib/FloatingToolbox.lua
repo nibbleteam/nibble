@@ -17,10 +17,12 @@ function FloatingToolbox:new(props)
 end
 
 function FloatingToolbox:render(state, props)
+  local w, h = 21, 77
+
   return {
     x = NOM.left+props.offset_x,
     y = NOM.top+props.offset_y,
-    w = 21, h = 77,
+    w = w, h = h,
 
     background = 7,
 
@@ -40,8 +42,8 @@ function FloatingToolbox:render(state, props)
         { x = NOM.left+4, y = NOM.top+1, w = NOM.width-8, h = 1, background = 9 },
         { x = NOM.left+4, y = NOM.top+3, w = NOM.width-8, h = 1, background = 9 },
 
-        onpress = function(w, event)
-          props.ongrab(w)
+        onpress = function(widget, event)
+          props.ongrab(widget, w, h)
         end,
       },
 
