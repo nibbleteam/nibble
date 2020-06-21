@@ -43,3 +43,8 @@ docs/build/
 
 # Emacs files
 .el
+
+# LuaJIT artifacts
+subprojects/luajit/src/host/buildvm
+subprojects/luajit/src/host/minilua
+subprojects/luajit/src/luajit

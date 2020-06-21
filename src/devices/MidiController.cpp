@@ -19,6 +19,9 @@ MidiController::MidiController(Memory& memory): ok(true) {
     } catch (RtMidiError &error) {
         ok = false;
         error.printMessage();
+
+        // Não tenta pegar portas se houve algum erro para evitar SEGFAULT
+        return;
     }
 
     try {
