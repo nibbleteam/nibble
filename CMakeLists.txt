@@ -4,6 +4,7 @@ project(nibble VERSION 0.1
                DESCRIPTION "A fantasy console designed to run on real hardware"
                LANGUAGES CXX C)
 
+# To create a debug build, uncomment this:
 # set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_CXX_STANDARD 14)
