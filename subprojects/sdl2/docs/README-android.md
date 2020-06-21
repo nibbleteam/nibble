@@ -20,7 +20,7 @@ https://developer.android.com/sdk/index.html
 Android NDK r15c or later
 https://developer.android.com/tools/sdk/ndk/index.html
 
-Minimum API level supported by SDL: 14 (Android 4.0.1)
+Minimum API level supported by SDL: 16 (Android 4.1)
 
 
 ================================================================================
@@ -82,6 +82,23 @@ For more complex projects, follow these instructions:
 
 4b. If you want to build manually, run './gradlew installDebug' in the project directory. This compiles the .java, creates an .apk with the native code embedded, and installs it on any connected Android device
 
+
+If you already have a project that uses CMake, the instructions change somewhat:
+
+1. Do points 1 and 2 from the instruction above.
+2. Edit "<project>/app/build.gradle" to comment out or remove sections containing ndk-build
+   and uncomment the cmake sections. Add arguments to the CMake invocation as needed.
+3. Edit "<project>/app/jni/CMakeLists.txt" to include your project (it defaults to
+   adding the "src" subdirectory). Note that you'll have SDL2, SDL2main and SDL2-static
+   as targets in your project, so you should have "target_link_libraries(yourgame SDL2 SDL2main)"
+   in your CMakeLists.txt file. Also be aware that you should use add_library() instead of
+   add_executable() for the target containing your "main" function.
+
+If you wish to use Android Studio, you can skip the last step.
+
+4. Run './gradlew installDebug' or './gradlew installRelease' in the project directory. It will build and install your .apk on any
+   connected Android device
+
 Here's an explanation of the files in the Android project, so you can customize them:
 
     android-project/app
@@ -90,10 +107,12 @@ Here's an explanation of the files in the Android project, so you can customize 
         jni/			- directory holding native code
         jni/Application.mk	- Application JNI settings, including target platform and STL library
         jni/Android.mk		- Android makefile that can call recursively the Android.mk files in all subdirectories
+        jni/CMakeLists.txt	- Top-level CMake project that adds SDL as a subproject
         jni/SDL/		- (symlink to) directory holding the SDL library files
         jni/SDL/Android.mk	- Android makefile for creating the SDL shared library
         jni/src/		- directory holding your C/C++ source
         jni/src/Android.mk	- Android makefile that you should customize to include your source code and any library references
+        jni/src/CMakeLists.txt	- CMake file that you may customize to include your source code and any library references
         src/main/assets/	- directory holding asset files for your application
         src/main/res/		- directory holding resources for your application
         src/main/res/mipmap-*	- directories holding icons for different phone hardware
@@ -174,7 +193,7 @@ http://ponystyle.com/blog/2010/03/26/dealing-with-asset-compression-in-android-a
  Pause / Resume behaviour
 ================================================================================
 
-If SDL is compiled with SDL_ANDROID_BLOCK_ON_PAUSE defined (the default),
+If SDL_HINT_ANDROID_BLOCK_ON_PAUSE hint is set (the default),
 the event loop will block itself when the app is paused (ie, when the user
 returns to the main Android dashboard). Blocking is better in terms of battery
 use, and it allows your app to spring back to life instantaneously after resume
@@ -380,13 +399,13 @@ https://developer.nvidia.com/tegra-graphics-debugger
 
 
 ================================================================================
- Why is API level 14 the minimum required?
+ Why is API level 16 the minimum required?
 ================================================================================
 
-The latest NDK toolchain doesn't support targeting earlier than API level 14.
+The latest NDK toolchain doesn't support targeting earlier than API level 16.
 As of this writing, according to https://developer.android.com/about/dashboards/index.html
-about 99% of the Android devices accessing Google Play support API level 14 or
-higher (October 2017).
+about 99% of the Android devices accessing Google Play support API level 16 or
+higher (January 2018).
 
 
 ================================================================================
@@ -407,6 +426,24 @@ screen each frame.
 
 Reference: http://www.khronos.org/registry/egl/specs/EGLTechNote0001.html
 
+
+================================================================================
+ Ending your application
+================================================================================
+
+Two legitimate ways:
+
+- return from your main() function. Java side will automatically terminate the
+Activity by calling Activity.finish().
+
+- Android OS can decide to terminate your application by calling onDestroy()
+(see Activity life cycle). Your application will receive a SDL_QUIT event you 
+can handle to save things and quit.
+
+Don't call exit() as it stops the activity badly.
+
+NB: "Back button" can be handled as a SDL_KEYDOWN/UP events, with Keycode
+SDLK_AC_BACK, for any purpose.
 
 ================================================================================
  Known issues
