@@ -22,3 +22,15 @@ Você pode rodar qualquer programa digitando o nome dele.
 </p>
 
 Dá uma olhada na [documentação](https://docs.nibble.world).
+
+# Compilando 
+
+O Nibble usa a ferramenta `CMake` para compilar o código. Há dois passos para executá-la.
+
+1. criar uma pasta para compilar: `mkdir build && cd build`;
+2. rodar cmake e make: `cmake .. && make`.
+
+Esses dois passos vão gerar um executável `nibble` que pode ser rodado de dentro
+do diretório `src` (isso é necessário porquê o OS do nibble está lá):
+
+`cd ../src && ../build/nibble`
