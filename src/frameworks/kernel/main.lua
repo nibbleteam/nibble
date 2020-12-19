@@ -624,7 +624,7 @@ function nib_api(entrypoint, proc, env)
         mask_color = gpu.mask_color,
         swap_colors = gpu.swap_colors,
         swap_screen_colors = gpu.swap_screen_colors,
-        rgba_color = hw.rgba_color,
+        rgba_color = gpu.rgba_color,
         -- Memory access
         read16 = hw.read16,
         read8 = hw.read8,
