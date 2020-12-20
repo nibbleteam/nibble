@@ -5,7 +5,7 @@ project(nibble VERSION 0.1
                LANGUAGES CXX C)
 
 # To create a debug build, uncomment this:
-# set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -54,6 +54,7 @@ add_subdirectory(subprojects/mp4)
 add_subdirectory(subprojects/x264)
 add_subdirectory(subprojects/rtmidi)
 add_subdirectory(subprojects/sdl2)
+add_subdirectory(subprojects/libuv)
 
 find_library(LUAJIT NAMES lua51.lib libluajit.a HINTS subprojects/luajit/src)
 
@@ -114,6 +115,7 @@ set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
                  ${CMAKE_SOURCE_DIR}/subprojects/mp4/mp4v2/
                  ${CMAKE_SOURCE_DIR}/subprojects/libpng/
                  ${CMAKE_SOURCE_DIR}/subprojects/x264/
+                 ${CMAKE_SOURCE_DIR}/subprojects/libuv/
                  ${ZLIB_INCLUDE_DIR})
 
 # 2. Create an executable from the files
@@ -142,4 +144,5 @@ target_link_libraries(nibble zlibstatic
                              SDL2main
                              mp4
                              x264
+                             uv
                              ${LUAJIT})

@@ -4,6 +4,7 @@
 local hw = require('frameworks.kernel.hw')
 
 -- Utilitários
+local network = require('frameworks.kernel.network')
 local audio = require('frameworks.kernel.audio')
 local input = require('frameworks.kernel.input')
 local lang = require('frameworks.kernel.lang')
@@ -24,12 +25,15 @@ local pid_counter = 0
 local executing_process = nil
 
 local global_time = 0
+local network_guid = nil
 
 --
 -- Pontos de entrada a partir do cpp
 --
 
 function init()
+    initialize_guid()
+
     processes[0] = make_process('apps/system/init.nib', {})
 end
 
@@ -133,6 +137,8 @@ function make_process(entrypoint, env, group)
         width = w, height = h,
         x = x, y = y,
         message_queue = {},
+        network_send_queue = {},
+        network_receive_queue = {},
         pid = pid_counter,
         parent = executing_process,
         entrypoint = entrypoint,
@@ -158,6 +164,7 @@ function make_process(entrypoint, env, group)
     proc.pub = nib_api(entrypoint, proc, env)
     proc.pub.env = env
     proc.pub.env.pid = proc.priv.pid
+    proc.pub.env.guid = network_guid
 
     proc.priv.ok, err = exec(entrypoint..'/main', proc.pub)
     proc.priv.running = true
@@ -182,7 +189,17 @@ function make_process(entrypoint, env, group)
 end
 
 function exec_processes(dt)
+    local messages = receive_networked_messages()
+
     for p, proc in pairs(processes) do
+        local list = messages[proc.priv.entrypoint]
+
+        if list then
+            while #list > 0 do
+                table.insert(proc.priv.network_receive_queue, 1, table.remove(list))
+            end
+        end
+
         if proc.priv.running then
             exec_process(proc, dt)
         end
@@ -211,6 +228,8 @@ function exec_process(process, dt)
         process.priv.initialized = true
     end
 
+    send_networked_messages(process)
+
     if process.pub.update then
         xpcall(process.pub.update, function (err)
             process.priv.ok = false
@@ -227,6 +246,53 @@ function exec_process(process, dt)
             handle_process_error(err)
         end)
     end
+end
+
+function send_networked_messages(process)
+    while #process.priv.network_send_queue > 0 do
+        local raw_msg = table.remove(process.priv.network_send_queue)
+
+        if raw_msg.to then
+            network.send_network_message({
+                    routing = {
+                        guid = raw_msg.to[1],
+                        entrypoint = raw_msg.t[2],
+                    },
+                    msg = raw_msg.msg,
+                    operation = "private_message",
+                    guid = network_guid,
+                    entrypoint = process.priv.entrypoint,
+            })
+        else
+            network.send_network_message({
+                    operation = "public_message",
+                    msg = raw_msg.msg,
+                    guid = network_guid,
+                    entrypoint = process.priv.entrypoint,
+            })
+        end
+    end
+end
+
+function receive_networked_messages()
+    local messages = {}
+    local message = nil
+
+    while true do
+        message = network.receive_network_message()
+
+         if message then
+             if messages[message.routing.entrypoint] then
+                 table.insert(messages[message.routing.entrypoint], message.msg)
+             else
+                 messages[message.routing.entrypoint] = { message.msg }
+             end
+        else
+            break
+         end
+    end
+
+    return messages
 end
 
 function exec_audio_tick(process)
@@ -506,6 +572,22 @@ function nib_api(entrypoint, proc, env)
         receive_message = function()
             return table.remove(executing_process.priv.message_queue)
         end,
+        find_players = function(queue, number, name)
+            network.find_players(network_guid,
+                                 executing_process.priv.entrypoint,
+                                 queue,
+                                 number,
+                                 name)
+        end,
+        send_network_message = function(message, to)
+            table.insert(executing_process.priv.network_send_queue, 1, {
+                             to = to,
+                             msg = message,
+            })
+        end,
+        receive_network_message = function()
+            return table.remove(executing_process.priv.network_receive_queue)
+        end,
         -- Ferramentas para a linguagem
         instanceof = lang.instanceof,
         new = lang.new,
@@ -712,4 +794,38 @@ function nib_api(entrypoint, proc, env)
     end
 
     return api
+end
+
+-- From: https://gist.github.com/haggen/2fd643ea9a261fea2094
+function random_string(length)
+    local random_charset = {}
+
+    -- qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890
+    for i = 48,  57 do table.insert(random_charset, string.char(i)) end
+    for i = 65,  90 do table.insert(random_charset, string.char(i)) end
+    for i = 97, 122 do table.insert(random_charset, string.char(i)) end
+
+    math.randomseed(os.clock()^5)
+
+    if length > 0 then
+        return random_string(length - 1) .. random_charset[math.random(1, #random_charset)]
+    else
+        return ""
+    end
+end
+
+function initialize_guid()
+    local id_file_path = "./frameworks/kernel/network.id"
+    local guid_file = io.open(id_file_path)
+
+    if guid_file then
+        network_guid = guid_file:read("*all")
+        guid_file:close()
+    else
+        network_guid = random_string(32)
+
+        guid_file = io.open(id_file_path, "w")
+        guid_file:write(network_guid)
+        guid_file:close()
+    end
 end

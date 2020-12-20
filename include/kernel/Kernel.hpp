@@ -9,6 +9,11 @@
 #include <mutex>
 #include <atomic>
 #include <list>
+#include <queue>
+
+extern "C" {
+#include <uv.h>
+}
 
 #include <kernel/filesystem.hpp>
 #include <kernel/Process.hpp>
@@ -47,6 +52,13 @@ private:
 
     /* Início da memória livre */
     size_t process_memory_start;
+
+    /* Conexões UDP */
+    unique_ptr<uv_loop_t> event_loop;
+    unique_ptr<uv_udp_t> udp;
+
+    /* Mensagens de rede */
+    queue<string> network_messages;
 public:
     /* Dispositivos */
 
@@ -75,6 +87,9 @@ public:
     // Roda o processo (código Lua)
     void loop();
 
+    // O servidor enviou uma mensagem
+    void network_message_received(const string);
+
     // API
     void api_shutdown();
 
@@ -85,6 +100,9 @@ public:
     tuple<size_t, int, int> api_load_spritesheet(string);
     void api_save_spritesheet(const size_t, const int, const int, const string);
     void api_unload_spritesheet(const size_t);
+
+    void api_send_network_message(const string);
+    string api_receive_network_message(bool*);
 };
 
 extern "C" {
@@ -142,6 +160,9 @@ extern "C" {
                                    const uint8_t,
                                    const uint8_t,
                                    const uint8_t);
+    // Rede
+    API void send_network_message(const char*, const size_t);
+    API LuaString receive_network_message(int*);
 
     #include <cstdlib>
 }

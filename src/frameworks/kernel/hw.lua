@@ -52,6 +52,9 @@ void audio_enqueue_command(const uint64_t,
                            const uint8_t,
                            const uint8_t,
                            const uint8_t);
+
+void send_network_message(const char*, const size_t);
+LuaString receive_network_message(int*);
 ]]
 
 -- Wrappers
@@ -373,6 +376,24 @@ end
 
 function hw.shutdown()
     ffi.C.kernel_api_shutdown()
+end
+
+function hw.send_network_message(msg)
+    ffi.C.send_network_message(msg, #msg)
+end
+
+function hw.receive_network_message()
+    local empty = ffi.new('int[1]')
+
+    local buffer = ffi.C.receive_network_message(empty)
+
+    if tonumber(empty[0]) ~= 1 then
+        local data = ffi.string(buffer.ptr, buffer.len)
+
+        ffi.C.free(buffer.ptr)
+
+        return data
+    end
 end
 
 return hw

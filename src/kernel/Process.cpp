@@ -41,12 +41,6 @@ Process::Process(Memory &memory, Path &executable):
         cout << "\t" << error << endl;
         ok = false;
     }
-
-    // TODO: lua-side
-    //this->environment["pid"] = to_string(pid);
-    //this->environment["parent.pid"] = to_string(parent);
-    //this->environment["name"] = executable.getName();
-    //this->environment["addr"] = to_string(((uint8_t*)&layout)-memory.raw);
 }
 
 Process::~Process() {

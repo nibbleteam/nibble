@@ -9,6 +9,11 @@
 
 using namespace std;
 
+static void uv_alloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+    buf->base = new char[suggested_size];
+    buf->len = suggested_size;
+}
+
 Kernel::Kernel(const bool fullscreen_startup): open_menu_next_frame(false), power(true) {
 #ifdef SDL_VIDEO_OPENGL
     if (SDL_Init(SDL_INIT_EVERYTHING | SDL_VIDEO_OPENGL) != 0) {
@@ -19,6 +24,10 @@ Kernel::Kernel(const bool fullscreen_startup): open_menu_next_frame(false), powe
         cout << "SDL_Init: " << SDL_GetError() << endl;
     }
 #endif
+
+    // Prepara memória para o event loop
+    event_loop = make_unique<uv_loop_t>();
+    udp = make_unique<uv_udp_t>();
 
     memory.set_log(true);
 
@@ -55,6 +64,24 @@ Kernel::~Kernel() {
 
 void Kernel::startup() {
     cout << "Process memory starts at " << memory.used() << "bytes" << endl;
+
+    uv_loop_init(event_loop.get());
+    uv_udp_init(event_loop.get(), udp.get());
+
+    // Cria um endereço para o socket udp
+    struct sockaddr_in broadcast_addr;
+    uv_ip4_addr("0.0.0.0", 0, &broadcast_addr);
+    uv_udp_bind(udp.get(), (const struct sockaddr *)&broadcast_addr, UV_UDP_REUSEADDR);
+
+    // Cria callback para receber mensagens
+    uv_udp_recv_start(udp.get(), uv_alloc, [](uv_udp_t *req, ssize_t nread, const uv_buf_t *buf, const struct sockaddr *addr, unsigned flags) {
+        if (nread > 0) {
+            // FIXME: isso pode estar colocando memória descartada na fila
+            KernelSingleton.lock()->network_message_received(string(buf->base, nread));
+        }
+
+        delete buf->base;
+    });
 
     gpu->startup();
     mouse->startup();
@@ -93,6 +120,8 @@ void Kernel::shutdown() {
 
     // Limpa a memória dos processos
     memory.deallocate_after(process_memory_start);
+
+    uv_loop_close(event_loop.get());
 }
 
 void Kernel::loop() {
@@ -238,6 +267,9 @@ void Kernel::loop() {
             }
         }
 
+        // Processa eventos de rede
+        uv_run(event_loop.get(), UV_RUN_NOWAIT);
+
         // Espera a gpu inicializar
         if (gpu->cycle > BOOT_CYCLES) {
             // Roda o processo no topo da lista de processos
@@ -260,6 +292,23 @@ void Kernel::loop() {
     }
 }
 
+void Kernel::network_message_received(string message) {
+    network_messages.push(message);
+}
+
+string Kernel::api_receive_network_message(bool* empty) {
+    if (network_messages.empty()) {
+        *empty = true;
+        return "";
+    }
+
+    *empty = false;
+
+    auto message = network_messages.front();
+    network_messages.pop();
+
+    return message;
+}
 
 void Kernel::api_shutdown() {
     power = false;
@@ -316,6 +365,21 @@ void Kernel::api_save_spritesheet(const size_t ptr, const int w, const int h, co
 
 void Kernel::api_unload_spritesheet(const size_t ptr) {
     memory.deallocate(ptr);
+}
+
+void Kernel::api_send_network_message(const string content) {
+    unique_ptr<uv_udp_send_t> send_req = make_unique<uv_udp_send_t>();
+    unique_ptr<uv_buf_t> message = make_unique<uv_buf_t>(uv_buf_init((char*)content.c_str(), content.size()));
+
+    struct sockaddr_in send_addr;
+    uv_ip4_addr("35.188.180.193", 7266, &send_addr);
+    //uv_ip4_addr("0.0.0.0", 7266, &send_addr);
+    uv_udp_send(send_req.get(), udp.get(), message.get(), 1, (const struct sockaddr *)&send_addr, [](uv_udp_send_t*, int status) {
+        if (status) {
+            // Erro
+            // TODO: o que fazer quando acontece um erro no envio?
+        }
+    });
 }
 
 // Wrapper estático para a API
@@ -488,4 +552,23 @@ API void audio_enqueue_command(const uint64_t timestamp,
                                const uint8_t note,
                                const uint8_t intensity) {
     KernelSingleton.lock()->audio->enqueue_command(timestamp, ch, cmd, note, intensity);
+}
+
+API void send_network_message(const char* msg, const size_t length) {
+    KernelSingleton.lock()->api_send_network_message(string(msg, length));
+}
+
+API LuaString receive_network_message(int *empty_out) {
+    bool empty;
+    string data = KernelSingleton.lock()->api_receive_network_message(&empty);
+
+    *empty_out = (int)empty;
+
+    char* ptr = new char[data.size()];
+
+    memcpy(ptr, data.c_str(), data.size());
+
+    return LuaString {
+        ptr, data.size()
+    };
 }
