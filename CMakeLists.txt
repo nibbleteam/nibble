@@ -144,5 +144,5 @@ target_link_libraries(nibble zlibstatic
                              SDL2main
                              mp4
                              x264
-                             uv
+                             uv_a
                              ${LUAJIT})
