@@ -5,7 +5,7 @@ project(nibble VERSION 0.1
                LANGUAGES CXX C)
 
 # To create a debug build, uncomment this:
-set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
