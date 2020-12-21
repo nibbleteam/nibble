@@ -368,14 +368,25 @@ void Kernel::api_unload_spritesheet(const size_t ptr) {
 }
 
 void Kernel::api_send_network_message(const string content) {
-    unique_ptr<uv_udp_send_t> send_req = make_unique<uv_udp_send_t>();
-    unique_ptr<uv_buf_t> message = make_unique<uv_buf_t>(uv_buf_init((char*)content.c_str(), content.size()));
+    char *buffer = new char[content.size()];
+    memcpy(buffer, content.c_str(), content.size());
+
+    sent_messages.push(make_pair(make_unique<uv_udp_send_t>(), make_unique<uv_buf_t>(uv_buf_init(buffer, content.size()))));
+
+    auto &send_req = sent_messages.back().first;
+    auto &message = sent_messages.back().second;
 
     struct sockaddr_in send_addr;
     uv_ip4_addr("35.188.180.193", 7266, &send_addr);
     //uv_ip4_addr("0.0.0.0", 7266, &send_addr);
     uv_udp_send(send_req.get(), udp.get(), message.get(), 1, (const struct sockaddr *)&send_addr, [](uv_udp_send_t*, int status) {
+        // Limpa uma mensagem
+        auto &msg = KernelSingleton.lock()->sent_messages.front();
+        delete msg.second->base;
+        KernelSingleton.lock()->sent_messages.pop();
+
         if (status) {
+            cout << "Network error when sending UDP packet!" << endl;
             // Erro
             // TODO: o que fazer quando acontece um erro no envio?
         }

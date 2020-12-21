@@ -73,6 +73,8 @@ public:
 #ifndef NIBBLE_DISABLE_MIDI_CONTROLLER
     unique_ptr<MidiController> midi_controller;
 #endif
+
+    queue<pair<unique_ptr<uv_udp_send_t>, unique_ptr<uv_buf_t>>> sent_messages;
 public:
     Kernel(const bool);
     ~Kernel();

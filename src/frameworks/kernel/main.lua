@@ -541,6 +541,7 @@ function nib_api(entrypoint, proc, env)
         -- Permite escrever para stdout
         terminal_print = print,
         terminal_pretty = pprint,
+        pretty = pprint.pformat,
         -- Energia
         shutdown = hw.shutdown,
         -- Syscalls
