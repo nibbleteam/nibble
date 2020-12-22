@@ -283,7 +283,7 @@ function receive_networked_messages()
 
          if message then
              if messages[message.routing.entrypoint] then
-                 table.insert(messages[message.routing.entrypoint], message.msg)
+                 table.insert(messages[message.routing.entrypoint], 1, message.msg)
              else
                  messages[message.routing.entrypoint] = { message.msg }
              end
