@@ -146,7 +146,8 @@ extern "C" {
                                   int16_t, int16_t, int16_t,
                                   int16_t, int16_t,
                                   int16_t, int16_t,
-                                  int16_t, int16_t);
+                                  int16_t, int16_t,
+                                  uint8_t);
     API void gpu_api_quad_fill(int16_t, int16_t,
                            int16_t, int16_t,
                            int16_t, int16_t,

@@ -33,7 +33,8 @@ void gpu_api_tri_textured(int16_t, int16_t, int16_t,
                           int16_t, int16_t, int16_t,
                           int16_t, int16_t,
                           int16_t, int16_t,
-                          int16_t, int16_t);
+                          int16_t, int16_t,
+                          uint8_t);
 void gpu_api_circle_fill(int16_t, int16_t, int16_t, uint8_t);
 void gpu_api_quad_fill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
 
@@ -207,14 +208,15 @@ function hw.tri_fill(x1, y1, x2, y2, x3, y3, color)
     ffi.C.gpu_api_tri_fill(x1, y1, x2, y2, x3, y3, color)
 end
 
-function hw.tri_textured(x1, y1, z1, x2, y2, z2, x3, y3, z3, u1, v1, u2, v2, u3, v3)
-    -- FIXME: assertions?
+function hw.tri_textured(x1, y1, z1, x2, y2, z2, x3, y3, z3, u1, v1, u2, v2, u3, v3, pal)
+    pal = pal or DEFAULT_PAL
     ffi.C.gpu_api_tri_textured(x1, y1, z1,
                                x2, y2, z2,
                                x3, y3, z3,
                                u1, v1,
                                u2, v2,
-                               u3, v3)
+                               u3, v3,
+                               pal)
 end
 
 function hw.rect(x, y, w, h, color)

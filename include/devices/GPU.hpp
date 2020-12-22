@@ -25,8 +25,10 @@
 #define SPRITESHEET_H       1024
 #define SPRITESHEET_LENGTH  SPRITESHEET_W*SPRITESHEET_H*BYTES_PER_PIXEL
 
-#define OUT_OF_BOUNDS(x,y)              ((x)<target_clip_start_x || (y)<target_clip_start_y ||\
-                                         (x)>=target_clip_end_x || (y)>=target_clip_end_y) 
+#define OUT_OF_BOUNDS(x,y)              ((x)<target_clip_start_x || (y)<target_clip_start_y || \
+                                         (x)>=target_clip_end_x || (y)>=target_clip_end_y)
+#define OUT_OF_SOURCE_BOUNDS(x,y)              ((x)<0 || (y)<0 ||       \
+                                                (x)>=source_h || (y)>=source_w)
 
 #define SCAN_OUT_OF_BOUNDS(x1,x2,y)     ((y)<target_clip_start_y || (y)>=target_clip_end_y ||\
                                          ((x1)<target_clip_start_x && (x2)<target_clip_start_x) ||\
@@ -112,7 +114,8 @@ public:
                       int16_t, int16_t, int16_t,
                       int16_t, int16_t,
                       int16_t, int16_t,
-                      int16_t, int16_t);
+                      int16_t, int16_t,
+                      uint8_t);
     void quad_fill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
     void circle_fill(int16_t, int16_t, int16_t, uint8_t);
 
@@ -132,10 +135,8 @@ private:
                               int16_t, int16_t, int16_t,
                               int16_t, int16_t,
                               int16_t, int16_t,
-                              int16_t, int16_t);
-    void scan_line_textured(int16_t, int16_t, int16_t,
-                            int16_t, int16_t,
-                            int16_t, int16_t) const;
+                              int16_t, int16_t,
+                              uint8_t);
     void copy_scan_line(uint8_t *, uint8_t *, size_t, uint8_t) const;
     void scan_line(int16_t, int16_t, int16_t, uint8_t) const;
     void fix_rect_bounds(int16_t&, int16_t&, int16_t&, int16_t&, int16_t, int16_t) const;
