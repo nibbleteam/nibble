@@ -466,6 +466,20 @@ void gpu_api_tri_fill(int16_t x1, int16_t y1,
     KernelSingleton.lock()->gpu->tri_fill(x1, y1, x2, y2, x3, y3, c);
 }
 
+void gpu_api_tri_textured(int16_t x1, int16_t y1, int16_t z1,
+                          int16_t x2, int16_t y2, int16_t z2,
+                          int16_t x3, int16_t y3, int16_t z3,
+                          int16_t u1, int16_t v1,
+                          int16_t u2, int16_t v2,
+                          int16_t u3, int16_t v3) {
+    KernelSingleton.lock()->gpu->tri_textured(x1, y1, z1,
+                                              x2, y2, z2,
+                                              x3, y3, z3,
+                                              u1, v1,
+                                              u2, v2,
+                                              u3, v3);
+}
+
 void gpu_api_rect_fill(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t c) {
     KernelSingleton.lock()->gpu->rect_fill(x, y, w, h, c);
 }

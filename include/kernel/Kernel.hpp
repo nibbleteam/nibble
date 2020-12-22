@@ -141,6 +141,12 @@ extern "C" {
 
     API void gpu_api_rect_fill(int16_t, int16_t, int16_t, int16_t, uint8_t);
     API void gpu_api_tri_fill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
+    API void gpu_api_tri_textured(int16_t, int16_t, int16_t,
+                                  int16_t, int16_t, int16_t,
+                                  int16_t, int16_t, int16_t,
+                                  int16_t, int16_t,
+                                  int16_t, int16_t,
+                                  int16_t, int16_t);
     API void gpu_api_quad_fill(int16_t, int16_t,
                            int16_t, int16_t,
                            int16_t, int16_t,

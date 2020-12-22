@@ -731,7 +731,7 @@ void GPU::ordered_tri_fill(int16_t x1, int16_t y1,
     int16_t D2b;
     int16_t Db = dxb + dyb;
 
-    int16_t x1b = x1, y1b = y1;
+    int16_t x1b = (y1 == y2 ? x2 : x1), y1b = y1;
 
     bool first_line = true;
 
@@ -741,6 +741,171 @@ start:
             scan_line(x1, x1b, y1, color);
         } else {
             scan_line(x1b, x1, y1, color);
+        }
+
+        do {
+            const auto cmp_a = y1 <= y1b;
+
+            if (y1 >= y1b) {
+                D2b = Db<<1;
+
+                if (D2b >= dyb) {
+                    if (x1b == x2 && first_line) goto prepare_second_line;
+
+                    Db += dyb;
+                    x1b += xib;
+                }
+
+                if (D2b <= dxb) {
+                    if (y1 == y1b) {
+                    }
+
+                    if (y1b == y2 && first_line) goto prepare_second_line;
+
+                    Db += dxb;
+                    y1b += yib;
+                }
+
+            }
+
+            if (cmp_a) {
+                D2a = Da<<1;
+
+                if (D2a >= dya) {
+                    if (x1 == x3) return;
+
+                    Da += dya;
+                    x1 += xia;
+                }
+
+                if (D2a <= dxa) {
+                    if (y1 == y3) return;
+
+                    Da += dxa;
+                    y1 += yia;
+                }
+            }
+        } while (y1 != y1b);
+    }
+prepare_second_line:
+    first_line = false;
+
+    dxb = abs(x2-x3);
+    dyb = -abs(y2-y3);
+    yib = y2>y3 ? -1 : 1;
+    xib = x2>x3 ? -1 : 1;
+    Db = dxb + dyb;
+
+    x1b = x2; y1b = y2;
+
+    goto start;
+}
+
+void GPU::scan_line_textured(int16_t x1, int16_t x2, int16_t y,
+                             int16_t u1, int16_t v1,
+                             int16_t u2, int16_t v2) const {
+    // Transparência
+    // if (TRANSPARENT(color))
+    //     return;
+    // Clipping
+    // x1 = max(x1, (int16_t)target_clip_start_x);
+    // x2 = min(x2, (int16_t)(target_clip_end_x-1));
+
+    if (x2 >= x1) {
+        if (!SCAN_OUT_OF_BOUNDS(x1, x2, y)) {
+            // FIXME: caso x1 = x2
+
+            for (int x=x1;x<x2;x++) {
+                float p = float(x-x1)/float(x2-x1);
+                int16_t u = u1*(1-p)+u2*(p);
+                int16_t v = v1*(1-p)+v2*(p);
+
+                *(target+x+y*target_w) = *(source+u+v*source_w);
+            }
+        }
+    }
+}
+
+
+// Coordenadas baricêntricas
+#define INTERPOLATE_WEIGHTS(x, y)                           \
+    float w1 = float((y2-y3)*((x)-x3)+(x3-x2)*((y)-y3))/    \
+        ((y2-y3)*(ox1-x3)+(x3-x2)*(oy1-y3));                \
+    float w2 = float((y3-oy1)*((x)-x3)+(ox1-x3)*((y)-y3))/  \
+        ((y2-y3)*(ox1-x3)+(x3-x2)*(oy1-y3));                \
+    float w3 = 1-w1-w2;
+#define INTERPOLATE_VALUES(v1, v2, v3) ((v1)*w1+(v2)*w2+(v3)*w3)
+
+void GPU::ordered_tri_textured(int16_t x1, int16_t y1, int16_t z1,
+                               int16_t x2, int16_t y2, int16_t z2,
+                               int16_t x3, int16_t y3, int16_t z3,
+                               int16_t u1, int16_t v1,
+                               int16_t u2, int16_t v2,
+                               int16_t u3, int16_t v3) {
+    // Calcula as recíprocas
+    float r_z1 = 1/float(z1);
+    float r_u1 = float(u1)/float(z1);
+    float r_v1 = float(v1)/float(z1);
+
+    float r_z2 = 1/float(z2);
+    float r_u2 = float(u2)/float(z2);
+    float r_v2 = float(v2)/float(z2);
+
+    float r_z3 = 1/float(z3);
+    float r_u3 = float(u3)/float(z3);
+    float r_v3 = float(v3)/float(z3);
+
+    const auto ox1 = x1, oy1 = y1;
+
+    // Casos especiais
+    // TODO: Uma linha perspective mapped
+    if ((x1 == x2 && x2 == x3) || (y1 == y2 && y2 == y3)) {
+        return;
+    }
+
+    // Linha de x1, y1 -> x3, y3    (a)
+    // Linha de x1, y1 -> x2, y2    (b)
+
+    const int16_t dxa = abs(x1-x3);
+    const int16_t dya = -abs(y1-y3);
+    const int16_t yia = y1>y3 ? -1 : 1;
+    const int16_t xia = x1>x3 ? -1 : 1;
+    int16_t D2a;
+    int16_t Da = dxa + dya;
+
+    int16_t dxb = abs(x1-x2);
+    int16_t dyb = -abs(y1-y2);
+    int16_t yib = y1>y2 ? -1 : 1;
+    int16_t xib = x1>x2 ? -1 : 1;
+    int16_t D2b;
+    int16_t Db = dxb + dyb;
+
+    int16_t x1b = (y1 == y2 ? x2 : x1), y1b = y1;
+
+    bool first_line = true;
+
+    while (true) {
+start:
+        if (x1 < x1b) {
+            for (int x=x1;x<x1b;x++) {
+                INTERPOLATE_WEIGHTS(x, y1);
+
+                float z = 1/INTERPOLATE_VALUES(r_z1, r_z2, r_z3);
+                int16_t u = z*INTERPOLATE_VALUES(r_u1, r_u2, r_u3);
+                int16_t v = z*INTERPOLATE_VALUES(r_v1, r_v2, r_v3);
+
+                *(target+x+y1*target_w) = *(source+u+v*source_w);
+            }
+        } else {
+            for (int x=x1b;x<x1;x++) {
+                INTERPOLATE_WEIGHTS(x, y1);
+
+                float z = 1/INTERPOLATE_VALUES(r_z1, r_z2, r_z3);
+                int16_t u = z*INTERPOLATE_VALUES(r_u1, r_u2, r_u3);
+                int16_t v = z*INTERPOLATE_VALUES(r_v1, r_v2, r_v3);
+
+                *(target+x+y1*target_w) = *(source+u+v*source_w);
+            }
         }
 
         do {
@@ -820,6 +985,27 @@ void GPU::tri_fill(int16_t x1, int16_t y1,
         ordered_tri_fill(x2, y2, x1, y1, x3, y3, color);
     } else if (y2 <= y3 && y3 <= y1) {
         ordered_tri_fill(x2, y2, x3, y3, x1, y1, color);
+    }
+}
+
+void GPU::tri_textured(int16_t x1, int16_t y1, int16_t z1,
+                       int16_t x2, int16_t y2, int16_t z2,
+                       int16_t x3, int16_t y3, int16_t z3,
+                       int16_t u1, int16_t v1,
+                       int16_t u2, int16_t v2,
+                       int16_t u3, int16_t v3) {
+    if (y1 <= y2 && y2 <= y3) {
+        ordered_tri_textured(x1, y1, z1, x2, y2, z2, x3, y3, z3, u1, v1, u2, v2, u3, v3);
+    } else if (y1 <= y3 && y3 <= y2) {
+        ordered_tri_textured(x1, y1, z1, x3, y3, z3, x2, y2, z2, u1, v1, u3, v3, u2, v2);
+    } else if (y3 <= y1 && y1 <= y2) {
+        ordered_tri_textured(x3, y3, z3, x1, y1, z1, x2, y2, z2, u3, v3, u1, v1, u2, v2);
+    } else if (y3 <= y2 && y2 <= y1) {
+        ordered_tri_textured(x3, y3, z3, x2, y2, z2, x1, y1, z1, u3, v3, u2, v2, u1, v1);
+    } else if (y2 <= y1 && y1 <= y3) {
+        ordered_tri_textured(x2, y2, z2, x1, y1, z1, x3, y3, z3, u2, v2, u1, v1, u3, v3);
+    } else if (y2 <= y3 && y3 <= y1) {
+        ordered_tri_textured(x2, y2, z2, x3, y3, z3, x1, y1, z1, u2, v2, u3, v3, u1, v1);
     }
 }
 

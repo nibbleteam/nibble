@@ -632,6 +632,7 @@ function nib_api(entrypoint, proc, env)
         fill_rect = hw.rect_fill,
         fill_circ = hw.circle_fill,
         fill_tri = hw.tri_fill,
+        texture_tri = hw.tri_textured,
         fill_quad = hw.quad_fill,
         line = hw.line,
         rect = hw.rect,

@@ -107,6 +107,12 @@ public:
     void rect_fill(int16_t, int16_t, int16_t, int16_t, uint8_t);
     void ordered_tri_fill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
     void tri_fill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
+    void tri_textured(int16_t, int16_t, int16_t,
+                      int16_t, int16_t, int16_t,
+                      int16_t, int16_t, int16_t,
+                      int16_t, int16_t,
+                      int16_t, int16_t,
+                      int16_t, int16_t);
     void quad_fill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
     void circle_fill(int16_t, int16_t, int16_t, uint8_t);
 
@@ -121,6 +127,15 @@ public:
     bool start_capturing(const string&);
     bool stop_capturing();
 private:
+    void ordered_tri_textured(int16_t, int16_t, int16_t,
+                              int16_t, int16_t, int16_t,
+                              int16_t, int16_t, int16_t,
+                              int16_t, int16_t,
+                              int16_t, int16_t,
+                              int16_t, int16_t);
+    void scan_line_textured(int16_t, int16_t, int16_t,
+                            int16_t, int16_t,
+                            int16_t, int16_t) const;
     void copy_scan_line(uint8_t *, uint8_t *, size_t, uint8_t) const;
     void scan_line(int16_t, int16_t, int16_t, uint8_t) const;
     void fix_rect_bounds(int16_t&, int16_t&, int16_t&, int16_t&, int16_t, int16_t) const;

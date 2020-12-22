@@ -28,6 +28,12 @@ void gpu_api_sprite(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_
 
 void gpu_api_rect_fill(int16_t, int16_t, int16_t, int16_t, uint8_t);
 void gpu_api_tri_fill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
+void gpu_api_tri_textured(int16_t, int16_t, int16_t,
+                          int16_t, int16_t, int16_t,
+                          int16_t, int16_t, int16_t,
+                          int16_t, int16_t,
+                          int16_t, int16_t,
+                          int16_t, int16_t);
 void gpu_api_circle_fill(int16_t, int16_t, int16_t, uint8_t);
 void gpu_api_quad_fill(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint8_t);
 
@@ -174,14 +180,14 @@ function hw.circle_fill(x, y, r, color)
 end
 
 function hw.quad_fill(x1, y1, x2, y2, x3, y3, x4, y4, color)
-    assert(x1, "quadf() needs a x1 value")
-    assert(y1, "quadf() needs a y1 value")
-    assert(x2, "quadf() needs a x2 value")
-    assert(y2, "quadf() needs a y2 value")
-    assert(x3, "quadf() needs a x3 value")
-    assert(y3, "quadf() needs a y3 value")
-    assert(x4, "quadf() needs a x4 value")
-    assert(y4, "quadf() needs a y4 value")
+    assert(x1, "quad_fill() needs a x1 value")
+    assert(y1, "quad_fill() needs a y1 value")
+    assert(x2, "quad_fill() needs a x2 value")
+    assert(y2, "quad_fill() needs a y2 value")
+    assert(x3, "quad_fill() needs a x3 value")
+    assert(y3, "quad_fill() needs a y3 value")
+    assert(x4, "quad_fill() needs a x4 value")
+    assert(y4, "quad_fill() needs a y4 value")
 
     color = color or DEFAULT_COLOR
 
@@ -189,23 +195,33 @@ function hw.quad_fill(x1, y1, x2, y2, x3, y3, x4, y4, color)
 end
 
 function hw.tri_fill(x1, y1, x2, y2, x3, y3, color)
-    assert(x1, "quadf() needs a x1 value")
-    assert(y1, "quadf() needs a y1 value")
-    assert(x2, "quadf() needs a x2 value")
-    assert(y2, "quadf() needs a y2 value")
-    assert(x3, "quadf() needs a x3 value")
-    assert(y3, "quadf() needs a y3 value")
+    assert(x1, "tri_fill() needs a x1 value")
+    assert(y1, "() needs a y1 value")
+    assert(x2, "() needs a x2 value")
+    assert(y2, "() needs a y2 value")
+    assert(x3, "() needs a x3 value")
+    assert(y3, "() needs a y3 value")
 
     color = color or DEFAULT_COLOR
 
     ffi.C.gpu_api_tri_fill(x1, y1, x2, y2, x3, y3, color)
 end
 
+function hw.tri_textured(x1, y1, z1, x2, y2, z2, x3, y3, z3, u1, v1, u2, v2, u3, v3)
+    -- FIXME: assertions?
+    ffi.C.gpu_api_tri_textured(x1, y1, z1,
+                               x2, y2, z2,
+                               x3, y3, z3,
+                               u1, v1,
+                               u2, v2,
+                               u3, v3)
+end
+
 function hw.rect(x, y, w, h, color)
-    assert(x, "rectf() needs a x value")
-    assert(y, "rectf() needs a y value")
-    assert(w, "rectf() needs a w value")
-    assert(h, "rectf() needs a h value")
+    assert(x, "rect() needs a x value")
+    assert(y, "rect() needs a y value")
+    assert(w, "rect() needs a w value")
+    assert(h, "rect() needs a h value")
 
     color = color or DEFAULT_COLOR
 
