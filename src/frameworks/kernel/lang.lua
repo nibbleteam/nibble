@@ -1,24 +1,7 @@
 local lang = {}
 
 function lang.new(kind, obj)
-    local hierarchy = {}
-
-    repeat
-        local mt = getmetatable(kind)
-
-        table.insert(hierarchy, lang.copy(kind))
-        kind = mt and mt.__index
-    until kind == nil
-
-    for n, kind in ipairs(hierarchy) do
-        if n+1 < #hierarchy then
-            lang.instanceof(kind, hierarchy[n+1])
-        end
-    end
-
-    print("Called new with a hierarchy of "..tostring(#hierarchy).." levels")
-
-    return lang.instanceof(obj, hierarchy[1])
+    return lang.instanceof(obj, kind)
 end
 
 function lang.concat(t, ...) -- source: https://stackoverflow.com/questions/34921025/concatenate-table-sequences-in-lua
