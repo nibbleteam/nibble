@@ -27,8 +27,7 @@
 
 #define OUT_OF_BOUNDS(x,y)              ((x)<target_clip_start_x || (y)<target_clip_start_y || \
                                          (x)>=target_clip_end_x || (y)>=target_clip_end_y)
-#define OUT_OF_SOURCE_BOUNDS(x,y)              ((x)<0 || (y)<0 ||       \
-                                                (x)>=source_h || (y)>=source_w)
+#define OUT_OF_SOURCE_BOUNDS(x,y)              ((x)<0 || (y)<0 || (x)>=source_w || (y)>=source_h)
 
 #define SCAN_OUT_OF_BOUNDS(x1,x2,y)     ((y)<target_clip_start_y || (y)>=target_clip_end_y ||\
                                          ((x1)<target_clip_start_x && (x2)<target_clip_start_x) ||\
@@ -42,6 +41,7 @@ class GPU: public Device {
     // Pointeiros para memória
     uint8_t *video_memory;
     uint8_t *palette_memory;
+    int16_t *z_buffer;
 
     uint8_t *source;
     int16_t source_w, source_h;

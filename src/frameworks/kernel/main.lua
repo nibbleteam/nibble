@@ -593,7 +593,7 @@ function nib_api(entrypoint, proc, env)
         instanceof = lang.instanceof,
         new = lang.new,
         copy = lang.copy,
-        inherit = function(c, x) return lang.new(c, x or {}) end,
+        inherit = function(c) return c.new(c) end,
         concat = lang.concat,
         zip = lang.zip,
         debug = error,

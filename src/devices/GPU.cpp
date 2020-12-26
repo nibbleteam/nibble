@@ -116,6 +116,7 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
 
     palette_memory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
     video_memory = memory.allocate(GPU_VIDEO_MEM_SIZE, "GPU Video Memory");
+    z_buffer = new int16_t[GPU_VIDEO_MEM_SIZE];
 
     // Não mostra o cursor
     SDL_ShowCursor(SDL_DISABLE);
@@ -180,6 +181,8 @@ GPU::~GPU() {
     stop_capturing();
 
     free_cursors();
+
+    delete z_buffer;
 
     SDL_DestroyTexture(framebuffer);
     SDL_DestroyRenderer(renderer);
@@ -263,6 +266,11 @@ void GPU::draw() {
     memcpy(data, video_memory, GPU_VIDEO_MEM_SIZE);
     // Paleta
     memcpy(((uint8_t*)data)+GPU_VIDEO_MEM_SIZE, palette_memory, GPU_PALETTE_MEM_SIZE);
+    // Limpa o z-buffer
+    // TODO: talvez usar um esquema negativo/positivo para não precisar limpar?
+    for (size_t i=0;i<GPU_VIDEO_MEM_SIZE;i++) {
+        z_buffer[i] = INT16_MAX;
+    }
 
     // Grava a frame
     if (h264) {
@@ -819,16 +827,16 @@ void GPU::ordered_tri_textured(int16_t x1, int16_t y1, int16_t z1,
                                uint8_t pal) {
     // Calcula as recíprocas
     float r_z1 = 1/float(z1);
-    float r_u1 = float(u1)/float(z1);
-    float r_v1 = float(v1)/float(z1);
+    float r_u1 = float(u1+0.5)/float(z1);
+    float r_v1 = float(v1+0.5)/float(z1);
 
     float r_z2 = 1/float(z2);
-    float r_u2 = float(u2)/float(z2);
-    float r_v2 = float(v2)/float(z2);
+    float r_u2 = float(u2+0.5)/float(z2);
+    float r_v2 = float(v2+0.5)/float(z2);
 
     float r_z3 = 1/float(z3);
-    float r_u3 = float(u3)/float(z3);
-    float r_v3 = float(v3)/float(z3);
+    float r_u3 = float(u3+0.5)/float(z3);
+    float r_v3 = float(v3+0.5)/float(z3);
 
     const auto ox1 = x1, oy1 = y1;
 
@@ -872,12 +880,18 @@ start:
             INTERPOLATE_WEIGHTS(x, y1);
 
             float z = 1/INTERPOLATE_VALUES(r_z1, r_z2, r_z3);
-            int16_t u = z*INTERPOLATE_VALUES(r_u1, r_u2, r_u3);
-            int16_t v = z*INTERPOLATE_VALUES(r_v1, r_v2, r_v3);
+            int16_t u = z*INTERPOLATE_VALUES(r_u1, r_u2, r_u3)+0.5;
+            int16_t v = z*INTERPOLATE_VALUES(r_v1, r_v2, r_v3)+0.5;
 
             if (OUT_OF_SOURCE_BOUNDS(u, v)) {
                 continue;
             }
+
+            if (z > *(z_buffer+x+y1*target_w)) {
+                continue;
+            }
+
+            *(z_buffer+x+y1*target_w) = z;
 
             auto color = *(source+u+v*source_w) + (pal << 4);
 
