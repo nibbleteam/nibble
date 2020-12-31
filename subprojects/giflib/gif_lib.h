@@ -21,6 +21,10 @@ extern "C" {
 #include <stddef.h>
 #include <stdbool.h>
 
+#ifdef __unix__
+#include <unistd.h>
+#endif
+
 #define GIF_STAMP "GIFVER"          /* First chars in file - GIF stamp.  */
 #define GIF_STAMP_LEN sizeof(GIF_STAMP) - 1
 #define GIF_VERSION_POS 3           /* Version first character in stamp. */
