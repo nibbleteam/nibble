@@ -28,7 +28,7 @@ function network.find_players(guid, entrypoint, queue, number, name)
   }))
 end
 
-function network.receive_network_message()
+function network.receive_network_message(network_guid)
   local raw = hw.receive_network_message()
 
   if raw then
@@ -40,15 +40,21 @@ function network.receive_network_message()
       if msg.seq then
         if expected_seq[msg.from.guid] then
           if msg.seq > expected_seq[msg.from.guid] then
-            hw.send_network_message(json.encode({
-                                        routing = {
-                                          guid = msg.from.guid,
-                                        },
-                                        msg = { resend = expected_seq[msg.from.guid] },
-                                        operation = "private_message",
-                                        guid = network_guid,
-                                        entrypoint = ""
-            }))
+            for i=expected_seq[msg.from.guid],msg.seq do
+              hw.send_network_message(json.encode({
+                                          routing = {
+                                            guid = msg.from.guid,
+                                            entrypoint = "",
+                                          },
+                                          msg = { resend = i },
+                                          operation = "private_message",
+                                          guid = network_guid,
+                                          entrypoint = "",
+                                          seq = 1,
+              }))
+            end
+
+            return nil
           elseif msg.seq < expected_seq[msg.from.guid] then
             -- TODO: log this network error!
             expected_seq[msg.from.guid] = msg.seq+1
