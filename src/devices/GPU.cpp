@@ -302,6 +302,7 @@ void GPU::draw() {
 
     // Mostra o resultado na janela
     SDL_RenderPresent(renderer);
+    SDL_GL_SwapWindow(window);
 }
 
 void GPU::fullscreen(const bool fullscreen) {
