@@ -3151,9 +3151,10 @@ SDL_RenderPresent(SDL_Renderer * renderer)
     FlushRenderCommands(renderer);  /* time to send everything to the GPU! */
 
     /* Don't present while we're hidden */
-    if (renderer->hidden) {
-        return;
-    }
+    // if (renderer->hidden) {
+    //    return;
+    // }
+ 
     renderer->RenderPresent(renderer);
 }
 
