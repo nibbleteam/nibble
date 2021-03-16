@@ -300,11 +300,8 @@ void GPU::draw() {
     glUseProgram(shader);
     SDL_RenderCopy(renderer, framebuffer, &framebuffer_src, &framebuffer_dst);
 
-    cout << (renderer->hidden ? "renderer is hidden" : "renderer is visible") << endl;
-    
     // Mostra o resultado na janela
     SDL_RenderPresent(renderer);
-    renderer->RenderPresent(renderer);
 }
 
 void GPU::fullscreen(const bool fullscreen) {
