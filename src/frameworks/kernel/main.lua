@@ -256,7 +256,7 @@ function send_networked_messages(process)
             network.send_network_message({
                     routing = {
                         guid = raw_msg.to[1],
-                        entrypoint = raw_msg.t[2],
+                        entrypoint = raw_msg.to[2],
                     },
                     msg = raw_msg.msg,
                     operation = "private_message",
@@ -279,7 +279,7 @@ function receive_networked_messages()
     local message = nil
 
     while true do
-        message = network.receive_network_message()
+        message = network.receive_network_message(network_guid)
 
          if message then
              if messages[message.routing.entrypoint] then
@@ -437,6 +437,7 @@ function nib_require(entrypoint, module, proc)
 end
 
 function handle_process_error(err, syntax)
+    print(syntax)
     print(err)
     print(debug.traceback())
 
@@ -767,6 +768,7 @@ function nib_api(entrypoint, proc, env)
         CH7 = audio.CH7,
         CH8 = audio.CH8,
         utf8 = require "frameworks.kernel.utf8",
+	json = require "frameworks.kernel.json",
     }
 
     -- Expõe o sistema de arquivos para processos

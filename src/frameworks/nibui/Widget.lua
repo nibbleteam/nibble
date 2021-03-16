@@ -33,6 +33,7 @@ function Widget:new(config, document, parent)
         padding_top = 0, padding_left = 0, padding_bottom = 0, padding_right = 0,
         -- Clipping box:
         clip_to = 1,
+        clip_to_self = 1,
     }
 
     local instance = {
@@ -209,37 +210,40 @@ local function merge_boxes(a, b)
              math.floor(finish[2]-start[2]) }
 end
 
-function Widget:clip_box(b)
+function Widget:clip_box(b, draw_mode)
     b = b or 0
 
     local clip_to = math.abs(math.floor(self.clip_to))
+    local clip_to_self = math.abs(math.floor(self.clip_to_self))
 
     local parent = get_parent(self, clip_to)
 
-    if parent ~= self and parent ~= nil and parent.clip_box then
-        local parent_box = parent:clip_box()
+    if parent ~= self and parent ~= nil then
+        local parent_box = parent.clip_box and parent:clip_box() or { parent.x, parent.y, parent.w, parent.h }
 
         parent_box[1] += b
         parent_box[2] += b
         parent_box[3] -= 2*b
         parent_box[4] -= 2*b
 
-        local box = { self.x, self.y, self.w, self.h }
-
-        return merge_boxes(parent_box, box)
+        if clip_to_self == 1 or not draw_mode then
+            local box = { self.x, self.y, self.w, self.h }
+            return merge_boxes(parent_box, box)
+        else
+            return parent_box
+        end
     else
         return { self.x+b, self.y+b, self.w-b*2, self.h-b*2 }
     end
 end
 
-function Widget:draw_3slice(x, y, w, h, sx, sy, sw, sh, sl1, sl2)
+function Widget:draw_3slice(x, y, w, h, sx, sy, sw, sh, sl1, sl2, pal)
     -- Right side
-
     w = math.ceil(w)
 
     clip(x, y, w, h)
 
-    custom_sprite(x, y, sx, sy, sl1, sh, self.palette)
+    custom_sprite(x, y, sx, sy, sl1, sh, pal or self.palette)
 
     -- Middle
 
@@ -250,7 +254,7 @@ function Widget:draw_3slice(x, y, w, h, sx, sy, sw, sh, sl1, sl2)
 
     -- Draw the middle
     for dx=0,w,step do
-        custom_sprite(x+sl1+dx, y, sx+sl1, sy, step, sh, self.palette)
+        custom_sprite(x+sl1+dx, y, sx+sl1, sy, step, sh, pal or self.palette)
     end
 
     -- Restore clipping
@@ -299,7 +303,7 @@ function Widget:draw()
         local border_size = math.floor(self.border_size)
         local z = math.floor(self.z)
 
-        clip(unwrap(self:clip_box()))
+        clip(unwrap(self:clip_box(0, true)))
 
         if z ~= 0 then
           fill_rect(x+r, y+z, w-r*2, h, shadow_color)

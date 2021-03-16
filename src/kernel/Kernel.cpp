@@ -128,16 +128,11 @@ void Kernel::loop() {
     float last_time = 0;
 
     while (power) {
-        cout << "starting loop cycle" << endl;
-        
         float current_time = SDL_GetTicks();
         float delta = (current_time - last_time)/1000;
         //float fps = 1.f / delta;
         last_time = current_time;
         
-        cout << "current time is" << current_time << endl;
-        cout << "delta is" << delta << endl;
-
         SDL_Event event;
 
         // Atualiza entradas
@@ -272,14 +267,9 @@ void Kernel::loop() {
             }
         }
 
-        cout << "finished processing events" << endl;
-        cout << "running event loop" << endl;
-        
         // Processa eventos de rede
         uv_run(event_loop.get(), UV_RUN_NOWAIT);
 
-        cout << "finished running event loop" << endl;
-        
         // Espera a gpu inicializar
         if (gpu->cycle > BOOT_CYCLES) {
             // Roda o processo no topo da lista de processos
@@ -296,16 +286,10 @@ void Kernel::loop() {
             }
         }
 
-        cout << "drawing" << endl;
-        
         gpu->draw();
 
-        cout << "done drawing" << endl;
-        
         auto delay = max<int>((1000/GPU_FRAMERATE)-(SDL_GetTicks()-last_time), 0);
-        
-        cout << "delaying for" << delay << endl;
-        
+
         SDL_Delay(delay);
     }
 }
