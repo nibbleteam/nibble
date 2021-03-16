@@ -48,3 +48,6 @@ docs/build/
 subprojects/luajit/src/host/buildvm
 subprojects/luajit/src/host/minilua
 subprojects/luajit/src/luajit
+
+# Networking unique identification
+src/frameworks/kernel/network.id
