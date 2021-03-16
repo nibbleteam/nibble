@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <SDL.h>
+#include <SDL_opengl.h>
 
 #include <gif_lib.h>
 
@@ -11,11 +12,6 @@
 #include <kernel/Memory.hpp>
 #include <kernel/VideoEncoder.hpp>
 #include <Specs.hpp>
-
-// OpenGL
-// Referência: https://github.com/AugustoRuiz/sdl2glsl/blob/master/src/main.cpp
-#include <SDL_opengl.h>
-#include <SDL_opengl_glext.h>
 
 // Número de bytes por pixel em memória na CPU e na GPU
 #define BYTES_PER_PIXEL     1
@@ -73,6 +69,7 @@ class GPU: public Device {
     SDL_Rect framebuffer_dst, framebuffer_src;
 
     // Shader para expandir as cores
+    // TODO: preciamos de um shader para opengl e um shader para DirectX
     GLuint shader;
 
     // Cursores do mouse
@@ -154,13 +151,6 @@ private:
     void free_cursors();
 
     void paint_boot_animation();
-
-    // Shaders
-    GLuint compile_shader(const string&, const GLuint);
-    GLuint compile_program(const string&, const string&);
-    void print_shader_errors(GLuint);
-
-    void check_opengl();
 };
 
 #endif /* GPU_H */
