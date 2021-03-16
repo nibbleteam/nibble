@@ -827,16 +827,16 @@ void GPU::ordered_tri_textured(int16_t x1, int16_t y1, int16_t z1,
                                uint8_t pal) {
     // Calcula as recíprocas
     float r_z1 = 1/float(z1);
-    float r_u1 = float(u1+0.5)/float(z1);
-    float r_v1 = float(v1+0.5)/float(z1);
+    float r_u1 = float(u1)/float(z1);
+    float r_v1 = float(v1)/float(z1);
 
     float r_z2 = 1/float(z2);
-    float r_u2 = float(u2+0.5)/float(z2);
-    float r_v2 = float(v2+0.5)/float(z2);
+    float r_u2 = float(u2)/float(z2);
+    float r_v2 = float(v2)/float(z2);
 
     float r_z3 = 1/float(z3);
-    float r_u3 = float(u3+0.5)/float(z3);
-    float r_v3 = float(v3+0.5)/float(z3);
+    float r_u3 = float(u3)/float(z3);
+    float r_v3 = float(v3)/float(z3);
 
     const auto ox1 = x1, oy1 = y1;
 
@@ -880,8 +880,8 @@ start:
             INTERPOLATE_WEIGHTS(x, y1);
 
             float z = 1/INTERPOLATE_VALUES(r_z1, r_z2, r_z3);
-            int16_t u = z*INTERPOLATE_VALUES(r_u1, r_u2, r_u3)+0.5;
-            int16_t v = z*INTERPOLATE_VALUES(r_v1, r_v2, r_v3)+0.5;
+            int16_t u = z*INTERPOLATE_VALUES(r_u1, r_u2, r_u3);
+            int16_t v = z*INTERPOLATE_VALUES(r_v1, r_v2, r_v3);
 
             if (OUT_OF_SOURCE_BOUNDS(u, v)) {
                 continue;
@@ -891,14 +891,13 @@ start:
                 continue;
             }
 
-            *(z_buffer+x+y1*target_w) = z;
-
             auto color = *(source+u+v*source_w) + (pal << 4);
 
             if (TRANSPARENT(color)) {
                 continue;
             }
 
+            *(z_buffer+x+y1*target_w) = z;
             *(target+x+y1*target_w) = color;
         }
 
