@@ -2,10 +2,9 @@
 #define _GPU_DIRECTX_H_
 
 #include <SDL.h>
-#include <D3DX9Shader.h>
-#include <D3DX9Mesh.h>
+#include <d3d9.h>
 
 SDL_Renderer* create_directx_renderer(SDL_Window*);
-HRESULT compile_directx_shader();
+void compile_directx_shader(SDL_Renderer*);
 
 #endif // _GPU_DIRECTX_H_
