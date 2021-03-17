@@ -20,7 +20,7 @@ PFNGLGETPROGRAMIVPROC glGetProgramiv;
 PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 PFNGLUSEPROGRAMPROC glUseProgram;
 
-const static string default_vertex_shader = R"(
+const static string gl_default_vertex_shader = R"(
 #version 130
 // Shader padrão do SFML sem alterações
 void main()
@@ -34,7 +34,7 @@ void main()
 }
 )";
 
-const static string expand_colors_shader = R"(
+const static string gl_expand_colors_shader = R"(
 #version 130
 uniform sampler2D texture;
 
@@ -226,7 +226,7 @@ GLuint compile_glsl_program(const string &vertex_source, const string &fragment_
 }
 
 GLuint create_opengl_shader() {
-  return compile_glsl_program(default_vertex_shader, expand_colors_shader);
+  return compile_glsl_program(gl_default_vertex_shader, gl_expand_colors_shader);
 }
 
 void use_glsl_shader(GLuint shader) {
