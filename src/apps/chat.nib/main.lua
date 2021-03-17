@@ -9,17 +9,19 @@ function init()
 end
 
 function update(dt)
-  local msg = receive_network_message()
+  if math.random(256) == 1 then
+    local msg = receive_network_message()
 
-  if msg then
-    if type(msg) == "table" and msg.operation == "players_found" then
-      write_line("PLAYERS FOUND")
-      
-      for _, p in ipairs(msg.players) do
-        write_line(" > "..p[1])
+    if msg then
+      if type(msg) == "table" and msg.operation == "players_found" then
+        write_line("PLAYERS FOUND")
+
+        for _, p in ipairs(msg.players) do
+          write_line(" > "..p[1])
+        end
+      elseif type(msg) == "string" then
+        write_line("(??) "..msg)
       end
-    elseif type(msg) == "string" then
-      write_line("(??) "..msg)
     end
   end
   

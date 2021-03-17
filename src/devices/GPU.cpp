@@ -6,7 +6,12 @@
 #include <png.h>
 
 #include <devices/GPU.hpp>
+
+#ifdef _WIN32
+#include <devices/GPU/directx.hpp>
+#else
 #include <devices/GPU/opengl.hpp>
+#endif
 
 #include <Icon.hpp>
 
@@ -27,7 +32,12 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
                               GPU_VIDEO_HEIGHT*GPU_DEFAULT_SCALING,
                               SDL_WINDOW_SHOWN | (is_fullscreen? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL );
 
+#ifdef _WIN32
+    renderer = create_directx_renderer(window);
+#else
     renderer = create_opengl_renderer(window);
+#endif
+
     //renderer = SDL_CreateSoftwareRenderer(SDL_GetWindowSurface(window));
 
     palette_memory = memory.allocate(GPU_PALETTE_MEM_SIZE, "GPU Palettes");
@@ -56,9 +66,11 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
                                 int(GPU_VIDEO_WIDTH*screen_scale),
                                 int(GPU_VIDEO_HEIGHT*screen_scale)};
 
+#ifdef _WIN32
+#else
     check_opengl();
-
     shader = create_opengl_shader();
+#endif
 }
 
 GPU::~GPU() {
@@ -181,7 +193,10 @@ void GPU::draw() {
     }
 
     // Desenha o framebuffer na tela
+#ifdef _WIN32
+#else
     use_glsl_shader(shader);
+#endif
     SDL_RenderCopy(renderer, framebuffer, &framebuffer_src, &framebuffer_dst);
 
     // Mostra o resultado na janela

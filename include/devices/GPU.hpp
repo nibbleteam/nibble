@@ -68,9 +68,12 @@ class GPU: public Device {
     SDL_Texture *framebuffer;
     SDL_Rect framebuffer_dst, framebuffer_src;
 
+#ifdef _WIN32
+#else
     // Shader para expandir as cores
     // TODO: preciamos de um shader para opengl e um shader para DirectX
     GLuint shader;
+#endif
 
     // Cursores do mouse
     map<uint32_t, SDL_Cursor*> cursors;
