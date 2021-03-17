@@ -10,6 +10,20 @@ using namespace std;
 // Vem de: SDL_render_d3d.c
 typedef struct
 {
+    SDL_Rect viewport;
+    SDL_bool viewport_dirty;
+    SDL_Texture *texture;
+    SDL_BlendMode blend;
+    SDL_bool cliprect_enabled;
+    SDL_bool cliprect_enabled_dirty;
+    SDL_Rect cliprect;
+    SDL_bool cliprect_dirty;
+    SDL_bool is_copy_ex;
+    LPDIRECT3DPIXELSHADER9 shader;
+} D3D_DrawStateCache;
+
+typedef struct
+{
     void* d3dDLL;
     IDirect3D9 *d3d;
     IDirect3DDevice9 *device;
@@ -22,7 +36,7 @@ typedef struct
     IDirect3DSurface9 *defaultRenderTarget;
     IDirect3DSurface9 *currentRenderTarget;
     void* d3dxDLL;
-    LPDIRECT3DPIXELSHADER9 shaders[NUM_SHADERS];
+    LPDIRECT3DPIXELSHADER9 shaders[3];
     LPDIRECT3DVERTEXBUFFER9 vertexBuffers[8];
     size_t vertexBufferSize[8];
     int currentVertexBuffer;
