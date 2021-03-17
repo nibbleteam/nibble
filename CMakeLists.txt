@@ -73,6 +73,7 @@ set(SOURCE_FILES src/main.cpp
                  src/devices/Audio.cpp
                  src/devices/GPU.cpp
                  src/devices/GPU/opengl.cpp
+                 src/devices/GPU/directx.cpp
                  src/kernel/VideoEncoder.cpp
                  src/kernel/TriangleWave.cpp
                  src/kernel/FMSynthesizer.cpp
@@ -94,6 +95,7 @@ set(SOURCE_FILES src/main.cpp
                  include/devices/Audio.hpp
                  include/devices/GPU.hpp
                  include/devices/GPU/opengl.hpp
+                 include/devices/GPU/directx.hpp
                  include/kernel/VideoEncoder.hpp
                  include/kernel/TriangleWave.hpp
                  include/kernel/FMSynthesizer.hpp
