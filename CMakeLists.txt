@@ -113,6 +113,7 @@ set(SOURCE_FILES src/main.cpp
 
 set(INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include/
                  ${CMAKE_SOURCE_DIR}/subprojects/sdl2/include/
+                 ${CMAKE_SOURCE_DIR}/subprojects/sdl2/src/render/
                  ${CMAKE_SOURCE_DIR}/subprojects/luajit/src/
                  ${CMAKE_SOURCE_DIR}/subprojects/giflib/
                  ${CMAKE_SOURCE_DIR}/subprojects/mp4/

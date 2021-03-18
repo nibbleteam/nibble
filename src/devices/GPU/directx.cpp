@@ -1,5 +1,6 @@
 #ifdef _WIN32
 
+#include <SDL_sysrender.h>
 #include <devices/GPU/directx.hpp>
 #include <windows.h>
 #include <cassert>
