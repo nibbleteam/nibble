@@ -2,6 +2,7 @@
 
 #include <devices/GPU/directx.hpp>
 #include <windows.h>
+#include <cassert>
 
 #include <iostream>
 
