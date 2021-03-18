@@ -118,13 +118,11 @@ static const DWORD test_shader[] = {
 
 IDirect3DPixelShader9 **create_directx_shader(SDL_Renderer* renderer) {
   IDirect3DDevice9* device = ((D3D_RenderData*)renderer->driverdata)->device;
-  IDirect3DPixelShader9 **pixelShader;
+  IDirect3DPixelShader9 **shader;
 
-  assert(D3D_OK == IDirect3DDevice9_CreatePixelShader(device,
-                                                      test_shader,
-                                                      pixelShader));
+  assert(D3D_OK == IDirect3DDevice9_CreatePixelShader(device, test_shader, shader));
 
-  // ...
+  return shader;
 }
 
 #endif
