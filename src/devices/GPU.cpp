@@ -7,12 +7,6 @@
 
 #include <devices/GPU.hpp>
 
-#ifdef _WIN32
-#include <devices/GPU/directx.hpp>
-#else
-#include <devices/GPU/opengl.hpp>
-#endif
-
 #include <Icon.hpp>
 
 using namespace std;

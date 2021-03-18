@@ -13,6 +13,12 @@
 #include <kernel/VideoEncoder.hpp>
 #include <Specs.hpp>
 
+#ifdef _WIN32
+#include <devices/GPU/directx.hpp>
+#else
+#include <devices/GPU/opengl.hpp>
+#endif
+
 // Número de bytes por pixel em memória na CPU e na GPU
 #define BYTES_PER_PIXEL     1
 
