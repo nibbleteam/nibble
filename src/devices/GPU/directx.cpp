@@ -116,7 +116,7 @@ static const DWORD test_shader[] = {
     0x90e40000, 0x02000001, 0x800f0800, 0x80e40000, 0x0000ffff
 };
 
-void compile_directx_shader(SDL_Renderer* renderer) {
+IDirect3DPixelShader9 **shader create_directx_shader(SDL_Renderer* renderer) {
   IDirect3DDevice9* device = ((D3D_RenderData*)renderer->driverdata)->device;
   IDirect3DPixelShader9 **pixelShader;
 

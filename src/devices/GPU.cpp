@@ -67,6 +67,7 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
                                 int(GPU_VIDEO_HEIGHT*screen_scale)};
 
 #ifdef _WIN32
+    shader = create_directx_shader(renderer);
 #else
     check_opengl();
     shader = create_opengl_shader();
