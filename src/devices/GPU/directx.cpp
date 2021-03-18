@@ -51,9 +51,9 @@ const static string dx_expand_colors_shader = R"(
 )";
 
 SDL_Renderer* create_directx_renderer(SDL_Window* window) {
-  SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d");
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d");
 
-  return SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    return SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 }
 
 // TODO: do we need this?
@@ -117,12 +117,18 @@ static const DWORD test_shader[] = {
 };
 
 IDirect3DPixelShader9 **create_directx_shader(SDL_Renderer* renderer) {
-  IDirect3DDevice9* device = ((D3D_RenderData*)renderer->driverdata)->device;
-  IDirect3DPixelShader9 **shader;
+    IDirect3DDevice9* device = ((D3D_RenderData*)renderer->driverdata)->device;
+    IDirect3DPixelShader9 **shader;
 
-  assert(D3D_OK == IDirect3DDevice9_CreatePixelShader(device, test_shader, shader));
+    assert(D3D_OK == IDirect3DDevice9_CreatePixelShader(device, test_shader, shader));
 
-  return shader;
+    return shader;
+}
+
+void use_hlsl_shader(SDL_Renderer* renderer, IDirect3DPixelShader9 **shader) {
+    IDirect3DDevice9* device = ((D3D_RenderData*)renderer->driverdata)->device;
+
+    assert(D3D_OK == IDirect3DDevice9_SetPixelShader(device, shader));
 }
 
 #endif

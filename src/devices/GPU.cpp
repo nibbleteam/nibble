@@ -75,6 +75,10 @@ GPU::~GPU() {
 
     delete z_buffer;
 
+#ifdef _WIN32
+    IDirect3DPixelShader9_Release(shader);
+#endif
+
     SDL_DestroyTexture(framebuffer);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -189,6 +193,7 @@ void GPU::draw() {
 
     // Desenha o framebuffer na tela
 #ifdef _WIN32
+    use_hlsl_shader(shader);
 #else
     use_glsl_shader(shader);
 #endif
