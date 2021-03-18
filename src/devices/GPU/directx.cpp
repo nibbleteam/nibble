@@ -128,7 +128,7 @@ IDirect3DPixelShader9 **create_directx_shader(SDL_Renderer* renderer) {
 void use_hlsl_shader(SDL_Renderer* renderer, IDirect3DPixelShader9 **shader) {
     IDirect3DDevice9* device = ((D3D_RenderData*)renderer->driverdata)->device;
 
-    assert(D3D_OK == IDirect3DDevice9_SetPixelShader(device, shader));
+    assert(D3D_OK == IDirect3DDevice9_SetPixelShader(device, *shader));
 }
 
 #endif
