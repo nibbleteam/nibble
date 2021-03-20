@@ -76,7 +76,7 @@ GPU::~GPU() {
     delete z_buffer;
 
 #ifdef _WIN32
-    IDirect3DPixelShader9_Release(*shader);
+    IDirect3DPixelShader9_Release(shader);
 #endif
 
     SDL_DestroyTexture(framebuffer);
