@@ -75,7 +75,7 @@ class GPU: public Device {
     SDL_Rect framebuffer_dst, framebuffer_src;
 
 #ifdef _WIN32
-    IDirect3DPixelShader9 **shader;
+    IDirect3DPixelShader9 *shader;
 #else
     // Shader para expandir as cores
     GLuint shader;
