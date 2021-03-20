@@ -51,7 +51,7 @@ const static string dx_expand_colors_shader = R"(
 )";
 
 SDL_Renderer* create_directx_renderer(SDL_Window* window) {
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d");
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d9");
 
     return SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 }
