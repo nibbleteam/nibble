@@ -70,18 +70,21 @@ static const DWORD passthrough_shader[] = {
 
 IDirect3DPixelShader9 *create_directx_shader(SDL_Renderer* renderer) {
     IDirect3DDevice9* device = ((D3D_RenderData*)renderer->driverdata)->device;
-    IDirect3DPixelShader9 **shader;
+    IDirect3DPixelShader9 *shader;
 
-    assert(D3D_OK == IDirect3DDevice9_CreatePixelShader(device, passthrough_shader, shader));
+    assert(D3D_OK == IDirect3DDevice9_CreatePixelShader(device, passthrough_shader, &shader));
 
-    return *shader;
+    return shader;
 }
 
 void use_hlsl_shader(SDL_Renderer* renderer, IDirect3DPixelShader9 *shader) {
     IDirect3DDevice9* device = ((D3D_RenderData*)renderer->driverdata)->device;
 
+    //assert(D3D_OK == IDirect3DDevice9_SetPixelShader(device, shader));
+
+    // Set the same shader
+    assert(D3D_OK == IDirect3DDevice9_GetPixelShader(device, &shader));
     assert(D3D_OK == IDirect3DDevice9_SetPixelShader(device, shader));
-    assert(D3D_OK == IDirect3DDevice9_SetPixelShader(device, nullptr));
 }
 
 #endif
