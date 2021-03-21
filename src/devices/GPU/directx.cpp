@@ -95,7 +95,7 @@ IDirect3DPixelShader9 *create_directx_shader(SDL_Renderer* renderer) {
     IDirect3DDevice9* device = ((D3D_RenderData*)renderer->driverdata)->device;
     IDirect3DPixelShader9 *shader;
 
-    assert(D3D_OK == IDirect3DDevice9_CreatePixelShader(device, null_shader, &shader));
+    assert(D3D_OK == IDirect3DDevice9_CreatePixelShader(device, multiply_shader, &shader));
 
     return shader;
 }
