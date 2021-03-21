@@ -193,11 +193,15 @@ void GPU::draw() {
 
     // Desenha o framebuffer na tela
 #ifdef _WIN32
-    use_hlsl_shader(renderer, shader);
+    const auto default_shader = use_hlsl_shader(renderer, shader);
 #else
     use_glsl_shader(shader);
 #endif
     SDL_RenderCopy(renderer, framebuffer, &framebuffer_src, &framebuffer_dst);
+
+#ifdef _WIN32
+    use_hlsl_shader(renderer, default_shader);
+#endif
 
     // Mostra o resultado na janela
     SDL_RenderPresent(renderer);
