@@ -198,6 +198,7 @@ void GPU::draw() {
     use_glsl_shader(shader);
 #endif
     SDL_RenderCopy(renderer, framebuffer, &framebuffer_src, &framebuffer_dst);
+    SDL_RenderFlush(renderer);
 
 #ifdef _WIN32
     use_hlsl_shader(renderer, default_shader);
