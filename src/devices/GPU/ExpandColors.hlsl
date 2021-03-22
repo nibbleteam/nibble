@@ -49,5 +49,5 @@ float4 main(float2 uv: TEXCOORD): SV_Target {
     float2 color_position = index_to_position(400.0*240.0+floor(paletted_index*4.0), 400.0, 256.0);
     float4 color = tex2D(screen_texture, color_position);
 
-    return float4(color.a, color.b, color.g, color.r);
+    return float4(color.a, color.g, color.b, color.r);
 }
