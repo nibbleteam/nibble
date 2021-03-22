@@ -35,24 +35,21 @@ float linear_access(sampler2D tex, float w, float h, float index) {
 }
 
 float palette_colmap_2(float i) {
-    return linear_access(screen_texture, 400.0, 256.0, 400.0*240.0+640.0+(mod(i, 128.0)));
+    return linear_access(screen_texture, 512.0, 256.0, 512.0*240.0+640.0+(mod(i, 128.0)));
 }
 
 float4 main(float2 uv: TEXCOORD): SV_Target {
-    int x = int(uv.x*100.0);
+    int x = int(uv.x*128.0);
     int y = int(uv.y*256.0);
 
-    float2 pixel_position = float2((float(x)+0.5)/100.0, (float(y)+0.5)/256.0);
+    float2 pixel_position = float2((float(x)+0.5)/128.0, (float(y)+0.5)/256.0);
 	float4 pixel = tex2D(screen_texture, pixel_position);
 
-    float raw_index = subpixel_for_column(pixel, floor(uv.x*400.0));
+    float raw_index = subpixel_for_column(pixel, floor(uv.x*512.0));
     float paletted_index = palette_colmap_2(raw_index);
 
-    float2 color_position = index_to_position(400.0*240.0+floor(paletted_index*4.0), 400.0, 256.0);
+    float2 color_position = index_to_position(512.0*240.0+floor(paletted_index*4.0), 512.0, 256.0);
     float4 color = tex2D(screen_texture, color_position);
 
     return float4(color.a, color.b, color.g, color.r);
 }
-
-// Wrong: 59ce7d
-// Correct: d27d2c

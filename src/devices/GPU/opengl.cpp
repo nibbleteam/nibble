@@ -69,20 +69,20 @@ float linear_access(sampler2D tex, float w, float h, float index) {
 }
 
 float palette_colmap_2(float i) {
-    return linear_access(texture, 400.0, 256.0, 400.0*240.0+640.0+mod(i, 128.0));
+    return linear_access(texture, 512.0, 256.0, 512.0*240.0+640.0+mod(i, 128.0));
 }
 
 void main() {
-    int x = int(gl_TexCoord[0].x*100.0);
+    int x = int(gl_TexCoord[0].x*128.0);
     int y = int(gl_TexCoord[0].y*256.0);
 
-    vec2 pixel_position = vec2((float(x)+0.5)/100.0, (float(y)+0.5)/256.0);
+    vec2 pixel_position = vec2((float(x)+0.5)/128.0, (float(y)+0.5)/256.0);
     vec4 pixel = texture2D(texture, pixel_position);
 
-    float raw_index = subpixel_for_column(pixel, floor(gl_TexCoord[0].x*400.0));
+    float raw_index = subpixel_for_column(pixel, floor(gl_TexCoord[0].x*512.0));
     float paletted_index = palette_colmap_2(raw_index);
 
-    vec2 color_position = index_to_position(400.0*240.0+floor(paletted_index*4.0), 400.0, 256.0);
+    vec2 color_position = index_to_position(512.0*240.0+floor(paletted_index*4.0), 512.0, 256.0);
     vec4 color = texture2D(texture, color_position);
 
     gl_FragColor = vec4(color.a, color.b, color.g, color.r);
