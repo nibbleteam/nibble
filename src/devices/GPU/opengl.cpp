@@ -45,8 +45,8 @@ uniform sampler2D texture;
 
 vec2 index_to_position(int i, int w, int h) {
     return vec2(
-        (float(i%w)+0.99)/float(w),
-        (float(i/w)+0.99)/float(h)
+        (float(i%w)+0.5)/float(w),
+        (float(i/w)+0.5)/float(h)
     );
 }
 
