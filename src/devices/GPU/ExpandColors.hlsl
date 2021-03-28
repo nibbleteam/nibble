@@ -1,54 +1,64 @@
 #define mod(x, y) (x - y * floor(x / y))
 
+#define SCREEN_TEXTURE_PITCH 400
+#define SCREEN_TEXTURE_W 100
+#define SCREEN_TEXTURE_H 256
+
 sampler2D screen_texture: register(S0);
 
-float2 index_to_position(float i, float w, float h) {
+float2 index_to_position(int i, int w, int h) {
     return float2(
-        (floor(mod(i, w))+0.5)/w,
-        (floor(i/w)+0.5)/h
+        (float(i%w)+0.5)/float(w),
+        (float(i/w)+0.5)/float(h)
     );
 }
 
-float subpixel_value(float4 pixel, int subpixel) {
+int subpixel_value(float4 pixel, int subpixel) {
+    float value;
+
     if (subpixel == 0) {
-        return pixel.a;
+        value = pixel.a;
     } else if (subpixel == 1) {
-        return pixel.b;
+        value = pixel.b;
     } else if (subpixel == 2) {
-        return pixel.g;
+        value = pixel.g;
     } else if (subpixel == 3) {
-        return pixel.r;
-    } else {
-        return 0;
+        value = pixel.r;
     }
+
+    return int(value*255.0);
 }
 
-float subpixel_for_column(float4 pixel, float column) {
-    return subpixel_value(pixel, int(mod(column, 4.0)))*255.0;
+int subpixel_for_column(float4 pixel, int column) {
+    return subpixel_value(pixel, column%4);
 }
 
-float linear_access(sampler2D tex, float w, float h, float index) {
+int linear_access(sampler2D tex, int w, int h, int index) {
     float2 position = index_to_position(index, w, h);
     float4 pixel = tex2D(tex, position);
 
-    return subpixel_value(pixel, int(mod((position.x*w), 4.0)))*255.0;
+    return subpixel_value(pixel, int(position.x*w)%4);
 }
 
-float palette_colmap_2(float i) {
-    return linear_access(screen_texture, 512.0, 256.0, 512.0*240.0+640.0+(mod(i, 128.0)));
+int palette_colmap_2(int i) {
+    return linear_access(screen_texture,
+                         SCREEN_TEXTURE_PITCH, SCREEN_TEXTURE_H,
+                         SCREEN_TEXTURE_PITCH*240+640+i%SCREEN_TEXTURE_W);
 }
 
 float4 main(float2 uv: TEXCOORD): SV_Target {
-    int x = int(uv.x*128.0);
-    int y = int(uv.y*256.0);
+    int x = int(uv.x*SCREEN_TEXTURE_W);
+    int y = int(uv.y*SCREEN_TEXTURE_H);
 
-    float2 pixel_position = float2((float(x)+0.5)/128.0, (float(y)+0.5)/256.0);
+    float2 pixel_position = float2((float(x)+0.5)/SCREEN_TEXTURE_W,
+                                   (float(y)+0.5)/SCREEN_TEXTURE_H);
 	float4 pixel = tex2D(screen_texture, pixel_position);
 
-    float raw_index = subpixel_for_column(pixel, floor(uv.x*512.0));
-    float paletted_index = palette_colmap_2(raw_index);
+    int raw_index = subpixel_for_column(pixel, int(uv.x*SCREEN_TEXTURE_W));
+    int paletted_index = palette_colmap_2(raw_index);
 
-    float2 color_position = index_to_position(512.0*240.0+floor(paletted_index*4.0), 512.0, 256.0);
+    float2 color_position = index_to_position(SCREEN_TEXTURE_PITCH*240+paletted_index*4,
+                                              SCREEN_TEXTURE_PITCH, SCREEN_TEXTURE_H);
     float4 color = tex2D(screen_texture, color_position);
 
     return float4(color.a, color.b, color.g, color.r);

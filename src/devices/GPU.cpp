@@ -53,7 +53,7 @@ GPU::GPU(Memory& memory, const bool fullscreen_startup):
     framebuffer = SDL_CreateTexture(renderer,
                                     SDL_PIXELFORMAT_RGBA8888,
                                     SDL_TEXTUREACCESS_STREAMING,
-                                    GPU_VIDEO_WIDTH/4+GPU_TEXTURE_EXTRA_WIDTH, GPU_VIDEO_HEIGHT+16);
+                                    GPU_VIDEO_WIDTH/4, GPU_VIDEO_HEIGHT+16);
 
     framebuffer_src = SDL_Rect {0, 0, GPU_VIDEO_WIDTH/4, GPU_VIDEO_HEIGHT};
     framebuffer_dst = SDL_Rect {0, 0,
@@ -158,11 +158,7 @@ void GPU::draw() {
     SDL_LockTexture(framebuffer, NULL, &data, &pitch);
 
     // Tela
-    for (size_t y=0;y<GPU_VIDEO_HEIGHT; y++) {
-        memcpy(static_cast<uint8_t*>(data)+(GPU_VIDEO_WIDTH+GPU_TEXTURE_EXTRA_WIDTH*4)*y,
-               video_memory+GPU_VIDEO_WIDTH*y,
-               GPU_VIDEO_WIDTH);
-    }
+    memcpy(data, video_memory, GPU_VIDEO_MEM_SIZE);
     // Paleta
     memcpy(((uint8_t*)data)+GPU_TEXTURE_MEM_SIZE, palette_memory, GPU_PALETTE_MEM_SIZE);
     // Limpa o z-buffer
