@@ -53,7 +53,7 @@ vec2 index_to_position(int i, int w, int h) {
 }
 
 int subpixel_value(vec4 pixel, int subpixel) {
-    return int(pixel[3-subpixel%4]*255.0);
+    return int(pixel[3-subpixel%4]*256.0);
 }
 
 int linear_access(sampler2D tex, int index) {
