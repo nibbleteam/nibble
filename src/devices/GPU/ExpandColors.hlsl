@@ -10,8 +10,8 @@ sampler2D screen_texture: register(S0) = sampler_state {
 
 float2 index_to_position(int i, int w, int h) {
     return float2(
-        (float(i%w)+0.5)/float(w),
-        (float(i/w)+0.5)/float(h)
+        (float(i%w)+1)/float(w),
+        (float(i/w)+1)/float(h)
     );
 }
 
