@@ -6,7 +6,7 @@ sampler2D screen_texture: register(S0);
 
 float2 index_to_position(int i, int w, int h) {
     return float2(
-        (float(i%w)+0.5)/float(w),
+        (float(i%w)+0.125)/float(w),
         (float(i/w)+0.5)/float(h)
     );
 }
@@ -53,8 +53,8 @@ float4 main(float2 uv: TEXCOORD): SV_Target {
     int raw_index = subpixel_for_column(pixel, int(uv.x*SCREEN_TEXTURE_PITCH));
     int paletted_index = palette_colmap_2(raw_index);
 
-    float2 color_position = index_to_position(SCREEN_TEXTURE_PITCH*240+paletted_index*4,
-                                              SCREEN_TEXTURE_PITCH, SCREEN_TEXTURE_H);
+    float2 color_position = index_to_position(SCREEN_TEXTURE_W*240+paletted_index,
+                                              SCREEN_TEXTURE_W, SCREEN_TEXTURE_H);
     float4 color = tex2D(screen_texture, color_position);
 
     return float4(color.a, color.b, color.g, color.r);

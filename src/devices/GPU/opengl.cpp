@@ -89,7 +89,7 @@ void main() {
     int raw_index = subpixel_for_column(pixel, int(gl_TexCoord[0].x*TEXTURE_PITCH));
     int paletted_index = palette_colmap_2(raw_index);
 
-    vec2 color_position = index_to_position(TEXTURE_PITCH*240+4*paletted_index, TEXTURE_PITCH, TEXTURE_H);
+    vec2 color_position = index_to_position(TEXTURE_W*240+paletted_index, TEXTURE_W, TEXTURE_H);
     vec4 color = texture2D(texture, color_position);
 
     gl_FragColor = vec4(color.a, color.b, color.g, color.r);
