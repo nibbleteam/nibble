@@ -68,15 +68,15 @@ int subpixel_for_column(vec4 pixel, int column) {
     return subpixel_value(pixel, column%4);
 }
 
-int linear_access(sampler2D tex, int w, int h, int index) {
-    vec2 position = index_to_position(index, w, h);
+int linear_access(sampler2D tex, int index) {
+    vec2 position = index_to_position(index/4, TEXTURE_W, TEXTURE_H);
     vec4 pixel = texture2D(tex, position);
 
-    return subpixel_value(pixel, int(position.x*w)%4);
+    return subpixel_value(pixel, index%4);
 }
 
 int palette_colmap_2(int i) {
-    return linear_access(texture, TEXTURE_PITCH, TEXTURE_H, TEXTURE_PITCH*240+640+i%TEXTURE_W);
+    return linear_access(texture, TEXTURE_PITCH*240+640+i);
 }
 
 void main() {

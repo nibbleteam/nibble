@@ -6,7 +6,7 @@ sampler2D screen_texture: register(S0);
 
 float2 index_to_position(int i, int w, int h) {
     return float2(
-        (float(i%w)+0.125)/float(w),
+        (float(i%w)+0.5)/float(w),
         (float(i/w)+0.5)/float(h)
     );
 }
@@ -29,17 +29,16 @@ int subpixel_for_column(float4 pixel, int column) {
     return subpixel_value(pixel, column%4);
 }
 
-int linear_access(sampler2D tex, int w, int h, int index) {
-    float2 position = index_to_position(index, w, h);
+int linear_access(sampler2D tex, int index) {
+    float2 position = index_to_position(index/4, SCREEN_TEXTURE_W, SCREEN_TEXTURE_H);
     float4 pixel = tex2D(tex, position);
 
-    return subpixel_value(pixel, int(position.x*w)%4);
+    return subpixel_value(pixel, index%4);
 }
 
 int palette_colmap_2(int i) {
     return linear_access(screen_texture,
-                         SCREEN_TEXTURE_PITCH, SCREEN_TEXTURE_H,
-                         SCREEN_TEXTURE_PITCH*240+640+i%SCREEN_TEXTURE_W);
+                         SCREEN_TEXTURE_PITCH*240+640+i);
 }
 
 float4 main(float2 uv: TEXCOORD): SV_Target {
