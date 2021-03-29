@@ -8,8 +8,8 @@ sampler2D screen_texture: register(S0) = sampler_state {
 
 float2 index_to_position(int i) {
     return float2(
-        (float(i%SCREEN_TEXTURE_W)+0.5)/SCREEN_TEXTURE_W,
-        (float(i/SCREEN_TEXTURE_W)+0.5)/SCREEN_TEXTURE_H
+        min(1.0, max(0.0, (float(i%SCREEN_TEXTURE_W)+0.5)/SCREEN_TEXTURE_W)),
+        min(1.0, max(0.0, (float(i/SCREEN_TEXTURE_W)+0.5)/SCREEN_TEXTURE_H))
     );
 }
 
