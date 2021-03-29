@@ -3,9 +3,7 @@
 #define SCREEN_TEXTURE_H 256
 
 sampler2D screen_texture: register(S0) = sampler_state {
-    MinFilter = None;
-    MagFilter = None;
-    MipFilter = None;
+    Filter = None;
 };
 
 float2 index_to_position(int i, int w, int h) {
@@ -16,7 +14,7 @@ float2 index_to_position(int i, int w, int h) {
 }
 
 int subpixel_value(float4 pixel, int subpixel) {
-    return int(floor(pixel[3-subpixel%4]*256.0));
+    return int(floor(pixel[3-subpixel%4]*256.0+0.5));
 }
 
 int linear_access(sampler2D tex, int index) {
