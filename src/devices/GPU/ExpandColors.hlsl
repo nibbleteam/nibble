@@ -6,10 +6,10 @@ sampler2D screen_texture: register(S0) = sampler_state {
     Filter = None;
 };
 
-float2 index_to_position(int i, int w, int h) {
+float2 index_to_position(int i) {
     return float2(
-        (float(i%w)+0.5)/float(w),
-        (float(i/w)+0.5)/float(h)
+        (float(i%SCREEN_TEXTURE_W)+0.5)/SCREEN_TEXTURE_W,
+        (float(i/SCREEN_TEXTURE_W)+0.5)/SCREEN_TEXTURE_H
     );
 }
 
@@ -18,7 +18,7 @@ int subpixel_value(float4 pixel, int subpixel) {
 }
 
 int linear_access(sampler2D tex, int index) {
-    float2 position = index_to_position(index/4, SCREEN_TEXTURE_W, SCREEN_TEXTURE_H);
+    float2 position = index_to_position(index/4);
     float4 pixel = tex2D(tex, position);
 
     return subpixel_value(pixel, index);
@@ -37,14 +37,10 @@ float4 main(float2 uv: TEXCOORD): SV_Target {
     float4 pixel = tex2D(screen_texture, pixel_position);
 
     int raw_index = subpixel_value(pixel, int(uv.x*SCREEN_TEXTURE_PITCH));
-    // int paletted_index = palette_colmap_2(raw_index);
+    int paletted_index = palette_colmap_2(raw_index);
 
-    // float2 color_position = index_to_position(SCREEN_TEXTURE_W*240+paletted_index,
-    //                                           SCREEN_TEXTURE_W, SCREEN_TEXTURE_H);
-    // float4 color = tex2D(screen_texture, color_position);
+    float2 color_position = index_to_position(SCREEN_TEXTURE_W*240+paletted_index);
+    float4 color = tex2D(screen_texture, color_position);
 
-    float gray = float(raw_index)/255.0;
-
-    return float4(gray, gray, gray, 1);
-    // return float4(color.a, color.b, color.g, color.r);
+    return float4(color.a, color.b, color.g, color.r);
 }
